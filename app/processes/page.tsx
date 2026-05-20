@@ -5,14 +5,21 @@ import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import {
   ChevronDown, ChevronUp, Users, Layers, Activity,
-  XCircle, PauseCircle, PlayCircle, Ban, AlertTriangle,
+  XCircle, PauseCircle, PlayCircle, Ban,
 } from "lucide-react"
 import { PROCESSES as MOCK_PROCESSES } from "@/lib/mock-data"
 import { nodeApi, pythonApi } from "@/lib/api"
 import type { Process } from "@/lib/types"
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader,
+  AlertDialogTitle, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog"
 import { Pill } from "@/components/dashboard/Pill"
 import { ProgressBar } from "@/components/dashboard/ProgressBar"
 import { cn } from "@/lib/utils"
+
+type DialogState = { type: "kill" | "suspend"; proc: Process } | null
 
 // ── Python process mapper ──────────────────────────────────────────────────────
 
@@ -63,15 +70,16 @@ function MiniBar({ value, color = "var(--pn-cyan)" }: { value: number; color?: s
 
 // ── Action dropdown ────────────────────────────────────────────────────────────
 
+// ── Action dropdown ────────────────────────────────────────────────────────────
+
 type ActionMenuProps = {
   proc: Process
-  onKill: (p: Process) => void
-  onSuspend: (p: Process) => void
+  onRequestKill: (p: Process) => void
+  onRequestSuspend: (p: Process) => void
   onClose: () => void
 }
 
-function ActionMenu({ proc, onKill, onSuspend, onClose }: ActionMenuProps) {
-  const [confirmKill, setConfirmKill] = useState(false)
+function ActionMenu({ proc, onRequestKill, onRequestSuspend, onClose }: ActionMenuProps) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -92,7 +100,6 @@ function ActionMenu({ proc, onKill, onSuspend, onClose }: ActionMenuProps) {
         boxShadow: "0 8px 24px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.12)",
       }}
     >
-      {/* Header */}
       <div className="px-3 py-2.5" style={{ borderBottom: "1px solid var(--border)" }}>
         <p className="text-[10px] font-mono" style={{ color: "var(--fg-3)" }}>PID {proc.pid}</p>
         <p className="text-[12px] font-semibold truncate" style={{ color: "var(--fg)" }}>
@@ -101,9 +108,8 @@ function ActionMenu({ proc, onKill, onSuspend, onClose }: ActionMenuProps) {
       </div>
 
       <div className="p-1.5 space-y-0.5">
-        {/* Suspend */}
         <button
-          onClick={() => { onSuspend(proc); onClose() }}
+          onClick={() => { onRequestSuspend(proc); onClose() }}
           className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs text-left transition-colors"
           style={{ color: "var(--warn)" }}
           onMouseEnter={e => (e.currentTarget.style.background = "var(--warn-soft)")}
@@ -118,48 +124,133 @@ function ActionMenu({ proc, onKill, onSuspend, onClose }: ActionMenuProps) {
           </div>
         </button>
 
-        {/* Kill */}
-        {!confirmKill ? (
-          <button
-            onClick={() => setConfirmKill(true)}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs text-left transition-colors"
-            style={{ color: "var(--bad)" }}
-            onMouseEnter={e => (e.currentTarget.style.background = "var(--bad-soft)")}
-            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-          >
-            <XCircle size={14} className="flex-shrink-0" />
-            <div>
-              <p className="font-semibold leading-tight">Kill process</p>
-              <p className="text-[10px] leading-tight mt-0.5" style={{ color: "var(--fg-3)" }}>
-                SIGKILL · force terminate
-              </p>
-            </div>
-          </button>
-        ) : (
-          <div className="px-3 py-2.5 rounded-lg" style={{ background: "var(--bad-soft)", border: "1px solid var(--bad)" }}>
-            <p className="text-[11px] font-semibold mb-2 flex items-center gap-1.5" style={{ color: "var(--bad)" }}>
-              <AlertTriangle size={11} /> Kill PID {proc.pid}?
+        <button
+          onClick={() => { onRequestKill(proc); onClose() }}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs text-left transition-colors"
+          style={{ color: "var(--bad)" }}
+          onMouseEnter={e => (e.currentTarget.style.background = "var(--bad-soft)")}
+          onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+        >
+          <XCircle size={14} className="flex-shrink-0" />
+          <div>
+            <p className="font-semibold leading-tight">Kill process</p>
+            <p className="text-[10px] leading-tight mt-0.5" style={{ color: "var(--fg-3)" }}>
+              SIGKILL · force terminate
             </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => { onKill(proc); onClose() }}
-                className="flex-1 py-1.5 rounded-lg text-[11px] font-bold text-white transition-opacity hover:opacity-90"
-                style={{ background: "var(--bad)" }}
-              >
-                Confirm
-              </button>
-              <button
-                onClick={() => setConfirmKill(false)}
-                className="flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-colors"
-                style={{ color: "var(--fg-2)", background: "var(--bg-3)", border: "1px solid var(--border)" }}
-              >
-                Cancel
-              </button>
-            </div>
           </div>
-        )}
+        </button>
       </div>
     </div>
+  )
+}
+
+// ── Confirm dialog ─────────────────────────────────────────────────────────────
+
+function ProcessConfirmDialog({
+  dialog, onClose, onConfirmKill, onConfirmSuspend,
+}: {
+  dialog: DialogState
+  onClose: () => void
+  onConfirmKill: (p: Process) => void
+  onConfirmSuspend: (p: Process) => void
+}) {
+  if (!dialog) return null
+  const isKill = dialog.type === "kill"
+  const proc   = dialog.proc
+  const name   = proc.name || proc.cmd.split("/").pop() || `PID ${proc.pid}`
+
+  function confirm() {
+    if (isKill) onConfirmKill(proc)
+    else        onConfirmSuspend(proc)
+    onClose()
+  }
+
+  return (
+    <AlertDialog open onOpenChange={open => { if (!open) onClose() }}>
+      <AlertDialogContent
+        className="max-w-sm p-0 overflow-hidden gap-0"
+        style={{
+          background: "var(--card-elev)",
+          border: "1px solid var(--border-2)",
+          color: "var(--fg)",
+        }}
+      >
+        {/* Coloured top strip + icon */}
+        <div
+          className="flex flex-col items-center justify-center gap-3 px-6 py-7"
+          style={{ background: isKill ? "var(--bad-soft)" : "var(--warn-soft)" }}
+        >
+          <div
+            className="w-14 h-14 rounded-2xl flex items-center justify-center"
+            style={{
+              background: isKill ? "var(--bad-soft)" : "var(--warn-soft)",
+              border: `2px solid ${isKill ? "var(--bad)" : "var(--warn)"}`,
+            }}
+          >
+            {isKill
+              ? <XCircle size={28} style={{ color: "var(--bad)" }} />
+              : <PauseCircle size={28} style={{ color: "var(--warn)" }} />
+            }
+          </div>
+          <AlertDialogHeader className="text-center gap-1">
+            <AlertDialogTitle
+              className="text-base font-bold"
+              style={{ color: isKill ? "var(--bad)" : "var(--warn)" }}
+            >
+              {isKill ? "Kill process?" : "Suspend process?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[12px]" style={{ color: "var(--fg-3)" }}>
+              {isKill
+                ? "This will immediately terminate the process. Any unsaved work will be lost and it cannot be undone."
+                : "This will pause the process with SIGSTOP. It stays in memory and can be resumed later."
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+        </div>
+
+        {/* Process info strip */}
+        <div
+          className="flex items-center gap-3 px-5 py-3"
+          style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", background: "var(--bg-2)" }}
+        >
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-[10px] font-bold"
+            style={{ background: isKill ? "var(--bad-soft)" : "var(--warn-soft)", color: isKill ? "var(--bad)" : "var(--warn)" }}
+          >
+            {proc.pid}
+          </div>
+          <div className="min-w-0">
+            <p className="text-[12px] font-semibold truncate" style={{ color: "var(--fg)" }}>{name}</p>
+            <p className="text-[10px] font-mono truncate" style={{ color: "var(--fg-3)" }}>{proc.user} · {proc.cmd}</p>
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <AlertDialogFooter
+          className="flex-row gap-3 px-5 py-4 border-0 bg-transparent rounded-none"
+          style={{ background: "var(--card-elev)" }}
+        >
+          <AlertDialogCancel
+            className="flex-1 py-2 rounded-xl text-sm font-medium transition-colors"
+            style={{
+              background: "var(--bg-3)",
+              border: "1px solid var(--border-2)",
+              color: "var(--fg-2)",
+            }}
+          >
+            Cancel
+          </AlertDialogCancel>
+          <button
+            onClick={confirm}
+            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+            style={{ background: isKill ? "var(--bad)" : "var(--warn)" }}
+          >
+            {isKill ? <XCircle size={15} /> : <PauseCircle size={15} />}
+            {isKill ? "Kill" : "Suspend"}
+          </button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
 
@@ -176,6 +267,7 @@ export default function ProcessesPage() {
   const [processes,  setProcesses]  = useState<Process[]>(MOCK_PROCESSES)
   const [cpuCores,   setCpuCores]   = useState<number[]>([])
   const [menuPid,    setMenuPid]    = useState<number | null>(null)
+  const [dialog,     setDialog]     = useState<DialogState>(null)
   const [blocked,    setBlocked]    = useState<Process[]>([])
   const [toast,      setToast]      = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -445,8 +537,8 @@ export default function ProcessesPage() {
                       {menuPid === proc.pid && (
                         <ActionMenu
                           proc={proc}
-                          onKill={handleKill}
-                          onSuspend={handleSuspend}
+                          onRequestKill={p => { setDialog({ type: "kill", proc: p }); setMenuPid(null) }}
+                          onRequestSuspend={p => { setDialog({ type: "suspend", proc: p }); setMenuPid(null) }}
                           onClose={() => setMenuPid(null)}
                         />
                       )}
@@ -467,6 +559,14 @@ export default function ProcessesPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Confirm dialog ── */}
+      <ProcessConfirmDialog
+        dialog={dialog}
+        onClose={() => setDialog(null)}
+        onConfirmKill={handleKill}
+        onConfirmSuspend={handleSuspend}
+      />
 
       {/* ── Blocked / Suspended section ── */}
       {blocked.length > 0 && (
