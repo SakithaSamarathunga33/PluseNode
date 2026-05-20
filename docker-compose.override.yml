@@ -1,0 +1,70 @@
+services:
+  web:
+    networks:
+      - default
+      - coolify
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: coolify
+      traefik.http.middlewares.pulsenode-gzip.compress: "true"
+      traefik.http.middlewares.pulsenode-redirect-to-https.redirectscheme.scheme: https
+      traefik.http.routers.pulsenode-web-http.entryPoints: http
+      traefik.http.routers.pulsenode-web-http.middlewares: pulsenode-redirect-to-https
+      traefik.http.routers.pulsenode-web-http.rule: Host(`vps.sakitha.com`) && PathPrefix(`/`)
+      traefik.http.routers.pulsenode-web-http.service: pulsenode-web-http
+      traefik.http.routers.pulsenode-web-https.entryPoints: https
+      traefik.http.routers.pulsenode-web-https.middlewares: pulsenode-gzip
+      traefik.http.routers.pulsenode-web-https.rule: Host(`vps.sakitha.com`) && PathPrefix(`/`)
+      traefik.http.routers.pulsenode-web-https.service: pulsenode-web-https
+      traefik.http.routers.pulsenode-web-https.tls: "true"
+      traefik.http.routers.pulsenode-web-https.tls.certresolver: letsencrypt
+      traefik.http.services.pulsenode-web-http.loadbalancer.server.port: "3000"
+      traefik.http.services.pulsenode-web-https.loadbalancer.server.port: "3000"
+
+  node-api:
+    networks:
+      - default
+      - coolify
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: coolify
+      traefik.http.routers.pulsenode-node-http.entryPoints: http
+      traefik.http.routers.pulsenode-node-http.middlewares: pulsenode-redirect-to-https
+      traefik.http.routers.pulsenode-node-http.priority: "100"
+      traefik.http.routers.pulsenode-node-http.rule: Host(`vps.sakitha.com`) && (PathPrefix(`/api/`) || PathPrefix(`/socket.io/`))
+      traefik.http.routers.pulsenode-node-http.service: pulsenode-node-http
+      traefik.http.routers.pulsenode-node-https.entryPoints: https
+      traefik.http.routers.pulsenode-node-https.middlewares: pulsenode-gzip
+      traefik.http.routers.pulsenode-node-https.priority: "100"
+      traefik.http.routers.pulsenode-node-https.rule: Host(`vps.sakitha.com`) && (PathPrefix(`/api/`) || PathPrefix(`/socket.io/`))
+      traefik.http.routers.pulsenode-node-https.service: pulsenode-node-https
+      traefik.http.routers.pulsenode-node-https.tls: "true"
+      traefik.http.routers.pulsenode-node-https.tls.certresolver: letsencrypt
+      traefik.http.services.pulsenode-node-http.loadbalancer.server.port: "4001"
+      traefik.http.services.pulsenode-node-https.loadbalancer.server.port: "4001"
+
+  python-api:
+    networks:
+      - default
+      - coolify
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: coolify
+      traefik.http.routers.pulsenode-python-http.entryPoints: http
+      traefik.http.routers.pulsenode-python-http.middlewares: pulsenode-redirect-to-https
+      traefik.http.routers.pulsenode-python-http.priority: "100"
+      traefik.http.routers.pulsenode-python-http.rule: Host(`vps.sakitha.com`) && (PathPrefix(`/metrics/`) || PathPrefix(`/database/`) || PathPrefix(`/security/`))
+      traefik.http.routers.pulsenode-python-http.service: pulsenode-python-http
+      traefik.http.routers.pulsenode-python-https.entryPoints: https
+      traefik.http.routers.pulsenode-python-https.middlewares: pulsenode-gzip
+      traefik.http.routers.pulsenode-python-https.priority: "100"
+      traefik.http.routers.pulsenode-python-https.rule: Host(`vps.sakitha.com`) && (PathPrefix(`/metrics/`) || PathPrefix(`/database/`) || PathPrefix(`/security/`))
+      traefik.http.routers.pulsenode-python-https.service: pulsenode-python-https
+      traefik.http.routers.pulsenode-python-https.tls: "true"
+      traefik.http.routers.pulsenode-python-https.tls.certresolver: letsencrypt
+      traefik.http.services.pulsenode-python-http.loadbalancer.server.port: "8001"
+      traefik.http.services.pulsenode-python-https.loadbalancer.server.port: "8001"
+
+networks:
+  coolify:
+    external: true
