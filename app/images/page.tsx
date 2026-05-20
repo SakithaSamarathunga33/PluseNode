@@ -1,9 +1,11 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
-import { IMAGES } from "@/lib/mock-data"
+import { IMAGES as MOCK_IMAGES } from "@/lib/mock-data"
+import { nodeApi } from "@/lib/api"
+import type { DockerImage } from "@/lib/types"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
 import { VulnBar } from "@/components/dashboard/VulnBar"
@@ -52,8 +54,15 @@ function parseMb(s: string): number {
 /* ── Page ────────────────────────────────────────────────────────────── */
 export default function ImagesPage() {
   const container = useRef<HTMLDivElement>(null)
-  const [search, setSearch] = useState("")
+  const [search,   setSearch]   = useState("")
   const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [images,   setImages]   = useState<DockerImage[]>(MOCK_IMAGES)
+
+  useEffect(() => {
+    nodeApi.get<DockerImage[]>("/api/docker/images")
+      .then(({ data }) => setImages(data))
+      .catch(() => {})
+  }, [])
 
   useGSAP(() => {
     gsap.from(".gsap-enter", {
@@ -61,12 +70,12 @@ export default function ImagesPage() {
     })
   }, { scope: container })
 
-  const totalMb   = IMAGES.reduce((s, i) => s + parseMb(i.size), 0)
-  const unused    = IMAGES.filter(i => i.used === 0).length
-  const vulnSum   = IMAGES.reduce((s, i) => s + i.vulns.crit + i.vulns.high, 0)
-  const avgLayers = Math.round(IMAGES.reduce((s, i) => s + i.layers, 0) / IMAGES.length)
+  const totalMb   = images.reduce((s, i) => s + parseMb(i.size), 0)
+  const unused    = images.filter(i => i.used === 0).length
+  const vulnSum   = images.reduce((s, i) => s + i.vulns.crit + i.vulns.high, 0)
+  const avgLayers = images.length > 0 ? Math.round(images.reduce((s, i) => s + i.layers, 0) / images.length) : 0
 
-  const filtered = IMAGES.filter(img =>
+  const filtered = images.filter(img =>
     img.repo.toLowerCase().includes(search.toLowerCase()) ||
     img.tag.toLowerCase().includes(search.toLowerCase())
   )
@@ -82,7 +91,7 @@ export default function ImagesPage() {
 
   function toggleAll() {
     if (selected.size === filtered.length) setSelected(new Set())
-    else setSelected(new Set(filtered.map((_, i) => i)))
+    else setSelected(new Set(Array.from({ length: filtered.length }, (_, i) => i)))
   }
 
   return (
@@ -92,7 +101,7 @@ export default function ImagesPage() {
         <div>
           <h1 className="text-2xl font-bold text-helm-fg">Images</h1>
           <p className="text-sm text-helm-fg3 mt-0.5">
-            {IMAGES.length} images · {Math.round(totalMb)} MB · {unused} unused
+            {images.length} images · {Math.round(totalMb)} MB · {unused} unused
           </p>
         </div>
         <div className="flex gap-2">
@@ -111,7 +120,7 @@ export default function ImagesPage() {
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="gsap-enter">
-          <StatCard label="Total images" value={IMAGES.length} tone="acc" />
+          <StatCard label="Total images" value={images.length} tone="acc" />
         </div>
         <div className="gsap-enter">
           <StatCard label="Disk used" value={Math.round(totalMb)} unit="MB" tone="info" />

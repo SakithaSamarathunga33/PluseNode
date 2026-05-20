@@ -1,9 +1,11 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
-import { COOLIFY_PROJECTS, COOLIFY_DEPLOYMENTS } from "@/lib/mock-data"
+import { COOLIFY_PROJECTS as MOCK_PROJECTS, COOLIFY_DEPLOYMENTS as MOCK_DEPLOYMENTS } from "@/lib/mock-data"
+import { nodeApi } from "@/lib/api"
+import type { CoolifyProject, CoolifyDeployment } from "@/lib/types"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
 import BlurFade from "@/components/magicui/blur-fade"
@@ -64,7 +66,18 @@ function SubHeader({ title, count }: { title: string; count: number }) {
 
 /* ── Page ────────────────────────────────────────────────────────────── */
 export default function CoolifyPage() {
-  const container = useRef<HTMLDivElement>(null)
+  const container  = useRef<HTMLDivElement>(null)
+  const [projects,     setProjects]     = useState<CoolifyProject[]>(MOCK_PROJECTS)
+  const [deployments,  setDeployments]  = useState<CoolifyDeployment[]>(MOCK_DEPLOYMENTS)
+
+  useEffect(() => {
+    nodeApi.get<CoolifyProject[]>("/api/coolify/projects")
+      .then(({ data }) => setProjects(data))
+      .catch(() => {})
+    nodeApi.get<CoolifyDeployment[]>("/api/coolify/deployments")
+      .then(({ data }) => setDeployments(data))
+      .catch(() => {})
+  }, [])
 
   useGSAP(() => {
     gsap.from(".gsap-enter", {
@@ -73,9 +86,9 @@ export default function CoolifyPage() {
   }, { scope: container })
 
   /* Aggregate stats */
-  const totalApps = COOLIFY_PROJECTS.reduce((s, p) => s + p.apps.length, 0)
-  const totalDbs  = COOLIFY_PROJECTS.reduce((s, p) => s + p.databases.length, 0)
-  const runningServices = COOLIFY_PROJECTS.reduce(
+  const totalApps = projects.reduce((s, p) => s + p.apps.length, 0)
+  const totalDbs  = projects.reduce((s, p) => s + p.databases.length, 0)
+  const runningServices = projects.reduce(
     (s, p) => s + p.services.filter(sv => sv.status === "running").length, 0
   )
 
@@ -116,13 +129,13 @@ export default function CoolifyPage() {
           <StatCard label="Managed Databases"  value={totalDbs}        tone="info" />
         </div>
         <div className="gsap-enter">
-          <StatCard label="Deployments"        value={COOLIFY_DEPLOYMENTS.length} tone="acc" />
+          <StatCard label="Deployments"        value={deployments.length} tone="acc" />
         </div>
       </div>
 
       {/* Projects accordion */}
       <div className="space-y-3">
-        {COOLIFY_PROJECTS.map(project => (
+        {projects.map(project => (
           <div key={project.id} className="gsap-enter rounded-xl border border-pulseNode-border/10 overflow-hidden bg-pulseNode-navyLight shadow-card">
             <Accordion multiple={false} defaultValue={[project.id]}>
               <AccordionItem value={project.id} className="border-0">
@@ -292,7 +305,7 @@ export default function CoolifyPage() {
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm text-helm-fg">Recent Deployments</span>
             <span className="px-1.5 py-0.5 rounded-full bg-pulseNode-navy text-[10px] text-helm-fg3 font-mono">
-              {COOLIFY_DEPLOYMENTS.length}
+              {deployments.length}
             </span>
           </div>
         </div>
@@ -309,7 +322,7 @@ export default function CoolifyPage() {
               </tr>
             </thead>
             <tbody>
-              {COOLIFY_DEPLOYMENTS.map(dep => (
+              {deployments.map(dep => (
                 <tr key={dep.id}>
                   <td className="font-medium text-helm-fg">{dep.appName}</td>
                   <td>

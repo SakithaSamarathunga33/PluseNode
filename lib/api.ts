@@ -1,5 +1,5 @@
-const NODE_API   = process.env.NEXT_PUBLIC_NODE_API   || "http://localhost:4001"
-const PYTHON_API = process.env.NEXT_PUBLIC_PYTHON_API || "http://localhost:8001"
+const NODE_API   = process.env.NEXT_PUBLIC_NODE_API   ?? ""
+const PYTHON_API = process.env.NEXT_PUBLIC_PYTHON_API ?? ""
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<{ data: T; mock: boolean }> {
   const res = await fetch(url, { cache: "no-store", ...init })

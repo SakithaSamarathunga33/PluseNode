@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import {
@@ -8,7 +8,10 @@ import {
   BarChart, Bar, LineChart, Line,
 } from "recharts"
 import { Download, MoreHorizontal, Zap } from "lucide-react"
-import { HOST, SPARKS } from "@/lib/mock-data"
+import { HOST as MOCK_HOST, SPARKS as MOCK_SPARKS } from "@/lib/mock-data"
+import { nodeApi } from "@/lib/api"
+import { getSocket } from "@/lib/socket"
+import type { HostInfo, SystemMetrics } from "@/lib/types"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { cn } from "@/lib/utils"
 
@@ -76,9 +79,40 @@ const TIME_OPTIONS = ["5m", "1h", "6h", "24h", "7d"]
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 
+const HISTORY_LEN = 180
+
+function pushHistory(arr: number[], val: number): number[] {
+  const next = [...arr, val]
+  if (next.length > HISTORY_LEN) next.shift()
+  return next
+}
+
 export default function StatsPage() {
-  const [timeRange, setTimeRange] = useState("6h")
+  const [timeRange, setTimeRange]   = useState("6h")
+  const [host, setHost]             = useState<HostInfo>(MOCK_HOST)
+  const [cpuHist,  setCpuHist]      = useState<number[]>(MOCK_SPARKS.cpuLong)
+  const [ramHist,  setRamHist]      = useState<number[]>(MOCK_SPARKS.memLong)
+  const [diskHist, setDiskHist]     = useState<number[]>(MOCK_SPARKS.disk)
+  const [netHist,  setNetHist]      = useState<number[]>(MOCK_SPARKS.net)
+  const [netTxHist, setNetTxHist]   = useState<number[]>(MOCK_SPARKS.netTx)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    nodeApi.get<HostInfo>("/api/host")
+      .then(({ data }) => setHost(data))
+      .catch(() => {})
+
+    const socket = getSocket()
+    const handler = (m: SystemMetrics) => {
+      setCpuHist(prev  => pushHistory(prev,  m.cpu))
+      setRamHist(prev  => pushHistory(prev,  m.ram))
+      setDiskHist(prev => pushHistory(prev,  m.disk))
+      setNetHist(prev  => pushHistory(prev,  m.netIn))
+      setNetTxHist(prev => pushHistory(prev, m.netOut))
+    }
+    socket.on("system:metrics", handler)
+    return () => { socket.off("system:metrics", handler) }
+  }, [])
 
   useGSAP(() => {
     gsap.fromTo(
@@ -89,22 +123,22 @@ export default function StatsPage() {
   }, { scope: containerRef })
 
   // Prepare chart data
-  const cpuData    = SPARKS.cpuLong.map((v, i) => ({ t: i, v }))
-  const memData    = SPARKS.memLong.map((v, i) => ({ t: i, v }))
-  const ioData     = SPARKS.io.map((v, i) => ({ t: i, v }))
-  const netData    = SPARKS.net.map((v, i) => ({ t: i, v, tx: SPARKS.netTx[i] ?? 0 }))
+  const cpuData    = cpuHist.map((v, i)  => ({ t: i, v }))
+  const memData    = ramHist.map((v, i)  => ({ t: i, v }))
+  const ioData     = MOCK_SPARKS.io.map((v, i) => ({ t: i, v }))
+  const netData    = netHist.map((v, i)  => ({ t: i, v, tx: netTxHist[i] ?? 0 }))
 
-  // Memory breakdown (illustrative)
-  const memUsed    = HOST.memory.used
+  // Memory breakdown
+  const memUsed    = host.memory.used
   const memCached  = 0.6
   const memBuffers = 0.2
-  const memFree    = HOST.memory.total - memUsed - memCached - memBuffers
+  const memFree    = Math.max(0, host.memory.total - memUsed - memCached - memBuffers)
 
-  const memTotal   = HOST.memory.total
-  const usedPct    = (memUsed / memTotal) * 100
-  const cachedPct  = (memCached / memTotal) * 100
-  const bufPct     = (memBuffers / memTotal) * 100
-  const freePct    = (memFree / memTotal) * 100
+  const memTotal   = host.memory.total
+  const usedPct    = memTotal > 0 ? (memUsed    / memTotal) * 100 : 0
+  const cachedPct  = memTotal > 0 ? (memCached  / memTotal) * 100 : 0
+  const bufPct     = memTotal > 0 ? (memBuffers / memTotal) * 100 : 0
+  const freePct    = memTotal > 0 ? (memFree    / memTotal) * 100 : 0
 
   return (
     <div ref={containerRef} className="p-6 space-y-5">
@@ -113,7 +147,7 @@ export default function StatsPage() {
         <div>
           <h1 className="text-xl font-bold text-helm-fg">System Stats</h1>
           <p className="text-[12px] text-helm-fg3 mt-0.5">
-            {HOST.name} · {HOST.region} · {HOST.ip}
+            {host.name} · {host.region} · {host.ip}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -148,47 +182,47 @@ export default function StatsPage() {
       <div className="gsap-enter grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="CPU"
-          value={HOST.cpu.usage}
+          value={host.cpu.usage}
           unit="%"
-          spark={SPARKS.cpu}
+          spark={cpuHist}
           delta="+1.2%"
           deltaTone="up"
           tone="acc"
           accent
-          sub={<span>{HOST.cpu.model}</span>}
+          sub={<span>{host.cpu.model}</span>}
         />
         <StatCard
           label="Memory"
-          value={HOST.memory.pct}
+          value={host.memory.pct}
           unit="%"
-          spark={SPARKS.mem}
+          spark={ramHist}
           delta="-0.5%"
           deltaTone="down"
           tone="warn"
-          sub={<span>{HOST.memory.used}/{HOST.memory.total} {HOST.memory.unit} used</span>}
+          sub={<span>{host.memory.used}/{host.memory.total} {host.memory.unit} used</span>}
         />
         <StatCard
           label="Disk"
-          value={HOST.disk.pct}
+          value={host.disk.pct}
           unit="%"
-          spark={SPARKS.disk}
+          spark={diskHist}
           tone="info"
-          sub={<span>{HOST.disk.free} {HOST.disk.unit} free</span>}
+          sub={<span>{host.disk.free} {host.disk.unit} free</span>}
         />
         <StatCard
           label="Network RX"
-          value={HOST.network.rx}
-          unit={HOST.network.unit}
-          spark={SPARKS.net}
+          value={host.network.rx}
+          unit={host.network.unit}
+          spark={netHist}
           tone="ok"
-          sub={<span>TX {HOST.network.tx} {HOST.network.unit}</span>}
+          sub={<span>TX {host.network.tx} {host.network.unit}</span>}
         />
       </div>
 
       {/* ── Charts 2×2 ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* CPU */}
-        <ChartCard title="CPU Usage" value={`${HOST.cpu.usage}%`} dot>
+        <ChartCard title="CPU Usage" value={`${host.cpu.usage}%`} dot>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={cpuData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
               <defs>
@@ -206,7 +240,7 @@ export default function StatsPage() {
         </ChartCard>
 
         {/* Memory */}
-        <ChartCard title="Memory Usage" value={`${HOST.memory.pct}%`} dot>
+        <ChartCard title="Memory Usage" value={`${host.memory.pct}%`} dot>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={memData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
               <defs>
@@ -224,7 +258,7 @@ export default function StatsPage() {
         </ChartCard>
 
         {/* Disk I/O */}
-        <ChartCard title="Disk I/O" value={`${SPARKS.io[SPARKS.io.length - 1].toFixed(0)} MB/s`}>
+        <ChartCard title="Disk I/O" value={`${MOCK_SPARKS.io[MOCK_SPARKS.io.length - 1].toFixed(0)} MB/s`}>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={ioData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
               <XAxis dataKey="t" tick={xStyle} tickLine={false} axisLine={false} interval={14} />
@@ -236,7 +270,7 @@ export default function StatsPage() {
         </ChartCard>
 
         {/* Network */}
-        <ChartCard title="Network" value={`↓${HOST.network.rx} ↑${HOST.network.tx}`} unit={HOST.network.unit}>
+        <ChartCard title="Network" value={`↓${host.network.rx} ↑${host.network.tx}`} unit={host.network.unit}>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={netData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
               <XAxis dataKey="t" tick={xStyle} tickLine={false} axisLine={false} interval={14} />
@@ -256,14 +290,14 @@ export default function StatsPage() {
           <p className="text-[10px] font-semibold uppercase tracking-widest text-helm-fg3 mb-4">Host Info</p>
           <dl className="space-y-2.5">
             {[
-              ["Hostname",  HOST.name],
-              ["Distro",    HOST.distro],
-              ["Kernel",    HOST.kernel],
-              ["Uptime",    HOST.uptime],
-              ["IP",        HOST.ip],
-              ["Region",    HOST.region],
-              ["CPU Model", HOST.cpu.model],
-              ["Swap",      `${HOST.swap.used}/${HOST.swap.total} GB (${HOST.swap.pct}%)`],
+              ["Hostname",  host.name],
+              ["Distro",    host.distro],
+              ["Kernel",    host.kernel],
+              ["Uptime",    host.uptime],
+              ["IP",        host.ip],
+              ["Region",    host.region],
+              ["CPU Model", host.cpu.model],
+              ["Swap",      `${host.swap.used}/${host.swap.total} GB (${host.swap.pct}%)`],
             ].map(([k, v]) => (
               <div key={k} className="flex items-start justify-between gap-2">
                 <dt className="text-[11px] text-helm-fg3 flex-shrink-0">{k}</dt>
@@ -277,7 +311,7 @@ export default function StatsPage() {
         <div className="gsap-enter rounded-xl bg-pulseNode-navyLight border border-pulseNode-border/10 shadow-card p-5">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-helm-fg3 mb-4">Memory Breakdown</p>
           <p className="text-2xl font-bold text-pulseNode-cyan mb-1">
-            {HOST.memory.used} <span className="text-sm text-helm-fg3 font-normal">/ {HOST.memory.total} {HOST.memory.unit}</span>
+            {host.memory.used} <span className="text-sm text-helm-fg3 font-normal">/ {host.memory.total} {host.memory.unit}</span>
           </p>
 
           {/* Segmented bar */}
@@ -312,9 +346,9 @@ export default function StatsPage() {
             <p className="text-[10px] font-semibold uppercase tracking-widest text-helm-fg3 mb-2">Swap</p>
             <div className="flex items-center gap-2">
               <div className="flex-1 h-[3px] bg-pulseNode-navy rounded-full overflow-hidden">
-                <div className="h-full rounded-full bg-amber-400" style={{ width: `${HOST.swap.pct}%` }} />
+                <div className="h-full rounded-full bg-amber-400" style={{ width: `${host.swap.pct}%` }} />
               </div>
-              <span className="text-[11px] font-mono text-helm-fg">{HOST.swap.used}/{HOST.swap.total} GB</span>
+              <span className="text-[11px] font-mono text-helm-fg">{host.swap.used}/{host.swap.total} GB</span>
             </div>
           </div>
         </div>
@@ -323,18 +357,18 @@ export default function StatsPage() {
         <div className="gsap-enter rounded-xl bg-pulseNode-navyLight border border-pulseNode-border/10 shadow-card p-5">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-helm-fg3 mb-4">Disk</p>
           <p className="text-2xl font-bold text-pulseNode-blue mb-1">
-            {HOST.disk.pct}% <span className="text-sm text-helm-fg3 font-normal">used</span>
+            {host.disk.pct}% <span className="text-sm text-helm-fg3 font-normal">used</span>
           </p>
 
           <div className="my-4 h-3 rounded-full overflow-hidden bg-pulseNode-navy">
-            <div className="h-full rounded-full bg-pulseNode-blue" style={{ width: `${HOST.disk.pct}%` }} />
+            <div className="h-full rounded-full bg-pulseNode-blue" style={{ width: `${host.disk.pct}%` }} />
           </div>
 
           <div className="grid grid-cols-2 gap-3 mt-4">
             {[
-              { label: "Used",  val: `${HOST.disk.used} ${HOST.disk.unit}` },
-              { label: "Free",  val: `${HOST.disk.free} ${HOST.disk.unit}` },
-              { label: "Total", val: `${HOST.disk.total} ${HOST.disk.unit}` },
+              { label: "Used",  val: `${host.disk.used} ${host.disk.unit}` },
+              { label: "Free",  val: `${host.disk.free} ${host.disk.unit}` },
+              { label: "Total", val: `${host.disk.total} ${host.disk.unit}` },
               { label: "Type",  val: "SSD" },
             ].map(item => (
               <div key={item.label} className="rounded-lg bg-pulseNode-navy/60 px-3 py-2">

@@ -1,10 +1,12 @@
 "use client"
 
-import { useState, useRef, useMemo } from "react"
+import { useState, useRef, useMemo, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import { MoreHorizontal, ChevronDown, ChevronUp, Users, Layers, Activity } from "lucide-react"
-import { PROCESSES } from "@/lib/mock-data"
+import { PROCESSES as MOCK_PROCESSES } from "@/lib/mock-data"
+import { nodeApi } from "@/lib/api"
+import type { Process } from "@/lib/types"
 import { Pill } from "@/components/dashboard/Pill"
 import { ProgressBar } from "@/components/dashboard/ProgressBar"
 import { cn } from "@/lib/utils"
@@ -61,10 +63,17 @@ const CPU_CORES = [
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default function ProcessesPage() {
-  const [search,  setSearch]  = useState("")
-  const [sortKey, setSortKey] = useState<SortKey>("cpu")
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
+  const [search,     setSearch]     = useState("")
+  const [sortKey,    setSortKey]    = useState<SortKey>("cpu")
+  const [sortDir,    setSortDir]    = useState<"asc" | "desc">("desc")
+  const [processes,  setProcesses]  = useState<Process[]>(MOCK_PROCESSES)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    nodeApi.get<Process[]>("/api/pm2/list")
+      .then(({ data }) => setProcesses(data))
+      .catch(() => {})
+  }, [])
 
   useGSAP(() => {
     gsap.fromTo(
@@ -86,12 +95,12 @@ export default function ProcessesPage() {
   const sorted = useMemo(() => {
     const q = search.toLowerCase()
     const list = q
-      ? PROCESSES.filter(p =>
+      ? processes.filter(p =>
           p.cmd.toLowerCase().includes(q) ||
           p.user.toLowerCase().includes(q) ||
           String(p.pid).includes(q)
         )
-      : [...PROCESSES]
+      : [...processes]
 
     list.sort((a, b) => {
       const av = a[sortKey as keyof typeof a] as number
@@ -99,7 +108,7 @@ export default function ProcessesPage() {
       return sortDir === "desc" ? bv - av : av - bv
     })
     return list
-  }, [search, sortKey, sortDir])
+  }, [search, sortKey, sortDir, processes])
 
   const SortIcon = ({ k }: { k: SortKey }) => {
     if (sortKey !== k) return null
@@ -115,7 +124,7 @@ export default function ProcessesPage() {
         <div>
           <h1 className="text-xl font-bold text-helm-fg">Processes</h1>
           <p className="text-[12px] text-helm-fg3 mt-0.5">
-            {PROCESSES.length} processes · {PROCESSES.filter(p => p.type === "pm2").length} PM2 · {PROCESSES.filter(p => p.type === "system").length} system
+            {processes.length} processes · {processes.filter(p => p.type === "pm2").length} PM2 · {processes.filter(p => p.type === "system").length} system
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -282,7 +291,7 @@ export default function ProcessesPage() {
         {/* Footer */}
         <div className="flex items-center justify-between px-4 py-2.5 border-t border-pulseNode-border/10">
           <span className="text-[11px] text-helm-fg3">
-            Showing {sorted.length} of {PROCESSES.length} processes
+            Showing {sorted.length} of {processes.length} processes
           </span>
           <div className="flex items-center gap-1.5 text-[11px] text-green-400">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 status-live" />

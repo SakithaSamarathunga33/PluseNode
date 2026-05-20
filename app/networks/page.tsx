@@ -1,12 +1,14 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts"
-import { NETWORKS, SPARKS } from "@/lib/mock-data"
+import { NETWORKS as MOCK_NETWORKS, SPARKS } from "@/lib/mock-data"
+import { nodeApi } from "@/lib/api"
+import type { DockerNetwork } from "@/lib/types"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
 
@@ -103,6 +105,13 @@ const COOLIFY_CONTAINERS = [
 /* ── Page ────────────────────────────────────────────────────────────── */
 export default function NetworksPage() {
   const container = useRef<HTMLDivElement>(null)
+  const [networks, setNetworks] = useState<DockerNetwork[]>(MOCK_NETWORKS)
+
+  useEffect(() => {
+    nodeApi.get<DockerNetwork[]>("/api/docker/networks")
+      .then(({ data }) => setNetworks(data))
+      .catch(() => {})
+  }, [])
 
   useGSAP(() => {
     gsap.from(".gsap-enter", {
@@ -110,7 +119,7 @@ export default function NetworksPage() {
     })
   }, { scope: container })
 
-  const totalContainers = NETWORKS.reduce((s, n) => s + n.containers, 0)
+  const totalContainers = networks.reduce((s, n) => s + n.containers, 0)
 
   return (
     <div ref={container} className="p-6 space-y-6">
@@ -119,7 +128,7 @@ export default function NetworksPage() {
         <div>
           <h1 className="text-2xl font-bold text-helm-fg">Networks</h1>
           <p className="text-sm text-helm-fg3 mt-0.5">
-            {NETWORKS.length} networks · {totalContainers} container attachments
+            {networks.length} networks · {totalContainers} container attachments
           </p>
         </div>
         <div className="flex gap-2">
@@ -135,7 +144,7 @@ export default function NetworksPage() {
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="gsap-enter">
-          <StatCard label="Networks"    value={NETWORKS.length} tone="acc" />
+          <StatCard label="Networks"    value={networks.length} tone="acc" />
         </div>
         <div className="gsap-enter">
           <StatCard label="Throughput"  value={84} unit="KB/s" tone="info" spark={SPARKS.net} />
@@ -175,7 +184,7 @@ export default function NetworksPage() {
               </tr>
             </thead>
             <tbody>
-              {NETWORKS.map(net => (
+              {networks.map(net => (
                 <tr key={net.name}>
                   <td>
                     <div className="flex items-center gap-2">

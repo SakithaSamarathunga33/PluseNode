@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import {
@@ -8,7 +8,9 @@ import {
   FileText, Terminal, BarChart2, Trash2, LayoutGrid, Settings2,
   Calendar, ChevronDown,
 } from "lucide-react"
-import { CONTAINERS, HOST, SPARKS } from "@/lib/mock-data"
+import { CONTAINERS as MOCK_CONTAINERS, HOST as MOCK_HOST, SPARKS } from "@/lib/mock-data"
+import { nodeApi } from "@/lib/api"
+import type { Container, HostInfo } from "@/lib/types"
 import { Pill } from "@/components/dashboard/Pill"
 
 // ── Mini sparkline ─────────────────────────────────────────────────────────────
@@ -139,11 +141,22 @@ const TIME_RANGES = ["1h", "12h", "24h", "7d"]
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default function ContainersPage() {
-  const [tab, setTab]           = useState("running")
-  const [search, setSearch]     = useState("")
-  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [tab, setTab]             = useState("running")
+  const [search, setSearch]       = useState("")
+  const [selected, setSelected]   = useState<Set<string>>(new Set())
   const [timeRange, setTimeRange] = useState("1h")
+  const [containers, setContainers] = useState<Container[]>(MOCK_CONTAINERS)
+  const [host, setHost]           = useState<HostInfo>(MOCK_HOST)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    nodeApi.get<Container[]>("/api/docker/containers")
+      .then(({ data }) => setContainers(data))
+      .catch(() => {})
+    nodeApi.get<HostInfo>("/api/host")
+      .then(({ data }) => setHost(data))
+      .catch(() => {})
+  }, [])
 
   useGSAP(() => {
     gsap.fromTo(
@@ -153,11 +166,11 @@ export default function ContainersPage() {
     )
   }, { scope: containerRef })
 
-  const running = CONTAINERS.filter(c => c.state === "running").length
-  const stopped = CONTAINERS.filter(c => c.state === "stopped").length
-  const exited  = CONTAINERS.filter(c => c.state === "exited").length
+  const running = containers.filter(c => c.state === "running").length
+  const stopped = containers.filter(c => c.state === "stopped").length
+  const exited  = containers.filter(c => c.state === "exited").length
 
-  const filtered = CONTAINERS.filter(c => {
+  const filtered = containers.filter(c => {
     const matchTab    = tab === "all" || c.state === tab
     const q           = search.toLowerCase()
     const matchSearch = !q || c.name.toLowerCase().includes(q) || c.image.toLowerCase().includes(q)
@@ -173,6 +186,7 @@ export default function ContainersPage() {
     })
 
   const allChecked = filtered.length > 0 && filtered.every(c => selected.has(c.id))
+
 
   return (
     <div ref={containerRef} className="p-5 space-y-4">
@@ -233,14 +247,14 @@ export default function ContainersPage() {
         <div className="relative rounded-xl p-4 overflow-hidden"
           style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "var(--shadow-card)" }}>
           <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--fg-3)" }}>Host</p>
-          <p className="text-sm font-bold" style={{ color: "var(--fg)" }}>{HOST.name}</p>
-          <p className="text-[11px] mt-0.5" style={{ color: "var(--fg-3)" }}>{HOST.distro} · {HOST.kernel}</p>
+          <p className="text-sm font-bold" style={{ color: "var(--fg)" }}>{host.name}</p>
+          <p className="text-[11px] mt-0.5" style={{ color: "var(--fg-3)" }}>{host.distro} · {host.kernel}</p>
         </div>
 
         {/* Apps */}
         <StatCard
           label="Apps"
-          value={<span>{CONTAINERS.length}<span className="text-sm font-normal ml-1" style={{ color: "var(--fg-3)" }}>containers</span></span>}
+          value={<span>{containers.length}<span className="text-sm font-normal ml-1" style={{ color: "var(--fg-3)" }}>containers</span></span>}
           sub={
             <span className="flex items-center gap-2">
               <Pill tone="ok" dot>{running} running</Pill>
@@ -253,25 +267,25 @@ export default function ContainersPage() {
         {/* CPU */}
         <StatCard
           label="CPU"
-          value={HOST.cpu.usage}
+          value={host.cpu.usage}
           unit="%"
           spark={SPARKS.cpu}
           delta="+1.2%"
           deltaTone="up"
           sparkColor="var(--acc)"
-          sub={<span>{HOST.cpu.cores} cores · avg 23%</span>}
+          sub={<span>{host.cpu.cores} cores · {host.cpu.model.split("@")[0].trim()}</span>}
         />
 
         {/* Memory */}
         <StatCard
           label="Memory"
-          value={HOST.memory.pct}
+          value={host.memory.pct}
           unit="%"
           spark={SPARKS.mem}
           delta="-0.5%"
           deltaTone="down"
           sparkColor="var(--warn)"
-          sub={<span>{HOST.memory.used}/{HOST.memory.total} {HOST.memory.unit}</span>}
+          sub={<span>{host.memory.used}/{host.memory.total} {host.memory.unit}</span>}
         />
       </div>
 
@@ -286,13 +300,13 @@ export default function ContainersPage() {
             </span>
           </div>
           <div className="flex items-baseline gap-1.5 flex-wrap">
-            <span className="text-xl font-bold" style={{ color: "var(--fg)" }}>{HOST.disk.pct}%</span>
+            <span className="text-xl font-bold" style={{ color: "var(--fg)" }}>{host.disk.pct}%</span>
             <span className="text-xs" style={{ color: "var(--fg-3)" }}>
-              {HOST.disk.used} / {HOST.disk.total} {HOST.disk.unit} · {HOST.disk.free} {HOST.disk.unit} free
+              {host.disk.used} / {host.disk.total} {host.disk.unit} · {host.disk.free} {host.disk.unit} free
             </span>
           </div>
           <div className="mt-2 h-[3px] rounded-full overflow-hidden" style={{ background: "var(--bg-3)" }}>
-            <div className="h-full rounded-full" style={{ width: `${HOST.disk.pct}%`, background: "var(--acc-2)" }} />
+            <div className="h-full rounded-full" style={{ width: `${host.disk.pct}%`, background: "var(--acc-2)" }} />
           </div>
         </div>
 
@@ -306,11 +320,11 @@ export default function ContainersPage() {
           <div className="flex items-end gap-4">
             <div>
               <p className="text-[10px]" style={{ color: "var(--fg-3)" }}>↓ RX</p>
-              <p className="text-sm font-bold" style={{ color: "var(--ok)" }}>{HOST.network.rx} {HOST.network.unit}</p>
+              <p className="text-sm font-bold" style={{ color: "var(--ok)" }}>{host.network.rx} {host.network.unit}</p>
             </div>
             <div>
               <p className="text-[10px]" style={{ color: "var(--fg-3)" }}>↑ TX</p>
-              <p className="text-sm font-bold" style={{ color: "var(--ok)" }}>{HOST.network.tx} {HOST.network.unit}</p>
+              <p className="text-sm font-bold" style={{ color: "var(--ok)" }}>{host.network.tx} {host.network.unit}</p>
             </div>
             <MiniSpark data={SPARKS.cpu} color="var(--ok)" width={80} height={28} />
           </div>
@@ -325,7 +339,7 @@ export default function ContainersPage() {
           </div>
           <div className="flex items-end gap-4">
             <div className="flex items-baseline gap-3">
-              {HOST.load.map((l, i) => (
+              {host.load.map((l, i) => (
                 <span key={i} className="text-xl font-bold" style={{ color: "var(--fg)" }}>
                   {l.toFixed(2)}
                 </span>
@@ -534,7 +548,7 @@ export default function ContainersPage() {
           style={{ borderTop: "1px solid var(--border)" }}
         >
           <span className="text-[11px]" style={{ color: "var(--fg-3)" }}>
-            Showing {filtered.length} of 12 containers
+            Showing {filtered.length} of {containers.length} containers
           </span>
           <div className="flex items-center gap-1.5 text-[11px]" style={{ color: "var(--ok)" }}>
             <span className="w-1.5 h-1.5 rounded-full status-live" style={{ background: "var(--ok)" }} />

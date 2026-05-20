@@ -12,7 +12,7 @@ const { initDocker, getContainers, getContainerLogs,
 const { initPM2, getAllProcesses, restartApp }                    = require("./pm2")
 const { getCoolifyProjects, getCoolifyDeployments,
         enrichContainersWithCoolify }                             = require("./coolify")
-const { MOCK_SPARKS }                                             = require("./mock-data")
+const { getHostInfo, getCpuUsage, getDisk }                       = require("./host")
 
 /* ── App setup ─────────────────────────────────────────────────────────────── */
 const app    = express()
@@ -98,6 +98,18 @@ app.post("/api/pm2/restart/:name", async (req, res) => {
   catch (err) { res.status(500).json({ error: err.message }) }
 })
 
+/* ── Host info route ───────────────────────────────────────────────────────── */
+
+app.get("/api/host", async (req, res) => {
+  try {
+    const containers = await getContainers().catch(() => [])
+    const running = containers.filter(c => c.state === "running").length
+    res.json(getHostInfo(running))
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 /* ── Coolify routes ────────────────────────────────────────────────────────── */
 
 /** List Coolify projects */
@@ -133,25 +145,23 @@ const containerStatsInterval = setInterval(async () => {
   } catch {}
 }, 3000)
 
-/** System metrics every 2 s (mock walk when Docker unavailable) */
-let netIn  = 30, netOut = 18
+/** System metrics every 2 s using real OS data */
+const os = require("os")
 const systemMetricsInterval = setInterval(() => {
-  // Realistic random walk for demo
-  const cpu  = Math.max(5,  Math.min(95, (cpuHistory.at(-1) ?? 22) + (Math.random() - 0.45) * 8))
-  const ram  = Math.max(10, Math.min(90, 40 + (Math.random() - 0.5) * 6))
-  const disk = Math.max(20, Math.min(90, 26 + (Math.random() - 0.5) * 0.5))
-  netIn  = Math.max(5,  Math.min(500, netIn  + (Math.random() - 0.5) * 40))
-  netOut = Math.max(5,  Math.min(200, netOut + (Math.random() - 0.5) * 20))
+  const cpu  = getCpuUsage()
+  const mem  = os.totalmem() - os.freemem()
+  const ram  = Math.round((mem / os.totalmem()) * 1000) / 10
+  const disk = getDisk()
 
   cpuHistory.push(cpu)
   if (cpuHistory.length > 30) cpuHistory.shift()
 
   io.emit("system:metrics", {
-    cpu: Math.round(cpu * 10) / 10,
-    ram: Math.round(ram * 10) / 10,
-    disk: Math.round(disk * 10) / 10,
-    netIn: Math.round(netIn),
-    netOut: Math.round(netOut),
+    cpu,
+    ram,
+    disk: disk.pct,
+    netIn: 0,
+    netOut: 0,
     timestamp: Date.now(),
   })
 }, 2000)
