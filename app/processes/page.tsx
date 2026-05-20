@@ -564,18 +564,22 @@ export default function ProcessesPage() {
             onClick={() => setActiveTab(tab.key)}
             className="px-4 py-2.5 text-xs font-medium transition-colors flex items-center gap-1.5"
             style={{
-              color: activeTab === tab.key ? "var(--fg)" : "var(--fg-3)",
-              borderBottom: activeTab === tab.key ? "2px solid var(--acc)" : "2px solid transparent",
+              color: tab.key === "suspicious"
+                ? "var(--bad)"
+                : activeTab === tab.key ? "var(--fg)" : "var(--fg-3)",
+              borderBottom: activeTab === tab.key
+                ? `2px solid ${tab.key === "suspicious" ? "var(--bad)" : "var(--acc)"}`
+                : "2px solid transparent",
               marginBottom: "-1px",
             }}
           >
-            {tab.key === "suspicious" && <ShieldAlert size={12} style={{ color: tab.alert ? "var(--bad)" : "var(--fg-3)" }} />}
+            {tab.key === "suspicious" && <ShieldAlert size={12} style={{ color: "var(--bad)" }} />}
             {tab.label}
             <span
               className="px-1.5 py-0.5 rounded text-[10px] font-mono"
               style={{
-                background: tab.alert ? "var(--bad-soft)" : activeTab === tab.key ? "var(--acc-soft)" : "var(--bg-3)",
-                color: tab.alert ? "var(--bad)" : activeTab === tab.key ? "var(--acc)" : "var(--fg-3)",
+                background: "var(--bad-soft)",
+                color: "var(--bad)",
               }}
             >
               {tab.count}
