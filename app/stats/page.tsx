@@ -7,7 +7,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   BarChart, Bar, LineChart, Line,
 } from "recharts"
-import { Download, MoreHorizontal, Zap } from "lucide-react"
+import { Download, MoreHorizontal, Zap, Trash2 } from "lucide-react"
 import { HOST as MOCK_HOST, SPARKS as MOCK_SPARKS } from "@/lib/mock-data"
 import { nodeApi, pythonApi } from "@/lib/api"
 import { getSocket } from "@/lib/socket"
@@ -18,6 +18,12 @@ type PyMetrics = {
   diskRead: number; diskWrite: number
   netIn: number; netOut: number; ts: number
 }
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader,
+  AlertDialogTitle, AlertDialogFooter, AlertDialogCancel,
+} from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
+import { Terminal, AnimatedSpan } from "@/components/magicui/terminal"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { cn } from "@/lib/utils"
 
@@ -104,6 +110,67 @@ export default function StatsPage() {
   const [netHist,      setNetHist]      = useState<number[]>(MOCK_SPARKS.net)
   const [netTxHist,    setNetTxHist]    = useState<number[]>(MOCK_SPARKS.netTx)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [cacheOpen,  setCacheOpen]  = useState(false)
+  const [cacheLines, setCacheLines] = useState<string[]>([])
+  const [cacheState, setCacheState] = useState<"idle" | "running" | "done" | "error">("idle")
+  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null)
+
+  const handleClearCache = async () => {
+    setCacheLines(["$ docker builder prune -f"])
+    setCacheState("running")
+    setCacheOpen(true)
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_NODE_API ?? ""}/api/docker/build-cache/clear`,
+        { method: "POST" }
+      )
+      if (!res.body) throw new Error("No response body")
+
+      const reader = res.body.getReader()
+      readerRef.current = reader
+      const decoder = new TextDecoder()
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        const lines = chunk.split("\n")
+
+        for (const raw of lines) {
+          const trimmed = raw.trim()
+          if (!trimmed.startsWith("data:")) continue
+          try {
+            const payload = JSON.parse(trimmed.slice(5).trim())
+            if (payload.type === "line") {
+              setCacheLines(prev => [...prev, payload.text])
+            } else if (payload.type === "done") {
+              setCacheLines(prev => [...prev, "✔ Build cache cleared."])
+              setCacheState("done")
+            } else if (payload.type === "error") {
+              setCacheLines(prev => [...prev, `✗ ${payload.text}`])
+              setCacheState("error")
+            }
+          } catch {
+            // malformed SSE line — skip
+          }
+        }
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setCacheLines(prev => [...prev, `✗ ${msg}`])
+      setCacheState("error")
+    }
+  }
+
+  const handleCacheDialogClose = () => {
+    readerRef.current?.cancel()
+    readerRef.current = null
+    setCacheOpen(false)
+    setCacheState("idle")
+    setCacheLines([])
+  }
 
   useEffect(() => {
     nodeApi.get<HostInfo>("/api/host")
@@ -423,8 +490,72 @@ export default function StatsPage() {
               </span>
             </div>
           </div>
+
+          <div className="mt-4 pt-4 border-t border-pulseNode-border/10">
+            <Button
+              variant="destructive"
+              size="sm"
+              className="w-full gap-2 text-xs"
+              onClick={handleClearCache}
+              disabled={cacheState === "running"}
+            >
+              <Trash2 size={12} />
+              Clear Build Cache
+            </Button>
+          </div>
         </div>
       </div>
+
+      <AlertDialog open={cacheOpen} onOpenChange={open => { if (!open) handleCacheDialogClose() }}>
+        <AlertDialogContent className="max-w-2xl p-0 overflow-hidden gap-0 bg-pulseNode-navyLight border-pulseNode-border/20">
+          <AlertDialogHeader className="px-5 pt-5 pb-0">
+            <AlertDialogTitle className="text-sm font-semibold text-helm-fg flex items-center gap-2">
+              <Trash2 size={14} className="text-red-400" />
+              Clear Docker Build Cache
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+
+          <div className="p-5">
+            <Terminal
+              sequence={false}
+              startOnView={false}
+              className="max-w-full border-pulseNode-border/20 bg-pulseNode-navy"
+            >
+              {cacheLines.map((line, i) => (
+                <AnimatedSpan
+                  key={i}
+                  className={
+                    line.startsWith("✔")
+                      ? "text-green-400"
+                      : line.startsWith("✗")
+                      ? "text-red-400"
+                      : line.startsWith("$")
+                      ? "text-pulseNode-blue font-mono"
+                      : "text-helm-fg3 font-mono text-xs"
+                  }
+                >
+                  {line}
+                </AnimatedSpan>
+              ))}
+              {cacheState === "running" && (
+                <AnimatedSpan className="text-helm-fg3 font-mono text-xs">
+                  <span className="animate-pulse">▋</span>
+                </AnimatedSpan>
+              )}
+            </Terminal>
+          </div>
+
+          <AlertDialogFooter className="px-5 py-4 border-t border-pulseNode-border/10 bg-transparent rounded-none">
+            <AlertDialogCancel
+              onClick={handleCacheDialogClose}
+              variant="outline"
+              className="text-xs"
+            >
+              {cacheState === "running" ? "Cancel" : "Close"}
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
