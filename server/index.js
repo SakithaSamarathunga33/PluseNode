@@ -7,8 +7,8 @@ const cors       = require("cors")
 
 const { authMiddleware }                                           = require("./auth")
 const { initDocker, getContainers, getContainerLogs,
-        restartContainer, stopContainer, getImages,
-        getNetworks, sampleContainerStats, getDockerInstance }    = require("./docker")
+        restartContainer, startContainer, stopContainer, removeContainer, execCommand,
+        getImages, getNetworks, sampleContainerStats, getDockerInstance } = require("./docker")
 const { initPM2, getAllProcesses, restartApp }                    = require("./pm2")
 const { getCoolifyProjects, getCoolifyDeployments,
         enrichContainersWithCoolify }                             = require("./coolify")
@@ -117,10 +117,32 @@ app.post("/api/docker/restart/:id", async (req, res) => {
   catch (err) { res.status(500).json({ error: err.message }) }
 })
 
+/** Start a stopped/exited container */
+app.post("/api/docker/start/:id", async (req, res) => {
+  try { await startContainer(req.params.id); res.json({ ok: true }) }
+  catch (err) { res.status(500).json({ error: err.message }) }
+})
+
 /** Stop a container */
 app.post("/api/docker/stop/:id", async (req, res) => {
   try { await stopContainer(req.params.id); res.json({ ok: true }) }
   catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+/** Remove a container (force) */
+app.delete("/api/docker/remove/:id", async (req, res) => {
+  try { await removeContainer(req.params.id); res.json({ ok: true }) }
+  catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+/** Execute a command in a running container */
+app.post("/api/docker/exec/:id", async (req, res) => {
+  try {
+    const { cmd } = req.body
+    if (!cmd || typeof cmd !== "string") return res.status(400).json({ error: "cmd required" })
+    const output = await execCommand(req.params.id, cmd)
+    res.json({ output })
+  } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
 /* ── PM2 routes ────────────────────────────────────────────────────────────── */
@@ -181,6 +203,44 @@ app.get("/api/coolify/deployments", async (req, res) => {
   catch (err) { res.status(500).json({ error: err.message }) }
 })
 
+/** Clear Docker build cache — streams output via SSE */
+app.post("/api/docker/build-cache/clear", (req, res) => {
+  const { spawn } = require("child_process")
+
+  res.setHeader("Content-Type", "text/event-stream")
+  res.setHeader("Cache-Control", "no-cache")
+  res.setHeader("Connection", "keep-alive")
+  res.flushHeaders()
+
+  const send = (obj) => res.write(`data: ${JSON.stringify(obj)}\n\n`)
+
+  const proc = spawn("docker", ["builder", "prune", "-f"])
+
+  proc.stdout.on("data", (chunk) => {
+    chunk.toString().split("\n").filter(Boolean).forEach(line => send({ type: "line", text: line }))
+  })
+
+  proc.stderr.on("data", (chunk) => {
+    chunk.toString().split("\n").filter(Boolean).forEach(line => send({ type: "line", text: line }))
+  })
+
+  proc.on("close", (code) => {
+    if (code === 0) {
+      send({ type: "done" })
+    } else {
+      send({ type: "error", text: `Process exited with code ${code}` })
+    }
+    res.end()
+  })
+
+  proc.on("error", (err) => {
+    send({ type: "error", text: err.message })
+    res.end()
+  })
+
+  req.on("close", () => proc.kill())
+})
+
 /* ── Socket.io ─────────────────────────────────────────────────────────────── */
 
 // Alert state tracking
@@ -194,15 +254,16 @@ io.on("connection", socket => {
   socket.emit("alert:count", alertCount)
 })
 
-/** Container stats every 3 s */
+/** Container stats every 5 s (only when clients connected) */
 const containerStatsInterval = setInterval(async () => {
+  if (io.engine.clientsCount === 0) return
   try {
     const stats = await sampleContainerStats()
     io.emit("container:stats", stats)
   } catch {}
-}, 3000)
+}, 5000)
 
-/** System metrics every 2 s using real OS data */
+/** System metrics every 3 s (only when clients connected) */
 const os = require("os")
 const systemMetricsInterval = setInterval(() => {
   const cpu  = getCpuUsage()
@@ -214,6 +275,7 @@ const systemMetricsInterval = setInterval(() => {
   cpuHistory.push(cpu)
   if (cpuHistory.length > 30) cpuHistory.shift()
 
+  if (io.engine.clientsCount === 0) return
   io.emit("system:metrics", {
     cpu,
     ram,
@@ -222,9 +284,9 @@ const systemMetricsInterval = setInterval(() => {
     netOut: net.tx,
     timestamp: Date.now(),
   })
-}, 2000)
+}, 3000)
 
-/** Alert threshold check every 10 s */
+/** Alert threshold check every 15 s */
 const alertCheckInterval = setInterval(() => {
   const recentCpu = cpuHistory.slice(-3)
   const sustained = recentCpu.length === 3 && recentCpu.every(v => v > 85)
