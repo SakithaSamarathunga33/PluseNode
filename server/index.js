@@ -137,6 +137,24 @@ app.post("/api/pm2/restart/:name", async (req, res) => {
   catch (err) { res.status(500).json({ error: err.message }) }
 })
 
+/* ── Process signal routes ─────────────────────────────────────────────────── */
+
+function signalPid(pid, signal, res) {
+  const n = parseInt(pid, 10)
+  if (!Number.isInteger(n) || n < 2)
+    return res.status(400).json({ error: "invalid pid" })
+  try {
+    process.kill(n, signal)
+    res.json({ ok: true, pid: n, signal })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+app.post("/api/processes/kill/:pid",    (req, res) => signalPid(req.params.pid, "SIGKILL", res))
+app.post("/api/processes/suspend/:pid", (req, res) => signalPid(req.params.pid, "SIGSTOP", res))
+app.post("/api/processes/resume/:pid",  (req, res) => signalPid(req.params.pid, "SIGCONT", res))
+
 /* ── Host info route ───────────────────────────────────────────────────────── */
 
 app.get("/api/host", async (req, res) => {
