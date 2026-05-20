@@ -33,7 +33,8 @@ async function initDocker() {
 async function getContainers() {
   if (DOCKER_MOCK) return MOCK_CONTAINERS.map(c => ({ ...c, _mock: true }))
 
-  const list = await docker.listContainers({ all: true })
+  const list = await withTimeout(docker.listContainers({ all: true }), 8000)
+  if (!list) return MOCK_CONTAINERS.map(c => ({ ...c, _mock: true }))
   return list.map(c => ({
     id: c.Id.slice(0, 12),
     name: (c.Names[0] || "").replace(/^\//, ""),
@@ -131,7 +132,18 @@ async function getNetworks() {
 }
 
 /**
+ * Race a promise against a timeout. Returns null if the timeout fires first.
+ */
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise(resolve => setTimeout(() => resolve(null), ms)),
+  ])
+}
+
+/**
  * Sample per-container CPU + RAM stats for the socket.io loop.
+ * Each container stats call is capped at 2 s to prevent blocking the server.
  * @returns {Promise<Array<{containerId:string, cpu:number, ram:number}>>}
  */
 async function sampleContainerStats() {
@@ -145,11 +157,18 @@ async function sampleContainerStats() {
       }))
   }
 
-  const running = await docker.listContainers()
+  const running = await withTimeout(docker.listContainers(), 5000)
+  if (!running) return []
+
   const stats = await Promise.all(
     running.slice(0, 12).map(async c => {
       try {
-        const s = await docker.getContainer(c.Id).stats({ stream: false })
+        const s = await withTimeout(
+          docker.getContainer(c.Id).stats({ stream: false }),
+          2000
+        )
+        if (!s) return { containerId: c.Id.slice(0, 12), cpu: 0, ram: 0 }
+
         const cpuDelta = s.cpu_stats.cpu_usage.total_usage - s.precpu_stats.cpu_usage.total_usage
         const sysDelta = (s.cpu_stats.system_cpu_usage || 0) - (s.precpu_stats.system_cpu_usage || 0)
         const numCpu = s.cpu_stats.online_cpus || 1
