@@ -284,6 +284,10 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 .mono     { font-family: var(--font-geist-mono), 'JetBrains Mono', ui-monospace, monospace; font-variant-ligatures: none; }
 .tabular  { font-variant-numeric: tabular-nums; }
 
+.theme-logo-light { display: none; }
+:root[data-theme="light"] .theme-logo-dark { display: none; }
+:root[data-theme="light"] .theme-logo-light { display: block; }
+
 /* ============================================================================
    Table (pn-table class)
    ============================================================================ */

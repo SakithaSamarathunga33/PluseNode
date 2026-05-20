@@ -19,9 +19,9 @@ export const metadata: Metadata = {
   title: "PulseNode",
   description: "Infrastructure at a glance",
   icons: {
-    icon: "/helmeticon.png",
-    shortcut: "/helmeticon.png",
-    apple: "/helmeticon.png",
+    icon: "/helmetnew.png",
+    shortcut: "/helmetnew.png",
+    apple: "/helmetnew.png",
   },
 }
 

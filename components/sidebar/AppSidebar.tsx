@@ -99,11 +99,18 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
             transition={{ delay: 0.05 }}
             className="flex flex-col min-w-0 gap-1"
           >
-            <img
-              src="/logo.png"
-              alt="PulseNode"
-              className="h-[22px] w-[128px] object-contain object-left"
-            />
+            <span className="relative block h-[30px] w-[158px] overflow-hidden">
+              <img
+                src="/logodark-removebg-preview.png"
+                alt="PulseNode"
+                className="theme-logo-dark h-full w-full object-contain object-left"
+              />
+              <img
+                src="/logo-removebg-preview.png"
+                alt="PulseNode"
+                className="theme-logo-light h-full w-full object-contain object-left"
+              />
+            </span>
             <span className="text-[9px] tracking-widest uppercase" style={{ color: "var(--fg-3)" }}>
               vps · console
             </span>
