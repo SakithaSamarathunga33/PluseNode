@@ -74,7 +74,6 @@ export default function CoolifyPage() {
 
   /* Aggregate stats */
   const totalApps = COOLIFY_PROJECTS.reduce((s, p) => s + p.apps.length, 0)
-  const totalSvcs = COOLIFY_PROJECTS.reduce((s, p) => s + p.services.length, 0)
   const totalDbs  = COOLIFY_PROJECTS.reduce((s, p) => s + p.databases.length, 0)
   const runningServices = COOLIFY_PROJECTS.reduce(
     (s, p) => s + p.services.filter(sv => sv.status === "running").length, 0

@@ -8,7 +8,6 @@ import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
 import { ProgressBar } from "@/components/dashboard/ProgressBar"
 import BlurFade from "@/components/magicui/blur-fade"
-import { cn } from "@/lib/utils"
 
 /* ── Engine colours ─────────────────────────────────────────────────── */
 const ENGINE_COLOR: Record<string, string> = {

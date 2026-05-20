@@ -11,7 +11,6 @@ import { SCANS } from "@/lib/mock-data"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
 import { VulnBar } from "@/components/dashboard/VulnBar"
-import { cn } from "@/lib/utils"
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet"

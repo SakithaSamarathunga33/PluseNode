@@ -85,7 +85,7 @@ export default function ProcessesPage() {
 
   const sorted = useMemo(() => {
     const q = search.toLowerCase()
-    let list = q
+    const list = q
       ? PROCESSES.filter(p =>
           p.cmd.toLowerCase().includes(q) ||
           p.user.toLowerCase().includes(q) ||

@@ -9,6 +9,7 @@ import {
   Database, Shield, FileCode2, BellRing,
   ChevronDown, Cpu, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 import { BorderBeam } from "@/components/magicui/border-beam"
 import { NumberTicker } from "@/components/magicui/number-ticker"
 import { cn } from "@/lib/utils"
@@ -16,7 +17,20 @@ import { getSocket } from "@/lib/socket"
 import type { SystemMetrics } from "@/lib/types"
 import { HOST } from "@/lib/mock-data"
 
-const NAV_SECTIONS = [
+type NavItem = {
+  label: string
+  href: string
+  icon: LucideIcon
+  badge?: number
+  alertBadge?: boolean
+}
+
+type NavSection = {
+  label: string
+  items: NavItem[]
+}
+
+const NAV_SECTIONS: NavSection[] = [
   {
     label: "Workspace",
     items: [
@@ -190,15 +204,15 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
                           >
                             {item.label}
                           </span>
-                          {(item as any).badge && (
+                          {item.badge && (
                             <span
                               className="text-[10px] font-mono px-1.5 py-0.5 rounded-full min-w-[20px] text-center leading-none"
                               style={{ background: "var(--bg-3)", color: "var(--fg-3)" }}
                             >
-                              {(item as any).badge}
+                              {item.badge}
                             </span>
                           )}
-                          {(item as any).alertBadge && alertCount > 0 && (
+                          {item.alertBadge && alertCount > 0 && (
                             <span
                               className="text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center leading-none"
                               style={{ background: "var(--acc)", color: "#fff" }}

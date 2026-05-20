@@ -12,7 +12,6 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
   AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { cn } from "@/lib/utils"
 
 /* ── FilterChip ─────────────────────────────────────────────────────── */
 function FilterChip({ label, value }: { label: string; value: string }) {
@@ -75,7 +74,8 @@ export default function ImagesPage() {
   function toggleRow(idx: number) {
     setSelected(prev => {
       const next = new Set(prev)
-      next.has(idx) ? next.delete(idx) : next.add(idx)
+      if (next.has(idx)) next.delete(idx)
+      else next.add(idx)
       return next
     })
   }

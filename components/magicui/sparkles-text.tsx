@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 
 interface Sparkle { id: number; x: string; y: string; size: number; delay: number; color: string }
@@ -35,11 +35,12 @@ export default function SparklesText({
   const [sparkles, setSparkles] = useState<Sparkle[]>([])
 
   useEffect(() => {
-    setSparkles(Array.from({ length: sparklesCount }, () => generateSparkle(colors)))
+    const sparkleColors = { first: colors.first, second: colors.second }
+    setSparkles(Array.from({ length: sparklesCount }, () => generateSparkle(sparkleColors)))
     const interval = setInterval(() => {
       setSparkles(prev =>
         prev.map(s =>
-          Math.random() > 0.6 ? generateSparkle(colors) : s
+          Math.random() > 0.6 ? generateSparkle(sparkleColors) : s
         )
       )
     }, 1000)

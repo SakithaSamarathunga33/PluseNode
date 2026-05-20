@@ -10,6 +10,10 @@ const SECRET = process.env.NODE_API_SECRET || "pulsenode-dev-secret"
  * @param {import('express').NextFunction} next
  */
 function authMiddleware(req, res, next) {
+  if (process.env.NODE_API_AUTH === "false") {
+    return next()
+  }
+
   // Always allow in dev for ease of use
   if (process.env.NODE_ENV !== "production") {
     return next()

@@ -9,7 +9,6 @@ import {
 } from "lucide-react"
 import { SBOMS } from "@/lib/mock-data"
 import { StatCard } from "@/components/dashboard/StatCard"
-import { Pill } from "@/components/dashboard/Pill"
 import { NumberTicker } from "@/components/magicui/number-ticker"
 import { cn } from "@/lib/utils"
 
@@ -177,7 +176,7 @@ export default function SBOMHistoryPage() {
 
       {/* ── SBOM Cards Grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {SBOMS.map((sbom, i) => (
+        {SBOMS.map(sbom => (
           <div
             key={sbom.image}
             className="gsap-enter rounded-xl bg-pulseNode-navyLight border border-pulseNode-border/10 shadow-card p-4 space-y-4"

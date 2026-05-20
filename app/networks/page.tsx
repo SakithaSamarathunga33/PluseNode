@@ -9,27 +9,18 @@ import {
 import { NETWORKS, SPARKS } from "@/lib/mock-data"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
-import { cn } from "@/lib/utils"
 
-/* ── FilterChip ─────────────────────────────────────────────────────── */
-function FilterChip({ label, value }: { label: string; value: string }) {
-  return (
-    <button className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-pulseNode-navyLight border border-pulseNode-border/15 text-xs text-helm-fg3 hover:text-helm-fg transition-colors">
-      <span className="text-helm-fg4 text-[10px]">{label}</span>
-      <span className="text-helm-fg text-xs">{value}</span>
-      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <polyline points="6 9 12 15 18 9" />
-      </svg>
-    </button>
-  )
+type ChartPayload = {
+  value?: number
 }
 
 /* ── Chart tooltip ──────────────────────────────────────────────────── */
-function ChartTooltip({ active, payload }: any) {
+function ChartTooltip({ active, payload }: { active?: boolean; payload?: ChartPayload[] }) {
   if (!active || !payload?.length) return null
+  const value = payload[0]?.value ?? 0
   return (
     <div className="bg-pulseNode-navyLight border border-pulseNode-border/15 rounded-lg px-3 py-2 text-xs shadow-card">
-      <span className="text-pn-cyan font-mono">{payload[0]?.value?.toFixed(1)} KB/s</span>
+      <span className="text-pn-cyan font-mono">{value.toFixed(1)} KB/s</span>
     </div>
   )
 }
@@ -120,7 +111,6 @@ export default function NetworksPage() {
   }, { scope: container })
 
   const totalContainers = NETWORKS.reduce((s, n) => s + n.containers, 0)
-  const attachable      = NETWORKS.filter(n => n.attachable).length
 
   return (
     <div ref={container} className="p-6 space-y-6">

@@ -14,12 +14,26 @@ import { cn } from "@/lib/utils"
 
 // ── Chart helpers ─────────────────────────────────────────────────────────────
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+type TooltipPayload = {
+  color?: string
+  name?: string
+  value?: number | string
+}
+
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean
+  payload?: TooltipPayload[]
+  label?: string | number
+}) => {
   if (!active || !payload?.length) return null
   return (
     <div className="bg-pulseNode-navy border border-pulseNode-border/30 rounded-lg p-2 text-xs text-helm-fg shadow-card">
       <p className="text-helm-fg3 mb-0.5">t={label}</p>
-      {payload.map((p: any, i: number) => (
+      {payload.map((p, i) => (
         <p key={i} style={{ color: p.color }}>
           {p.name}: <span className="font-mono font-bold">{typeof p.value === "number" ? p.value.toFixed(1) : p.value}</span>
         </p>

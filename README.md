@@ -56,6 +56,38 @@ npm run build        # Production build
 npm run typecheck    # TypeScript checks
 ```
 
+## Deploy With Docker
+
+Copy the deployment env template and edit the public URLs for your VPS:
+
+```bash
+cp .env.deploy.example .env
+nano .env
+```
+
+For a plain IP-based deployment, set these values to your server IP:
+
+```bash
+NEXT_PUBLIC_ORIGIN=http://YOUR_VPS_IP:3000
+NEXT_PUBLIC_NODE_API=http://YOUR_VPS_IP:4001
+NEXT_PUBLIC_PYTHON_API=http://YOUR_VPS_IP:8001
+NEXT_PUBLIC_WS_URL=ws://YOUR_VPS_IP:4001
+```
+
+Start the stack:
+
+```bash
+docker compose up -d --build
+```
+
+PulseNode will run as three containers:
+
+- `web` on port `3000`
+- `node-api` on port `4001`
+- `python-api` on port `8001`
+
+The Node API mounts `/var/run/docker.sock` so it can discover Docker containers, images, and networks on the VPS. Keep `NODE_API_AUTH=false` only while running behind a trusted firewall or reverse proxy; turn it on after adding frontend token auth.
+
 ## Project Structure
 
 ```text
@@ -72,4 +104,3 @@ public/       PulseNode logo, app icon, and screenshots
 - `public/logo.png` powers the sidebar logo.
 - `public/helmeticon.png` is used as the browser/app icon.
 - The current dark theme is the default PulseNode look; light mode uses a clean white operations-console palette.
-

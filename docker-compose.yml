@@ -1,0 +1,46 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+      args:
+        NEXT_PUBLIC_NODE_API: ${NEXT_PUBLIC_NODE_API:-http://localhost:4001}
+        NEXT_PUBLIC_PYTHON_API: ${NEXT_PUBLIC_PYTHON_API:-http://localhost:8001}
+        NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:4001}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      - node-api
+      - python-api
+    restart: unless-stopped
+
+  node-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: node-api
+    environment:
+      NODE_ENV: production
+      NODE_PORT: 4001
+      NODE_API_AUTH: ${NODE_API_AUTH:-false}
+      NODE_API_SECRET: ${NODE_API_SECRET:-change-me}
+      NEXT_PUBLIC_ORIGIN: ${NEXT_PUBLIC_ORIGIN:-http://localhost:3000}
+      COOLIFY_API_URL: ${COOLIFY_API_URL:-}
+      COOLIFY_API_TOKEN: ${COOLIFY_API_TOKEN:-}
+    ports:
+      - "${NODE_PORT:-4001}:4001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+  python-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    environment:
+      NEXT_PUBLIC_ORIGIN: ${NEXT_PUBLIC_ORIGIN:-http://localhost:3000}
+      DATABASE_URL: ${DATABASE_URL:-}
+    ports:
+      - "${PYTHON_PORT:-8001}:8001"
+    restart: unless-stopped
