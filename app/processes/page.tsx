@@ -85,24 +85,36 @@ function ActionMenu({ proc, onKill, onSuspend, onClose }: ActionMenuProps) {
   return (
     <div
       ref={ref}
-      className="absolute right-0 top-7 z-50 w-44 rounded-xl overflow-hidden shadow-xl"
-      style={{ background: "var(--pn-navy)", border: "1px solid rgba(220,232,245,0.12)" }}
+      className="absolute right-0 top-7 z-50 w-52 rounded-xl overflow-hidden"
+      style={{
+        background: "var(--card-elev)",
+        border: "1px solid var(--border-2)",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.12)",
+      }}
     >
-      <div className="px-3 py-2 border-b border-white/5">
-        <p className="text-[10px] font-mono text-helm-fg3 truncate">PID {proc.pid}</p>
-        <p className="text-[11px] font-medium text-helm-fg truncate">{proc.name || proc.cmd.split("/").pop()}</p>
+      {/* Header */}
+      <div className="px-3 py-2.5" style={{ borderBottom: "1px solid var(--border)" }}>
+        <p className="text-[10px] font-mono" style={{ color: "var(--fg-3)" }}>PID {proc.pid}</p>
+        <p className="text-[12px] font-semibold truncate" style={{ color: "var(--fg)" }}>
+          {proc.name || proc.cmd.split("/").pop()}
+        </p>
       </div>
 
-      <div className="p-1">
-        {/* Suspend / Block */}
+      <div className="p-1.5 space-y-0.5">
+        {/* Suspend */}
         <button
           onClick={() => { onSuspend(proc); onClose() }}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-left transition-colors hover:bg-amber-500/10 text-amber-400"
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs text-left transition-colors"
+          style={{ color: "var(--warn)" }}
+          onMouseEnter={e => (e.currentTarget.style.background = "var(--warn-soft)")}
+          onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
         >
-          <PauseCircle size={13} />
+          <PauseCircle size={14} className="flex-shrink-0" />
           <div>
-            <p className="font-medium">Suspend</p>
-            <p className="text-[10px] opacity-70">SIGSTOP — pause execution</p>
+            <p className="font-semibold leading-tight">Suspend</p>
+            <p className="text-[10px] leading-tight mt-0.5" style={{ color: "var(--fg-3)" }}>
+              SIGSTOP · pause execution
+            </p>
           </div>
         </button>
 
@@ -110,29 +122,36 @@ function ActionMenu({ proc, onKill, onSuspend, onClose }: ActionMenuProps) {
         {!confirmKill ? (
           <button
             onClick={() => setConfirmKill(true)}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-left transition-colors hover:bg-red-500/10 text-red-400"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs text-left transition-colors"
+            style={{ color: "var(--bad)" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "var(--bad-soft)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >
-            <XCircle size={13} />
+            <XCircle size={14} className="flex-shrink-0" />
             <div>
-              <p className="font-medium">Kill</p>
-              <p className="text-[10px] opacity-70">SIGKILL — force terminate</p>
+              <p className="font-semibold leading-tight">Kill process</p>
+              <p className="text-[10px] leading-tight mt-0.5" style={{ color: "var(--fg-3)" }}>
+                SIGKILL · force terminate
+              </p>
             </div>
           </button>
         ) : (
-          <div className="px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20">
-            <p className="text-[10px] text-red-400 font-medium mb-1.5 flex items-center gap-1">
-              <AlertTriangle size={10} /> Confirm kill PID {proc.pid}?
+          <div className="px-3 py-2.5 rounded-lg" style={{ background: "var(--bad-soft)", border: "1px solid var(--bad)" }}>
+            <p className="text-[11px] font-semibold mb-2 flex items-center gap-1.5" style={{ color: "var(--bad)" }}>
+              <AlertTriangle size={11} /> Kill PID {proc.pid}?
             </p>
-            <div className="flex gap-1.5">
+            <div className="flex gap-2">
               <button
                 onClick={() => { onKill(proc); onClose() }}
-                className="flex-1 py-1 rounded text-[10px] font-bold bg-red-500 text-white"
+                className="flex-1 py-1.5 rounded-lg text-[11px] font-bold text-white transition-opacity hover:opacity-90"
+                style={{ background: "var(--bad)" }}
               >
-                Kill
+                Confirm
               </button>
               <button
                 onClick={() => setConfirmKill(false)}
-                className="flex-1 py-1 rounded text-[10px] text-helm-fg3 bg-white/5"
+                className="flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-colors"
+                style={{ color: "var(--fg-2)", background: "var(--bg-3)", border: "1px solid var(--border)" }}
               >
                 Cancel
               </button>
@@ -259,8 +278,13 @@ export default function ProcessesPage() {
 
       {/* ── Toast ── */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl text-xs font-medium shadow-xl"
-          style={{ background: "var(--pn-navy)", border: "1px solid rgba(220,232,245,0.15)", color: "var(--pn-cyan)" }}>
+        <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl text-xs font-medium"
+          style={{
+            background: "var(--card-elev)",
+            border: "1px solid var(--border-2)",
+            color: "var(--fg)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+          }}>
           {toast}
         </div>
       )}
@@ -403,7 +427,18 @@ export default function ProcessesPage() {
                     <div className="relative flex justify-end">
                       <button
                         onClick={() => setMenuPid(menuPid === proc.pid ? null : proc.pid)}
-                        className="px-2 py-1 rounded-lg text-xs text-helm-fg3 hover:text-helm-fg hover:bg-white/5 transition-colors flex items-center gap-1"
+                        className="px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1"
+                        style={{
+                          color: menuPid === proc.pid ? "var(--fg)" : "var(--fg-3)",
+                          background: menuPid === proc.pid ? "var(--bg-active)" : "transparent",
+                          border: "1px solid var(--border)",
+                        }}
+                        onMouseEnter={e => {
+                          if (menuPid !== proc.pid) (e.currentTarget as HTMLButtonElement).style.color = "var(--fg)"
+                        }}
+                        onMouseLeave={e => {
+                          if (menuPid !== proc.pid) (e.currentTarget as HTMLButtonElement).style.color = "var(--fg-3)"
+                        }}
                       >
                         Actions <ChevronDown size={10} />
                       </button>
@@ -435,61 +470,69 @@ export default function ProcessesPage() {
 
       {/* ── Blocked / Suspended section ── */}
       {blocked.length > 0 && (
-        <div className="gsap-enter rounded-xl overflow-hidden border border-amber-500/20 shadow-card">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-amber-500/10"
-            style={{ background: "rgba(245,158,11,0.06)" }}>
+        <div className="gsap-enter rounded-xl overflow-hidden shadow-card"
+          style={{ border: "1px solid var(--warn-soft)", background: "var(--card)" }}>
+          {/* Section header */}
+          <div className="flex items-center justify-between px-5 py-3"
+            style={{ borderBottom: "1px solid var(--border)", background: "var(--warn-soft)" }}>
             <div className="flex items-center gap-2">
-              <Ban size={14} className="text-amber-400" />
-              <span className="text-sm font-semibold text-amber-400">Suspended Processes</span>
-              <span className="px-1.5 py-0.5 rounded-full bg-amber-400/15 text-[10px] font-mono text-amber-400">
+              <Ban size={14} style={{ color: "var(--warn)" }} />
+              <span className="text-sm font-semibold" style={{ color: "var(--warn)" }}>Suspended Processes</span>
+              <span
+                className="px-1.5 py-0.5 rounded-full text-[10px] font-mono"
+                style={{ background: "var(--warn-soft)", color: "var(--warn)", border: "1px solid var(--warn)" }}
+              >
                 {blocked.length}
               </span>
             </div>
-            <span className="text-[11px] text-helm-fg3">Resume a process to allow it to run again</span>
+            <span className="text-[11px]" style={{ color: "var(--fg-3)" }}>Resume a process to allow it to run again</span>
           </div>
-          <div style={{ background: "var(--pn-navy-light)" }}>
-            <table className="pn-table w-full">
-              <thead>
-                <tr>
-                  <th>PID</th>
-                  <th>User</th>
-                  <th>Command</th>
-                  <th>Suspended state</th>
-                  <th className="right">Action</th>
+
+          {/* Table */}
+          <table className="pn-table w-full">
+            <thead>
+              <tr>
+                <th>PID</th>
+                <th>User</th>
+                <th>Command</th>
+                <th>State</th>
+                <th className="right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {blocked.map(proc => (
+                <tr key={proc.pid} style={{ borderLeft: "2px solid var(--warn)" }}>
+                  <td className="mono-cell" style={{ color: "var(--warn)" }}>{proc.pid}</td>
+                  <td className="dim">{proc.user}</td>
+                  <td>
+                    <span className="font-mono text-[12px] truncate max-w-[400px]" style={{ color: "var(--fg)" }} title={proc.cmd}>
+                      {proc.cmd}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                      style={{ background: "var(--warn-soft)", color: "var(--warn)" }}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--warn)" }} />
+                      SIGSTOP · paused
+                    </span>
+                  </td>
+                  <td className="right">
+                    <button
+                      onClick={() => handleResume(proc)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ml-auto"
+                      style={{ background: "var(--ok-soft)", color: "var(--ok)", border: "1px solid var(--ok)" }}
+                      onMouseEnter={e => (e.currentTarget.style.opacity = "0.8")}
+                      onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+                    >
+                      <PlayCircle size={12} /> Unblock
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {blocked.map(proc => (
-                  <tr key={proc.pid} className="border-l-2 border-amber-500/40">
-                    <td className="mono-cell text-amber-400">{proc.pid}</td>
-                    <td className="dim">{proc.user}</td>
-                    <td>
-                      <span className="font-mono text-[12px] text-helm-fg truncate max-w-[400px]" title={proc.cmd}>
-                        {proc.cmd}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-400">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                        SIGSTOP — paused
-                      </span>
-                    </td>
-                    <td className="right">
-                      <button
-                        onClick={() => handleResume(proc)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ml-auto"
-                        style={{ background: "rgba(34,197,94,0.12)", color: "rgb(74,222,128)", border: "1px solid rgba(34,197,94,0.2)" }}
-                        onMouseEnter={e => (e.currentTarget.style.background = "rgba(34,197,94,0.2)")}
-                        onMouseLeave={e => (e.currentTarget.style.background = "rgba(34,197,94,0.12)")}
-                      >
-                        <PlayCircle size={12} /> Unblock
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
