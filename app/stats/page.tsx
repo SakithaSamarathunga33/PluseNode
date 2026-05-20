@@ -161,6 +161,8 @@ export default function StatsPage() {
       const msg = err instanceof Error ? err.message : String(err)
       setCacheLines(prev => [...prev, `✗ ${msg}`])
       setCacheState("error")
+    } finally {
+      setCacheState(prev => prev === "running" ? "done" : prev)
     }
   }
 
