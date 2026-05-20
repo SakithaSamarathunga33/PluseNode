@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import {
@@ -9,6 +9,7 @@ import {
   AlertTriangle, Info, CheckCircle, XCircle, Edit2, Trash2, Copy,
 } from "lucide-react"
 import { ALERTS, ALERT_RULES } from "@/lib/mock-data"
+import { getSocket } from "@/lib/socket"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
 import { cn } from "@/lib/utils"
@@ -91,6 +92,21 @@ export default function AlertsPage() {
   const ack      = alerts.filter(a => a.state === "ack").length
   const resolved = alerts.filter(a => a.state === "resolved").length
 
+  useEffect(() => {
+    const socket = getSocket()
+    const handler = (alert: Alert) => {
+      setAlerts(prev => [{ ...alert, time: "just now" }, ...prev])
+      requestAnimationFrame(() =>
+        gsap.fromTo(".alert-row-new",
+          { opacity: 0, y: -40 },
+          { opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.4)" }
+        )
+      )
+    }
+    socket.on("alert:new", handler)
+    return () => { socket.off("alert:new", handler) }
+  }, [])
+
   useGSAP(() => {
     gsap.fromTo(
       containerRef.current?.querySelectorAll(".gsap-enter") ?? [],
@@ -100,7 +116,7 @@ export default function AlertsPage() {
   }, { scope: containerRef })
 
   function simulateAlert() {
-    setAlerts(prev => [{ ...MOCK_NEW_ALERT }, ...prev])
+    setAlerts(prev => [{ ...MOCK_NEW_ALERT, time: "just now" }, ...prev])
     requestAnimationFrame(() =>
       gsap.fromTo(".alert-row-new",
         { opacity: 0, y: -40 },
@@ -228,7 +244,7 @@ export default function AlertsPage() {
             {/* Alert rows */}
             <div>
               {filteredAlerts.map((alert, i) => {
-                const isNew = i === 0 && alert.title === MOCK_NEW_ALERT.title
+                const isNew = i === 0 && alert.time === "just now"
                 return (
                   <div
                     key={`${alert.title}-${i}`}

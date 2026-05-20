@@ -5,8 +5,30 @@ import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import { MoreHorizontal, ChevronDown, ChevronUp, Users, Layers, Activity } from "lucide-react"
 import { PROCESSES as MOCK_PROCESSES } from "@/lib/mock-data"
-import { nodeApi } from "@/lib/api"
+import { nodeApi, pythonApi } from "@/lib/api"
 import type { Process } from "@/lib/types"
+
+type PyProcess = {
+  pid: number; name: string; cpu: number; mem_mb: number
+  status: string; user: string; cmd: string; type: string
+}
+
+function mapPyProcess(p: PyProcess): Process {
+  return {
+    pid:   p.pid,
+    user:  p.user,
+    cpu:   p.cpu,
+    mem:   p.mem_mb,
+    virt:  "—",
+    res:   `${p.mem_mb} MB`,
+    cmd:   p.cmd || p.name,
+    state: p.status === "running" ? "R" : "S",
+    time:  "—",
+    type:  "system" as const,
+    name:  p.name,
+    memMb: p.mem_mb,
+  }
+}
 import { Pill } from "@/components/dashboard/Pill"
 import { ProgressBar } from "@/components/dashboard/ProgressBar"
 import { cn } from "@/lib/utils"
@@ -53,13 +75,6 @@ function MiniBar({ value, color = "var(--pn-cyan)" }: { value: number; color?: s
 
 type SortKey = "cpu" | "mem" | "pid"
 
-const CPU_CORES = [
-  { label: "CPU1", pct: 22 },
-  { label: "CPU2", pct: 18 },
-  { label: "CPU3", pct: 31 },
-  { label: "CPU4", pct: 14 },
-]
-
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default function ProcessesPage() {
@@ -67,12 +82,28 @@ export default function ProcessesPage() {
   const [sortKey,    setSortKey]    = useState<SortKey>("cpu")
   const [sortDir,    setSortDir]    = useState<"asc" | "desc">("desc")
   const [processes,  setProcesses]  = useState<Process[]>(MOCK_PROCESSES)
+  const [cpuCores,   setCpuCores]   = useState<number[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    nodeApi.get<Process[]>("/api/pm2/list")
-      .then(({ data }) => setProcesses(data))
-      .catch(() => {})
+    // Python gives all real system processes via psutil; Node gives PM2-enriched list
+    pythonApi.get<PyProcess[]>("/metrics/processes")
+      .then(({ data }) => { if (data.length > 0) setProcesses(data.map(mapPyProcess)) })
+      .catch(() => {
+        nodeApi.get<Process[]>("/api/pm2/list")
+          .then(({ data }) => setProcesses(data))
+          .catch(() => {})
+      })
+
+    // Poll Python for per-core CPU data every 3 s
+    function fetchCores() {
+      pythonApi.get<{ cpuCores?: number[] }>("/metrics/live")
+        .then(({ data }) => { if (data.cpuCores?.length) setCpuCores(data.cpuCores) })
+        .catch(() => {})
+    }
+    fetchCores()
+    const coreTimer = setInterval(fetchCores, 3000)
+    return () => clearInterval(coreTimer)
   }, [])
 
   useGSAP(() => {
@@ -141,20 +172,22 @@ export default function ProcessesPage() {
       </div>
 
       {/* ── CPU core strip ── */}
-      <div className="gsap-enter rounded-xl bg-pulseNode-navyLight border border-pulseNode-border/10 shadow-card px-5 py-4">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-helm-fg3 mb-3">CPU Cores</p>
-        <div className="grid grid-cols-4 gap-4">
-          {CPU_CORES.map(core => (
-            <div key={core.label}>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] text-helm-fg3">{core.label}</span>
-                <span className="text-[10px] font-mono font-bold text-pulseNode-cyan">{core.pct}%</span>
+      {cpuCores.length > 0 && (
+        <div className="gsap-enter rounded-xl bg-pulseNode-navyLight border border-pulseNode-border/10 shadow-card px-5 py-4">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-helm-fg3 mb-3">CPU Cores · live</p>
+          <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(cpuCores.length, 8)}, 1fr)` }}>
+            {cpuCores.map((pct, i) => (
+              <div key={i}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] text-helm-fg3">CPU{i + 1}</span>
+                  <span className="text-[10px] font-mono font-bold text-pulseNode-cyan">{pct}%</span>
+                </div>
+                <ProgressBar value={pct} tone={pct > 85 ? "bad" : pct > 65 ? "warn" : "ok"} />
               </div>
-              <ProgressBar value={core.pct} tone="ok" />
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Filter row ── */}
       <div className="gsap-enter flex items-center gap-2 flex-wrap">
@@ -208,7 +241,7 @@ export default function ProcessesPage() {
                 </th>
                 <th>
                   <button onClick={() => handleSort("mem")} className="flex items-center gap-0.5 hover:text-helm-fg transition-colors">
-                    MEM% <SortIcon k="mem" />
+                    MEM <SortIcon k="mem" />
                   </button>
                 </th>
                 <th>VIRT</th>
@@ -261,11 +294,16 @@ export default function ProcessesPage() {
                     </div>
                   </td>
 
-                  {/* MEM% */}
+                  {/* MEM */}
                   <td>
                     <div className="flex items-center gap-2">
-                      <MiniBar value={(proc.mem / 10) * 100} color="var(--pn-blue)" />
-                      <span className="text-[11px] font-mono text-helm-fg">{proc.mem.toFixed(1)}</span>
+                      <MiniBar
+                        value={proc.memMb != null ? Math.min(100, (proc.memMb / 500) * 100) : (proc.mem / 10) * 100}
+                        color="var(--pn-blue)"
+                      />
+                      <span className="text-[11px] font-mono text-helm-fg">
+                        {proc.memMb != null ? `${proc.memMb}M` : `${proc.mem.toFixed(1)}%`}
+                      </span>
                     </div>
                   </td>
 

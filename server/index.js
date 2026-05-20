@@ -12,7 +12,7 @@ const { initDocker, getContainers, getContainerLogs,
 const { initPM2, getAllProcesses, restartApp }                    = require("./pm2")
 const { getCoolifyProjects, getCoolifyDeployments,
         enrichContainersWithCoolify }                             = require("./coolify")
-const { getHostInfo, getCpuUsage, getDisk }                       = require("./host")
+const { getHostInfo, getCpuUsage, getDisk, getNetworkRates }       = require("./host")
 
 /* ── App setup ─────────────────────────────────────────────────────────────── */
 const app    = express()
@@ -62,6 +62,45 @@ app.get("/api/docker/images", async (req, res) => {
 app.get("/api/docker/networks", async (req, res) => {
   try { res.json(await getNetworks()) }
   catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+/** List database containers derived from Docker */
+app.get("/api/docker/databases", async (req, res) => {
+  try {
+    const containers = await getContainers()
+    const DB_IMAGES = /postgres|mysql|mariadb|redis|mongo|clickhouse|cassandra|elasticsearch/i
+    const ENGINE_MAP = {
+      postgres:     { engine: "postgres",   port: 5432, maxConns: 100 },
+      mysql:        { engine: "mysql",      port: 3306, maxConns: 100 },
+      mariadb:      { engine: "mysql",      port: 3306, maxConns: 100 },
+      redis:        { engine: "redis",      port: 6379, maxConns: 200 },
+      mongo:        { engine: "mongodb",    port: 27017, maxConns: 100 },
+      clickhouse:   { engine: "clickhouse", port: 8123, maxConns: 50 },
+      cassandra:    { engine: "cassandra",  port: 9042, maxConns: 100 },
+      elasticsearch:{ engine: "elasticsearch", port: 9200, maxConns: 100 },
+    }
+    const dbs = containers
+      .filter(c => DB_IMAGES.test(c.image))
+      .map(c => {
+        const engineKey = Object.keys(ENGINE_MAP).find(k => c.image.toLowerCase().includes(k)) || "postgres"
+        const meta = ENGINE_MAP[engineKey]
+        const versionMatch = c.image.match(/:([0-9][^-]*)/)
+        return {
+          name: c.name,
+          engine: meta.engine,
+          version: versionMatch ? versionMatch[1] : "latest",
+          host: c.name,
+          port: meta.port,
+          size: "—",
+          conns: 0,
+          maxConns: meta.maxConns,
+          qps: 0,
+          slow: 0,
+          state: c.state === "running" ? "ok" : "error",
+        }
+      })
+    res.json(dbs)
+  } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
 /** Get container logs (last N lines) */
@@ -152,6 +191,7 @@ const systemMetricsInterval = setInterval(() => {
   const mem  = os.totalmem() - os.freemem()
   const ram  = Math.round((mem / os.totalmem()) * 1000) / 10
   const disk = getDisk()
+  const net  = getNetworkRates()
 
   cpuHistory.push(cpu)
   if (cpuHistory.length > 30) cpuHistory.shift()
@@ -160,8 +200,8 @@ const systemMetricsInterval = setInterval(() => {
     cpu,
     ram,
     disk: disk.pct,
-    netIn: 0,
-    netOut: 0,
+    netIn:  net.rx,
+    netOut: net.tx,
     timestamp: Date.now(),
   })
 }, 2000)

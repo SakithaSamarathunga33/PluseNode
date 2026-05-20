@@ -1,13 +1,14 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import {
   Shield, Package, ChevronDown, Search, Play,
   Eye, Download, RotateCcw, CheckCircle, XCircle, Loader2,
 } from "lucide-react"
-import { SCANS } from "@/lib/mock-data"
+import { SCANS as MOCK_SCANS } from "@/lib/mock-data"
+import { pythonApi } from "@/lib/api"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
 import { VulnBar } from "@/components/dashboard/VulnBar"
@@ -77,14 +78,21 @@ export default function ScanHistoryPage() {
   const [selectedScan, setSelectedScan] = useState<Scan | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [search, setSearch] = useState("")
+  const [scans, setScans] = useState<Scan[]>(MOCK_SCANS)
 
-  const succeeded = SCANS.filter(s => s.status === "done").length
-  const failed    = SCANS.filter(s => s.status === "failed").length
+  useEffect(() => {
+    pythonApi.get<Scan[]>("/security/scans")
+      .then(({ data }) => { if (data.length > 0) setScans(data) })
+      .catch(() => {})
+  }, [])
 
-  const totalCrit = SCANS.reduce((a, s) => a + s.crit, 0)
-  const totalHigh = SCANS.reduce((a, s) => a + s.high, 0)
-  const totalMed  = SCANS.reduce((a, s) => a + s.med, 0)
-  const totalLow  = SCANS.reduce((a, s) => a + s.low, 0)
+  const succeeded = scans.filter(s => s.status === "done").length
+  const failed    = scans.filter(s => s.status === "failed").length
+
+  const totalCrit = scans.reduce((a, s) => a + s.crit, 0)
+  const totalHigh = scans.reduce((a, s) => a + s.high, 0)
+  const totalMed  = scans.reduce((a, s) => a + s.med, 0)
+  const totalLow  = scans.reduce((a, s) => a + s.low, 0)
 
   useGSAP(() => {
     gsap.fromTo(
@@ -94,7 +102,7 @@ export default function ScanHistoryPage() {
     )
   }, { scope: containerRef })
 
-  const filteredScans = SCANS.filter(s =>
+  const filteredScans = scans.filter(s =>
     !search ||
     s.id.toLowerCase().includes(search.toLowerCase()) ||
     s.image.toLowerCase().includes(search.toLowerCase())
@@ -115,7 +123,7 @@ export default function ScanHistoryPage() {
             Scan History
           </h1>
           <p className="text-sm text-helm-fg3 mt-1">
-            <span className="text-helm-fg font-medium">{SCANS.length} scans</span>
+            <span className="text-helm-fg font-medium">{scans.length} scans</span>
             {" · "}
             <span className="text-pn-cyan font-medium">{succeeded} succeeded</span>
             {" · "}

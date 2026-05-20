@@ -8,10 +8,17 @@ import {
   FileText, Terminal, BarChart2, Trash2, LayoutGrid, Settings2,
   Calendar, ChevronDown,
 } from "lucide-react"
-import { CONTAINERS as MOCK_CONTAINERS, HOST as MOCK_HOST, SPARKS } from "@/lib/mock-data"
+import { CONTAINERS as MOCK_CONTAINERS, HOST as MOCK_HOST } from "@/lib/mock-data"
 import { nodeApi } from "@/lib/api"
-import type { Container, HostInfo } from "@/lib/types"
+import { getSocket } from "@/lib/socket"
+import type { Container, ContainerStats, HostInfo, SystemMetrics } from "@/lib/types"
 import { Pill } from "@/components/dashboard/Pill"
+
+type ContainerHistory = Record<string, { cpuHist: number[]; ramHist: number[] }>
+
+function pushCapped<T>(arr: T[], val: T, max = 20): T[] {
+  return arr.length >= max ? [...arr.slice(-(max - 1)), val] : [...arr, val]
+}
 
 // ── Mini sparkline ─────────────────────────────────────────────────────────────
 
@@ -127,15 +134,6 @@ function StateBadge({ state }: { state: string }) {
   }
 }
 
-// ── Constants ──────────────────────────────────────────────────────────────────
-
-const TABS = [
-  { key: "all",     label: "All",     count: 12 },
-  { key: "running", label: "Running", count: 10 },
-  { key: "stopped", label: "Stopped", count: 1  },
-  { key: "exited",  label: "Exited",  count: 1  },
-]
-
 const TIME_RANGES = ["1h", "12h", "24h", "7d"]
 
 // ── Page ───────────────────────────────────────────────────────────────────────
@@ -146,7 +144,11 @@ export default function ContainersPage() {
   const [selected, setSelected]   = useState<Set<string>>(new Set())
   const [timeRange, setTimeRange] = useState("1h")
   const [containers, setContainers] = useState<Container[]>(MOCK_CONTAINERS)
-  const [host, setHost]           = useState<HostInfo>(MOCK_HOST)
+  const [host, setHost]             = useState<HostInfo>(MOCK_HOST)
+  const [containerHist, setContainerHist] = useState<ContainerHistory>({})
+  const [netHist, setNetHist]       = useState<number[]>([0, 0])
+  const [netRx, setNetRx]           = useState(0)
+  const [netTx, setNetTx]           = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -154,8 +156,47 @@ export default function ContainersPage() {
       .then(({ data }) => setContainers(data))
       .catch(() => {})
     nodeApi.get<HostInfo>("/api/host")
-      .then(({ data }) => setHost(data))
+      .then(({ data }) => {
+        setHost(data)
+        setNetRx(data.network.rx)
+        setNetTx(data.network.tx)
+      })
       .catch(() => {})
+
+    const socket = getSocket()
+
+    // Live per-container CPU + RAM every 3s
+    const onContainerStats = (stats: ContainerStats[]) => {
+      setContainers(prev => prev.map(c => {
+        const s = stats.find(s => s.containerId === c.id)
+        return s ? { ...c, cpu: s.cpu, ram: s.ram } : c
+      }))
+      setContainerHist(prev => {
+        const next = { ...prev }
+        for (const s of stats) {
+          const h = next[s.containerId] ?? { cpuHist: [], ramHist: [] }
+          next[s.containerId] = {
+            cpuHist: pushCapped(h.cpuHist, s.cpu),
+            ramHist: pushCapped(h.ramHist, s.ram),
+          }
+        }
+        return next
+      })
+    }
+
+    // Live network I/O every 2s
+    const onSystemMetrics = (m: SystemMetrics) => {
+      setNetHist(prev => pushCapped(prev, m.netIn, 60))
+      setNetRx(Math.round(m.netIn))
+      setNetTx(Math.round(m.netOut))
+    }
+
+    socket.on("container:stats", onContainerStats)
+    socket.on("system:metrics",  onSystemMetrics)
+    return () => {
+      socket.off("container:stats", onContainerStats)
+      socket.off("system:metrics",  onSystemMetrics)
+    }
   }, [])
 
   useGSAP(() => {
@@ -169,6 +210,13 @@ export default function ContainersPage() {
   const running = containers.filter(c => c.state === "running").length
   const stopped = containers.filter(c => c.state === "stopped").length
   const exited  = containers.filter(c => c.state === "exited").length
+
+  const TABS = [
+    { key: "all",     label: "All",     count: containers.length },
+    { key: "running", label: "Running", count: running },
+    { key: "stopped", label: "Stopped", count: stopped },
+    { key: "exited",  label: "Exited",  count: exited },
+  ]
 
   const filtered = containers.filter(c => {
     const matchTab    = tab === "all" || c.state === tab
@@ -196,7 +244,7 @@ export default function ContainersPage() {
         <div>
           <h1 className="text-xl font-bold" style={{ color: "var(--fg)" }}>Containers</h1>
           <p className="text-[12px] mt-0.5" style={{ color: "var(--fg-3)" }}>
-            10 containers · 8 running · 2 stopped · last scan 12 min ago
+            {containers.length} containers · {running} running · {stopped + exited} stopped
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -269,9 +317,7 @@ export default function ContainersPage() {
           label="CPU"
           value={host.cpu.usage}
           unit="%"
-          spark={SPARKS.cpu}
-          delta="+1.2%"
-          deltaTone="up"
+          spark={netHist}
           sparkColor="var(--acc)"
           sub={<span>{host.cpu.cores} cores · {host.cpu.model.split("@")[0].trim()}</span>}
         />
@@ -281,9 +327,7 @@ export default function ContainersPage() {
           label="Memory"
           value={host.memory.pct}
           unit="%"
-          spark={SPARKS.mem}
-          delta="-0.5%"
-          deltaTone="down"
+          spark={netHist}
           sparkColor="var(--warn)"
           sub={<span>{host.memory.used}/{host.memory.total} {host.memory.unit}</span>}
         />
@@ -320,13 +364,13 @@ export default function ContainersPage() {
           <div className="flex items-end gap-4">
             <div>
               <p className="text-[10px]" style={{ color: "var(--fg-3)" }}>↓ RX</p>
-              <p className="text-sm font-bold" style={{ color: "var(--ok)" }}>{host.network.rx} {host.network.unit}</p>
+              <p className="text-sm font-bold" style={{ color: "var(--ok)" }}>{netRx} KB/s</p>
             </div>
             <div>
               <p className="text-[10px]" style={{ color: "var(--fg-3)" }}>↑ TX</p>
-              <p className="text-sm font-bold" style={{ color: "var(--ok)" }}>{host.network.tx} {host.network.unit}</p>
+              <p className="text-sm font-bold" style={{ color: "var(--ok)" }}>{netTx} KB/s</p>
             </div>
-            <MiniSpark data={SPARKS.cpu} color="var(--ok)" width={80} height={28} />
+            <MiniSpark data={netHist} color="var(--ok)" width={80} height={28} />
           </div>
         </div>
 
@@ -345,7 +389,7 @@ export default function ContainersPage() {
                 </span>
               ))}
             </div>
-            <MiniSpark data={SPARKS.mem} color="var(--acc)" width={80} height={28} />
+            <MiniSpark data={netHist} color="var(--acc)" width={80} height={28} />
           </div>
         </div>
       </div>
@@ -507,18 +551,24 @@ export default function ContainersPage() {
                   <td className="dim">{c.uptime}</td>
                   <td className="mono-cell dim">{c.ports}</td>
 
-                  {/* CPU 1h */}
+                  {/* CPU live */}
                   <td>
                     <div className="flex items-center gap-2">
-                      <MiniSpark data={SPARKS.cpu} color="var(--acc)" width={56} height={22} />
+                      <MiniSpark
+                        data={containerHist[c.id]?.cpuHist.length ? containerHist[c.id].cpuHist : [0, 0]}
+                        color="var(--acc)" width={56} height={22}
+                      />
                       <span className="text-[11px] font-mono" style={{ color: "var(--fg)" }}>{c.cpu.toFixed(1)}%</span>
                     </div>
                   </td>
 
-                  {/* RAM 1h */}
+                  {/* RAM live */}
                   <td>
                     <div className="flex items-center gap-2">
-                      <MiniSpark data={SPARKS.mem} color="var(--acc-2)" width={56} height={22} />
+                      <MiniSpark
+                        data={containerHist[c.id]?.ramHist.length ? containerHist[c.id].ramHist : [0, 0]}
+                        color="var(--acc-2)" width={56} height={22}
+                      />
                       <span className="text-[11px] font-mono" style={{ color: "var(--fg)" }}>{c.ram.toFixed(1)}%</span>
                     </div>
                   </td>
@@ -552,7 +602,7 @@ export default function ContainersPage() {
           </span>
           <div className="flex items-center gap-1.5 text-[11px]" style={{ color: "var(--ok)" }}>
             <span className="w-1.5 h-1.5 rounded-full status-live" style={{ background: "var(--ok)" }} />
-            Live polling · 5s
+            Live · 3s
           </div>
         </div>
       </div>

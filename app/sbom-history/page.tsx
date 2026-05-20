@@ -1,13 +1,15 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import {
   FileCode2, Download, Plus, ChevronDown,
   ExternalLink, Package,
 } from "lucide-react"
-import { SBOMS } from "@/lib/mock-data"
+import { SBOMS as MOCK_SBOMS } from "@/lib/mock-data"
+import { pythonApi } from "@/lib/api"
+import type { SBOM } from "@/lib/types"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { NumberTicker } from "@/components/magicui/number-ticker"
 import { cn } from "@/lib/utils"
@@ -95,8 +97,15 @@ function EcosystemBar({ eco }: { eco: { go: number; npm: number; deb: number; ot
 
 export default function SBOMHistoryPage() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const [sboms, setSboms] = useState<SBOM[]>(MOCK_SBOMS)
 
-  const totalPackages = SBOMS.reduce((a, s) => a + s.packages, 0)
+  useEffect(() => {
+    pythonApi.get<SBOM[]>("/security/sboms")
+      .then(({ data }) => { if (data.length > 0) setSboms(data) })
+      .catch(() => {})
+  }, [])
+
+  const totalPackages = sboms.reduce((a, s) => a + s.packages, 0)
 
   useGSAP(() => {
     gsap.fromTo(
@@ -118,7 +127,7 @@ export default function SBOMHistoryPage() {
           <p className="text-sm text-helm-fg3 mt-1">
             Software bills of materials
             {" · "}
-            <span className="text-helm-fg font-medium">{SBOMS.length} images</span>
+            <span className="text-helm-fg font-medium">{sboms.length} images</span>
             {" · "}
             <span className="text-helm-fg font-medium">{totalPackages.toLocaleString()} packages tracked</span>
           </p>
@@ -137,7 +146,7 @@ export default function SBOMHistoryPage() {
 
       {/* ── Stat Cards ── */}
       <div className="gsap-enter grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="SBOMs"           value={SBOMS.length}    tone="acc"  accent sub="generated" />
+        <StatCard label="SBOMs"           value={sboms.length}    tone="acc"  accent sub="generated" />
         <StatCard label="Packages Total"  value={totalPackages}   tone="info" sub="across all images" />
         <StatCard label="Unique Licenses" value={34}              tone="info" sub="license types" />
         <StatCard label="EOL Packages"    value={12}              tone="warn" sub="end-of-life" />
@@ -176,7 +185,7 @@ export default function SBOMHistoryPage() {
 
       {/* ── SBOM Cards Grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {SBOMS.map(sbom => (
+        {sboms.map(sbom => (
           <div
             key={sbom.image}
             className="gsap-enter rounded-xl bg-pulseNode-navyLight border border-pulseNode-border/10 shadow-card p-4 space-y-4"

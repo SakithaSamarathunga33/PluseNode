@@ -6,9 +6,10 @@ import gsap from "gsap"
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts"
-import { NETWORKS as MOCK_NETWORKS, SPARKS } from "@/lib/mock-data"
+import { NETWORKS as MOCK_NETWORKS } from "@/lib/mock-data"
 import { nodeApi } from "@/lib/api"
-import type { DockerNetwork } from "@/lib/types"
+import { getSocket } from "@/lib/socket"
+import type { DockerNetwork, SystemMetrics } from "@/lib/types"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
 
@@ -103,14 +104,30 @@ const COOLIFY_CONTAINERS = [
 ]
 
 /* ── Page ────────────────────────────────────────────────────────────── */
+function pushCapped(arr: number[], val: number, max = 60) {
+  return arr.length >= max ? [...arr.slice(-(max - 1)), val] : [...arr, val]
+}
+
 export default function NetworksPage() {
   const container = useRef<HTMLDivElement>(null)
-  const [networks, setNetworks] = useState<DockerNetwork[]>(MOCK_NETWORKS)
+  const [networks,  setNetworks]  = useState<DockerNetwork[]>(MOCK_NETWORKS)
+  const [rxHist,    setRxHist]    = useState<number[]>([0, 0])
+  const [txHist,    setTxHist]    = useState<number[]>([0, 0])
+  const [rxRate,    setRxRate]    = useState(0)
 
   useEffect(() => {
     nodeApi.get<DockerNetwork[]>("/api/docker/networks")
       .then(({ data }) => setNetworks(data))
       .catch(() => {})
+
+    const socket = getSocket()
+    const onMetrics = (m: SystemMetrics) => {
+      setRxHist(prev => pushCapped(prev, m.netIn))
+      setTxHist(prev => pushCapped(prev, m.netOut))
+      setRxRate(Math.round(m.netIn))
+    }
+    socket.on("system:metrics", onMetrics)
+    return () => { socket.off("system:metrics", onMetrics) }
   }, [])
 
   useGSAP(() => {
@@ -147,7 +164,7 @@ export default function NetworksPage() {
           <StatCard label="Networks"    value={networks.length} tone="acc" />
         </div>
         <div className="gsap-enter">
-          <StatCard label="Throughput"  value={84} unit="KB/s" tone="info" spark={SPARKS.net} />
+          <StatCard label="Throughput" value={rxRate} unit="KB/s" tone="info" spark={rxHist} />
         </div>
         <div className="gsap-enter">
           <StatCard label="Active conns" value={totalContainers} tone="acc" />
@@ -160,10 +177,10 @@ export default function NetworksPage() {
       {/* Ingress / Egress charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="gsap-enter">
-          <NetChart data={SPARKS.net}   color="var(--pn-cyan)" title="Ingress (RX KB/s)" />
+          <NetChart data={rxHist} color="var(--pn-cyan)" title="Ingress (RX KB/s)" />
         </div>
         <div className="gsap-enter">
-          <NetChart data={SPARKS.netTx} color="var(--pn-blue)" title="Egress (TX KB/s)"  />
+          <NetChart data={txHist} color="var(--pn-blue)" title="Egress (TX KB/s)"  />
         </div>
       </div>
 

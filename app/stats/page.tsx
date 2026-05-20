@@ -9,9 +9,15 @@ import {
 } from "recharts"
 import { Download, MoreHorizontal, Zap } from "lucide-react"
 import { HOST as MOCK_HOST, SPARKS as MOCK_SPARKS } from "@/lib/mock-data"
-import { nodeApi } from "@/lib/api"
+import { nodeApi, pythonApi } from "@/lib/api"
 import { getSocket } from "@/lib/socket"
 import type { HostInfo, SystemMetrics } from "@/lib/types"
+
+type PyMetrics = {
+  cpu: number; ram: number; disk: number
+  diskRead: number; diskWrite: number
+  netIn: number; netOut: number; ts: number
+}
 import { StatCard } from "@/components/dashboard/StatCard"
 import { cn } from "@/lib/utils"
 
@@ -90,11 +96,13 @@ function pushHistory(arr: number[], val: number): number[] {
 export default function StatsPage() {
   const [timeRange, setTimeRange]   = useState("6h")
   const [host, setHost]             = useState<HostInfo>(MOCK_HOST)
-  const [cpuHist,  setCpuHist]      = useState<number[]>(MOCK_SPARKS.cpuLong)
-  const [ramHist,  setRamHist]      = useState<number[]>(MOCK_SPARKS.memLong)
-  const [diskHist, setDiskHist]     = useState<number[]>(MOCK_SPARKS.disk)
-  const [netHist,  setNetHist]      = useState<number[]>(MOCK_SPARKS.net)
-  const [netTxHist, setNetTxHist]   = useState<number[]>(MOCK_SPARKS.netTx)
+  const [cpuHist,      setCpuHist]      = useState<number[]>(MOCK_SPARKS.cpuLong)
+  const [ramHist,      setRamHist]      = useState<number[]>(MOCK_SPARKS.memLong)
+  const [diskHist,     setDiskHist]     = useState<number[]>(MOCK_SPARKS.disk)
+  const [diskReadHist, setDiskReadHist] = useState<number[]>([0])
+  const [diskWriteHist,setDiskWriteHist]= useState<number[]>([0])
+  const [netHist,      setNetHist]      = useState<number[]>(MOCK_SPARKS.net)
+  const [netTxHist,    setNetTxHist]    = useState<number[]>(MOCK_SPARKS.netTx)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -102,13 +110,28 @@ export default function StatsPage() {
       .then(({ data }) => setHost(data))
       .catch(() => {})
 
+    // Seed charts with real historical data from Python psutil
+    pythonApi.get<PyMetrics[]>("/metrics/history")
+      .then(({ data }) => {
+        if (data.length > 0) {
+          setCpuHist(data.map(d => d.cpu))
+          setRamHist(data.map(d => d.ram))
+          setDiskHist(data.map(d => d.disk))
+          setDiskReadHist(data.map(d => d.diskRead  ?? 0))
+          setDiskWriteHist(data.map(d => d.diskWrite ?? 0))
+          setNetHist(data.map(d => d.netIn))
+          setNetTxHist(data.map(d => d.netOut))
+        }
+      })
+      .catch(() => {})
+
     const socket = getSocket()
     const handler = (m: SystemMetrics) => {
-      setCpuHist(prev  => pushHistory(prev,  m.cpu))
-      setRamHist(prev  => pushHistory(prev,  m.ram))
-      setDiskHist(prev => pushHistory(prev,  m.disk))
-      setNetHist(prev  => pushHistory(prev,  m.netIn))
-      setNetTxHist(prev => pushHistory(prev, m.netOut))
+      setCpuHist(prev       => pushHistory(prev,  m.cpu))
+      setRamHist(prev       => pushHistory(prev,  m.ram))
+      setDiskHist(prev      => pushHistory(prev,  m.disk))
+      setNetHist(prev       => pushHistory(prev,  m.netIn))
+      setNetTxHist(prev     => pushHistory(prev,  m.netOut))
     }
     socket.on("system:metrics", handler)
     return () => { socket.off("system:metrics", handler) }
@@ -123,10 +146,10 @@ export default function StatsPage() {
   }, { scope: containerRef })
 
   // Prepare chart data
-  const cpuData    = cpuHist.map((v, i)  => ({ t: i, v }))
-  const memData    = ramHist.map((v, i)  => ({ t: i, v }))
-  const ioData     = MOCK_SPARKS.io.map((v, i) => ({ t: i, v }))
-  const netData    = netHist.map((v, i)  => ({ t: i, v, tx: netTxHist[i] ?? 0 }))
+  const cpuData  = cpuHist.map((v, i)      => ({ t: i, v }))
+  const memData  = ramHist.map((v, i)      => ({ t: i, v }))
+  const ioData   = diskReadHist.map((v, i) => ({ t: i, read: v, write: diskWriteHist[i] ?? 0 }))
+  const netData  = netHist.map((v, i)      => ({ t: i, v, tx: netTxHist[i] ?? 0 }))
 
   // Memory breakdown
   const memUsed    = host.memory.used
@@ -258,13 +281,18 @@ export default function StatsPage() {
         </ChartCard>
 
         {/* Disk I/O */}
-        <ChartCard title="Disk I/O" value={`${MOCK_SPARKS.io[MOCK_SPARKS.io.length - 1].toFixed(0)} MB/s`}>
+        <ChartCard
+          title="Disk I/O"
+          value={`R:${(diskReadHist[diskReadHist.length - 1] ?? 0).toFixed(1)} W:${(diskWriteHist[diskWriteHist.length - 1] ?? 0).toFixed(1)}`}
+          unit="MB/s"
+        >
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={ioData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
               <XAxis dataKey="t" tick={xStyle} tickLine={false} axisLine={false} interval={14} />
               <YAxis tick={yStyle} tickLine={false} axisLine={false} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="v" name="I/O" fill="var(--pn-blue)" radius={[2, 2, 0, 0]} maxBarSize={8} />
+              <Bar dataKey="read"  name="Read"  fill="var(--pn-blue)"   radius={[2, 2, 0, 0]} maxBarSize={6} />
+              <Bar dataKey="write" name="Write" fill="var(--pn-cyan)"   radius={[2, 2, 0, 0]} maxBarSize={6} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -383,12 +411,16 @@ export default function StatsPage() {
             <div className="flex items-center gap-3">
               <Zap size={12} className="text-pulseNode-blue" />
               <span className="text-[11px] text-helm-fg3">Read</span>
-              <span className="text-[11px] font-mono text-helm-fg ml-auto">42 MB/s</span>
+              <span className="text-[11px] font-mono text-helm-fg ml-auto">
+                {(diskReadHist[diskReadHist.length - 1] ?? 0).toFixed(1)} MB/s
+              </span>
             </div>
             <div className="flex items-center gap-3 mt-1.5">
               <Zap size={12} className="text-amber-400" />
               <span className="text-[11px] text-helm-fg3">Write</span>
-              <span className="text-[11px] font-mono text-helm-fg ml-auto">18 MB/s</span>
+              <span className="text-[11px] font-mono text-helm-fg ml-auto">
+                {(diskWriteHist[diskWriteHist.length - 1] ?? 0).toFixed(1)} MB/s
+              </span>
             </div>
           </div>
         </div>

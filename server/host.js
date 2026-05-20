@@ -1,7 +1,42 @@
-const os = require("os")
+const os   = require("os")
+const fs   = require("fs")
 const { execSync } = require("child_process")
 
 let lastCpuInfo = os.cpus()
+
+// ── Network rate tracking ────────────────────────────────────────────────────
+let _prevNetBytes = null
+let _prevNetTs    = null
+
+function getNetworkRates() {
+  try {
+    const raw   = fs.readFileSync("/proc/net/dev", "utf8")
+    const lines = raw.split("\n").slice(2)       // skip two header lines
+    let rxBytes = 0, txBytes = 0
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (!trimmed) continue
+      const [iface, ...cols] = trimmed.split(/\s+/)
+      if (!iface || iface === "lo:") continue    // skip loopback
+      rxBytes += parseInt(cols[0])  || 0         // col 1  = rx bytes
+      txBytes += parseInt(cols[8])  || 0         // col 9  = tx bytes
+    }
+    const now = Date.now()
+    if (_prevNetBytes === null) {
+      _prevNetBytes = { rx: rxBytes, tx: txBytes }
+      _prevNetTs    = now
+      return { rx: 0, tx: 0, unit: "KB/s" }
+    }
+    const dt    = (now - _prevNetTs) / 1000
+    const rxKbs = dt > 0 ? Math.max(0, Math.round((rxBytes - _prevNetBytes.rx) / dt / 1024)) : 0
+    const txKbs = dt > 0 ? Math.max(0, Math.round((txBytes - _prevNetBytes.tx) / dt / 1024)) : 0
+    _prevNetBytes = { rx: rxBytes, tx: txBytes }
+    _prevNetTs    = now
+    return { rx: rxKbs, tx: txKbs, unit: "KB/s" }
+  } catch {
+    return { rx: 0, tx: 0, unit: "KB/s" }
+  }
+}
 
 function getCpuUsage() {
   const newInfo = os.cpus()
@@ -109,7 +144,7 @@ function getHostInfo(apps = 0) {
     memory: { used: usedGB, total: totalGB, unit: "GB", pct },
     disk:   getDisk(),
     swap:   getSwap(),
-    network: { rx: 0, tx: 0, unit: "KB/s" },
+    network: getNetworkRates(),
     load:   os.loadavg().map(l => Math.round(l * 100) / 100),
     apps,
     ip:     getNetworkIp(),
@@ -117,4 +152,4 @@ function getHostInfo(apps = 0) {
   }
 }
 
-module.exports = { getHostInfo, getCpuUsage, getDisk, getSwap }
+module.exports = { getHostInfo, getCpuUsage, getDisk, getSwap, getNetworkRates }
