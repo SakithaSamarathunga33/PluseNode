@@ -86,12 +86,20 @@ export default function ProcessesPage() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Python gives all real system processes via psutil; Node gives PM2-enriched list
+    // Python gives all real system processes via psutil (requires pid:host on the container).
+    // Fall back to Node PM2 list if Python only sees its own container processes (< 5).
     pythonApi.get<PyProcess[]>("/metrics/processes")
-      .then(({ data }) => { if (data.length > 0) setProcesses(data.map(mapPyProcess)) })
+      .then(({ data }) => {
+        if (data.length >= 5) {
+          setProcesses(data.map(mapPyProcess))
+        } else {
+          return nodeApi.get<Process[]>("/api/pm2/list")
+            .then(({ data: pm2 }) => { if (pm2.length) setProcesses(pm2) })
+        }
+      })
       .catch(() => {
         nodeApi.get<Process[]>("/api/pm2/list")
-          .then(({ data }) => setProcesses(data))
+          .then(({ data }) => { if (data.length) setProcesses(data) })
           .catch(() => {})
       })
 

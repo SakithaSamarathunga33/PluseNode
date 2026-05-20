@@ -1,4 +1,4 @@
-const { MOCK_PM2_PROCESSES, MOCK_SYSTEM_PROCESSES } = require("./mock-data")
+const { MOCK_PM2_PROCESSES } = require("./mock-data")
 
 let pm2
 try { pm2 = require("pm2") } catch { pm2 = null }
@@ -64,8 +64,7 @@ async function getPM2Processes() {
  * @returns {Promise<object[]>}
  */
 async function getAllProcesses() {
-  const pm2List = await getPM2Processes().catch(() => MOCK_PM2_PROCESSES)
-  return [...pm2List, ...MOCK_SYSTEM_PROCESSES]
+  return getPM2Processes().catch(() => MOCK_PM2_PROCESSES)
 }
 
 /**

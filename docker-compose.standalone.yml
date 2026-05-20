@@ -14,3 +14,7 @@ services:
       - node-api
       - python-api
     restart: unless-stopped
+
+  # Override python-api to ensure pid:host is set in standalone mode too
+  python-api:
+    pid: "host"

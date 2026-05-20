@@ -43,4 +43,5 @@ services:
       DATABASE_URL: ${DATABASE_URL:-}
     ports:
       - "${PYTHON_PORT:-8001}:8001"
+    pid: "host"
     restart: unless-stopped
