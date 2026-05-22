@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { nodeApi } from "@/lib/api"
+import type { ApiError } from "@/lib/api"
 import type { Database, DbSchemaResult, DbQueryResult } from "@/lib/types"
 import {
   AlertDialog,
@@ -18,32 +19,80 @@ import {
 
 function SchemaSidebar({
   tables,
+  engine,
   onTableClick,
+  onCreateDb,
 }: {
   tables: Array<{ name: string; rows: number }>
+  engine: string
   onTableClick: (name: string) => void
+  onCreateDb: (name: string) => void
 }) {
+  const [newDbName, setNewDbName] = useState("")
+  const [creating,  setCreating]  = useState(false)
+  const supportsCreate = engine === "postgres" || engine === "mysql"
+
+  async function handleCreate() {
+    const name = newDbName.trim()
+    if (!name) return
+    setCreating(true)
+    try {
+      await onCreateDb(name)
+      setNewDbName("")
+    } finally {
+      setCreating(false)
+    }
+  }
+
   return (
-    <div className="w-[180px] flex-shrink-0 bg-pulseNode-navy border-r border-pulseNode-border/10 p-2 overflow-y-auto">
-      <div className="text-[10px] uppercase tracking-wider text-helm-fg3 mb-2 font-semibold px-1">
-        Tables
-      </div>
-      {tables.length === 0 ? (
-        <p className="text-[10px] text-helm-fg3 px-1">No tables found</p>
-      ) : (
-        tables.map(t => (
-          <button
-            key={t.name}
-            onClick={() => onTableClick(t.name)}
-            className="w-full text-left px-2 py-1 rounded text-[11px] font-mono text-helm-fg3 hover:text-helm-fg hover:bg-pulseNode-border/10 flex items-center justify-between gap-1"
-          >
-            <span className="truncate">{t.name}</span>
-            <span className="text-[9px] text-helm-fg3 flex-shrink-0">
-              {t.rows.toLocaleString()}
-            </span>
-          </button>
-        ))
+    <div className="w-[180px] flex-shrink-0 bg-pulseNode-navy border-r border-pulseNode-border/10 flex flex-col">
+      {/* Create database form */}
+      {supportsCreate && (
+        <div className="px-2 pt-2 pb-1.5 border-b border-pulseNode-border/10">
+          <div className="text-[9px] uppercase tracking-wider text-helm-fg3 mb-1.5 font-semibold px-1">
+            New Database
+          </div>
+          <div className="flex gap-1">
+            <input
+              value={newDbName}
+              onChange={e => setNewDbName(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleCreate()}
+              placeholder="db_name"
+              className="flex-1 min-w-0 bg-pulseNode-navyLight border border-pulseNode-border/20 text-helm-fg text-[10px] font-mono rounded px-1.5 py-1 outline-none focus:border-pn-electric/50 placeholder:text-helm-fg3/40"
+            />
+            <button
+              onClick={handleCreate}
+              disabled={!newDbName.trim() || creating}
+              className="flex-shrink-0 bg-emerald-600 hover:bg-emerald-500 disabled:bg-pulseNode-border/20 disabled:text-helm-fg3 text-white text-[10px] font-bold px-1.5 py-1 rounded transition-colors"
+            >
+              {creating ? "…" : "+"}
+            </button>
+          </div>
+        </div>
       )}
+
+      {/* Tables list */}
+      <div className="flex-1 overflow-y-auto p-2">
+        <div className="text-[10px] uppercase tracking-wider text-helm-fg3 mb-2 font-semibold px-1">
+          Tables
+        </div>
+        {tables.length === 0 ? (
+          <p className="text-[10px] text-helm-fg3 px-1">No tables found</p>
+        ) : (
+          tables.map(t => (
+            <button
+              key={t.name}
+              onClick={() => onTableClick(t.name)}
+              className="w-full text-left px-2 py-1 rounded text-[11px] font-mono text-helm-fg3 hover:text-helm-fg hover:bg-pulseNode-border/10 flex items-center justify-between gap-1"
+            >
+              <span className="truncate">{t.name}</span>
+              <span className="text-[9px] text-helm-fg3 flex-shrink-0">
+                {t.rows.toLocaleString()}
+              </span>
+            </button>
+          ))
+        )}
+      </div>
     </div>
   )
 }
@@ -126,41 +175,45 @@ export function DatabaseQueryEditor({
   db: Database
   onClose: () => void
 }) {
-  const [schema, setSchema] = useState<DbSchemaResult>({ databases: [], tables: [] })
+  const [schema,           setSchema]           = useState<DbSchemaResult>({ databases: [], tables: [] })
   const [selectedDatabase, setSelectedDatabase] = useState("")
-  const [query, setQuery] = useState("")
-  const [result, setResult] = useState<DbQueryResult | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [showWarning, setShowWarning] = useState(false)
+  const [query,            setQuery]            = useState("")
+  const [result,           setResult]           = useState<DbQueryResult | null>(null)
+  const [error,            setError]            = useState<string | null>(null)
+  const [loading,          setLoading]          = useState(false)
+  const [showWarning,      setShowWarning]      = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const isRedis = db.engine === "redis"
   const isMongo = db.engine === "mongodb"
+  const hasQuery = query.trim().length > 0
+
+  function loadSchema(dbName?: string) {
+    const qs = dbName ? `?database=${encodeURIComponent(dbName)}` : ""
+    nodeApi
+      .get<DbSchemaResult>(`/api/database/${db.name}/schema${qs}`)
+      .then(({ data }) => {
+        setSchema(prev => ({
+          databases: data.databases.length ? data.databases : prev.databases,
+          tables:    data.tables,
+        }))
+        if (!dbName && data.databases.length > 0) setSelectedDatabase(data.databases[0])
+      })
+      .catch(err => setError((err as ApiError).message ?? "Failed to load schema"))
+  }
 
   // Load database list on mount
-  useEffect(() => {
-    nodeApi
-      .get<DbSchemaResult>(`/api/database/${db.name}/schema`)
-      .then(({ data }) => {
-        setSchema(data)
-        if (data.databases.length > 0) setSelectedDatabase(data.databases[0])
-      })
-      .catch(err => setError(err.message))
-  }, [db.name])
+  useEffect(() => { loadSchema() }, [db.name]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reload table list when selected database changes
   useEffect(() => {
     if (!selectedDatabase) return
-    nodeApi
-      .get<DbSchemaResult>(`/api/database/${db.name}/schema?database=${encodeURIComponent(selectedDatabase)}`)
-      .then(({ data }) => setSchema(prev => ({ ...prev, tables: data.tables })))
-      .catch(err => setError(err instanceof Error ? err.message : "Failed to load tables"))
-  }, [db.name, selectedDatabase])
+    loadSchema(selectedDatabase)
+  }, [db.name, selectedDatabase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const runQuery = useCallback(
     async (force = false) => {
-      if (!query.trim()) return
+      if (!hasQuery) return
       setLoading(true)
       setError(null)
       setResult(null)
@@ -172,19 +225,32 @@ export function DatabaseQueryEditor({
         })
         setResult(res)
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Query failed"
-        const status = parseInt(msg.split(" ")[0], 10)
-        if (status === 422) {
+        const apiErr = err as ApiError
+        if (apiErr?.status === 422) {
           setShowWarning(true)
         } else {
-          setError(msg)
+          setError(apiErr?.message || "Query failed")
         }
       } finally {
         setLoading(false)
       }
     },
-    [query, db.name, selectedDatabase]
+    [query, db.name, selectedDatabase, hasQuery]
   )
+
+  async function handleCreateDb(name: string) {
+    setError(null)
+    try {
+      await nodeApi.post(`/api/database/${db.name}/query`, {
+        query: `CREATE DATABASE ${name};`,
+        force: false,
+      })
+      // Refresh database list
+      loadSchema()
+    } catch (err: unknown) {
+      setError((err as ApiError).message || "Failed to create database")
+    }
+  }
 
   function handleTableClick(tableName: string) {
     if (isRedis) setQuery("KEYS *")
@@ -226,8 +292,8 @@ export function DatabaseQueryEditor({
               </select>
             </>
           )}
-          <span className={`text-[10px] ${error ? "text-red-400" : "text-green-400"}`}>
-            {error ? "● error" : "● connected"}
+          <span className={`text-[10px] ${error && !result ? "text-red-400" : "text-green-400"}`}>
+            {error && !result ? "● error" : "● connected"}
           </span>
           <button
             onClick={onClose}
@@ -239,8 +305,13 @@ export function DatabaseQueryEditor({
         </div>
 
         {/* Body: sidebar + editor */}
-        <div className="flex" style={{ height: 280 }}>
-          <SchemaSidebar tables={schema.tables} onTableClick={handleTableClick} />
+        <div className="flex" style={{ minHeight: 260 }}>
+          <SchemaSidebar
+            tables={schema.tables}
+            engine={db.engine}
+            onTableClick={handleTableClick}
+            onCreateDb={handleCreateDb}
+          />
 
           <div className="flex-1 flex flex-col min-w-0">
             <textarea
@@ -250,19 +321,27 @@ export function DatabaseQueryEditor({
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               className="flex-1 bg-pulseNode-navy font-mono text-xs text-helm-fg p-3 resize-none outline-none placeholder:text-helm-fg3/40"
+              style={{ minHeight: 180 }}
               spellCheck={false}
             />
-            <div className="flex items-center gap-2 px-3 py-2 bg-pulseNode-navy border-t border-pulseNode-border/10">
+            {/* Toolbar */}
+            <div className="flex items-center gap-2 px-3 py-2 bg-pulseNode-navy border-t border-pulseNode-border/10 flex-shrink-0">
               <button
                 onClick={() => runQuery()}
-                disabled={loading || !query.trim()}
-                className="bg-pn-electric text-white text-xs font-medium px-3 py-1 rounded-md hover:bg-pn-electric/90 disabled:opacity-40 transition-colors"
+                disabled={loading}
+                className={`
+                  text-xs font-semibold px-3 py-1.5 rounded-md transition-all
+                  ${hasQuery && !loading
+                    ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm"
+                    : "bg-pulseNode-border/20 text-helm-fg3 cursor-not-allowed"
+                  }
+                `}
               >
                 {loading ? "Running…" : "▶ Run"}
               </button>
               <button
                 onClick={() => { setQuery(""); setResult(null); setError(null) }}
-                className="text-xs text-helm-fg3 hover:text-helm-fg border border-pulseNode-border/20 px-3 py-1 rounded-md transition-colors"
+                className="text-xs text-helm-fg3 hover:text-helm-fg border border-pulseNode-border/20 px-3 py-1.5 rounded-md transition-colors"
               >
                 Clear
               </button>
@@ -277,10 +356,11 @@ export function DatabaseQueryEditor({
           </div>
         </div>
 
-        {/* Error banner */}
+        {/* Error banner — shows the actual server error message */}
         {error && (
-          <div className="px-4 py-2 bg-red-500/10 border-t border-red-500/20 text-xs text-red-400">
-            {error}
+          <div className="px-4 py-2.5 bg-red-500/10 border-t border-red-500/20 flex items-start gap-2">
+            <span className="text-red-400 flex-shrink-0 mt-0.5">⚠</span>
+            <p className="text-xs text-red-400 font-mono break-all">{error}</p>
           </div>
         )}
 
