@@ -550,6 +550,93 @@ async function testExternalConnection(connectionString) {
   throw new Error(`Unsupported engine: ${engine}`)
 }
 
+// ── Network helpers ───────────────────────────────────────────────────────────
+
+/**
+ * Returns all non-bridge Docker networks the current (node-api) process
+ * belongs to. Works universally regardless of project name or container name.
+ *
+ * Detection strategy (most → least reliable):
+ *   1. /.dockerenv present  → we are inside Docker
+ *      → os.hostname() is the 12-char container-ID prefix (Docker default)
+ *      → find self in listContainers by ID prefix
+ *   2. Fallback: scan names for any container whose name contains the word
+ *      that was used to start this process (argv[1] basename), then fall back
+ *      to any container whose image path contains "node".
+ */
+async function _getSelfNetworks(docker) {
+  // Not in Docker → skip (development / bare-metal)
+  try { fs.statSync("/.dockerenv") } catch { return [] }
+
+  const os       = require("os")
+  const hostname = os.hostname()          // short container ID inside Docker
+  const ctrs     = await docker.listContainers({ all: false })
+
+  // Primary: match by container ID prefix (always reliable inside Docker)
+  let self = ctrs.find(c => c.Id.startsWith(hostname))
+
+  // Fallback: any running container whose name looks like it runs a node server
+  if (!self) {
+    self = ctrs.find(c =>
+      c.Names.some(n => /node.?api|pulsenode|pulsevps/i.test(n))
+    )
+  }
+
+  if (!self) return []
+
+  return Object.keys(self.NetworkSettings?.Networks || {}).filter(n => n !== "bridge")
+}
+
+/**
+ * Connect a Docker container (by name/ID) to every network the node-api is on.
+ * Already-connected networks are silently skipped.
+ */
+async function _joinSelfNetworks(docker, containerNameOrId) {
+  const nets = await _getSelfNetworks(docker)
+  for (const netName of nets) {
+    try { await docker.getNetwork(netName).connect({ Container: containerNameOrId }) }
+    catch (e) {
+      if (!e.message?.includes("already exists")) {
+        console.warn(`[network] could not join ${netName} for ${containerNameOrId}:`, e.message)
+      }
+    }
+  }
+}
+
+/**
+ * On server startup, ensure all previously provisioned pn-* containers are
+ * connected to the same networks as node-api. Fixes containers that were
+ * created before this logic existed, and handles fresh installs automatically.
+ */
+async function repairProvisionedNetworks() {
+  if (isMock()) return
+  try {
+    const docker    = getDockerInstance()
+    const selfNets  = await _getSelfNetworks(docker)
+    if (!selfNets.length) return
+
+    const ctrs        = await docker.listContainers({ all: false })
+    const provisioned = ctrs.filter(c =>
+      c.Names.some(n => /\/pn-[a-z]+-[0-9a-f]+$/.test(n))
+    )
+    for (const ctr of provisioned) {
+      const existing = Object.keys(ctr.NetworkSettings?.Networks || {})
+      const missing  = selfNets.filter(n => !existing.includes(n))
+      if (!missing.length) continue
+      console.log(`[startup] connecting ${ctr.Names[0]} to: ${missing.join(", ")}`)
+      for (const netName of missing) {
+        try { await docker.getNetwork(netName).connect({ Container: ctr.Id }) }
+        catch (e) {
+          if (!e.message?.includes("already exists"))
+            console.warn(`[startup] ${netName}:`, e.message)
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("[startup] network repair skipped:", e.message)
+  }
+}
+
 // ── Provision new database container ─────────────────────────────────────────
 
 async function provisionDatabase(engine) {
@@ -576,7 +663,7 @@ async function provisionDatabase(engine) {
     })
   })
 
-  // Create + start container; let Docker pick a free host port
+  // Create + start; let Docker pick a free host port
   const opts = {
     Image: cfg.image, name,
     Env:   cfg.env,
@@ -591,24 +678,8 @@ async function provisionDatabase(engine) {
   const container = await docker.createContainer(opts)
   await container.start()
 
-  // Connect the new container to the same networks as this (node-api) container
-  // so that metrics, schema, and query endpoints can reach it by hostname.
-  try {
-    const hostname     = require("os").hostname()
-    const allCtrs      = await docker.listContainers({ all: false })
-    const selfCtr      = allCtrs.find(c =>
-      c.Id.startsWith(hostname) || c.Names.some(n => n.includes("node-api"))
-    )
-    const targetNets   = selfCtr
-      ? Object.keys(selfCtr.NetworkSettings.Networks).filter(n => n !== "bridge")
-      : []
-    for (const netName of targetNets) {
-      try { await docker.getNetwork(netName).connect({ Container: name }) }
-      catch (e) { console.warn(`[provision] could not join ${netName}:`, e.message) }
-    }
-  } catch (e) {
-    console.warn("[provision] network attachment failed:", e.message)
-  }
+  // Join the same networks as node-api so metrics/schema/query work immediately
+  await _joinSelfNetworks(docker, name)
 
   const info         = await container.inspect()
   const assignedPort = info.NetworkSettings.Ports[cfg.port]?.[0]?.HostPort || "0"
@@ -624,4 +695,5 @@ module.exports = {
   getDbSchema, executeQuery, isDestructiveQuery, getDbMetrics, streamDbBackup,
   getConnectionString, testExternalConnection, provisionDatabase,
   listCustomConnections, addCustomConnection, removeCustomConnection,
+  repairProvisionedNetworks,
 }

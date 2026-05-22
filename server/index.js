@@ -16,7 +16,8 @@ const { getHostInfo, getCpuUsage, getDisk, getNetworkRates }       = require("./
 const { getDbSchema, executeQuery, isDestructiveQuery,
         getDbMetrics, streamDbBackup,
         getConnectionString, testExternalConnection, provisionDatabase,
-        listCustomConnections, addCustomConnection, removeCustomConnection } = require("./database")
+        listCustomConnections, addCustomConnection, removeCustomConnection,
+        repairProvisionedNetworks } = require("./database")
 
 /* ── App setup ─────────────────────────────────────────────────────────────── */
 const app    = express()
@@ -421,6 +422,10 @@ const alertCheckInterval = setInterval(() => {
 async function start() {
   await initDocker()
   await initPM2()
+
+  // Ensure all pn-* provisioned containers are on the same Docker networks as
+  // this server — works automatically regardless of project name or setup.
+  repairProvisionedNetworks().catch(() => {})
 
   const PORT = parseInt(process.env.NODE_PORT || "4001", 10)
   server.listen(PORT, () => {
