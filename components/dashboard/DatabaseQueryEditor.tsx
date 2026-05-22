@@ -97,23 +97,44 @@ function SchemaSidebar({
   )
 }
 
-// ── ResultsTable ──────────────────────────────────────────────────────────────
+// ── QueryResult ───────────────────────────────────────────────────────────────
 
-function ResultsTable({ result }: { result: DbQueryResult }) {
+function QueryResult({ result }: { result: DbQueryResult }) {
+  const isSelect = result.columns.length > 0
+  const isDml    = !isSelect && result.rowCount > 0
+  const isDdl    = !isSelect && result.rowCount === 0
+
   function exportCsv() {
     const header = result.columns.join(",")
-    const body = result.rows
-      .map(r => r.map(v => JSON.stringify(v ?? "")).join(","))
-      .join("\n")
-    const blob = new Blob([header + "\n" + body], { type: "text/csv" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "query-result.csv"
-    a.click()
+    const body   = result.rows.map(r => r.map(v => JSON.stringify(v ?? "")).join(",")).join("\n")
+    const blob   = new Blob([header + "\n" + body], { type: "text/csv" })
+    const url    = URL.createObjectURL(blob)
+    const a      = document.createElement("a")
+    a.href = url; a.download = "query-result.csv"; a.click()
     URL.revokeObjectURL(url)
   }
 
+  // DDL / non-returning statement
+  if (isDdl) return (
+    <div className="border-t border-pulseNode-border/10 px-4 py-3 flex items-center gap-2 bg-emerald-500/5">
+      <span className="text-emerald-400 text-base">✓</span>
+      <span className="text-xs text-emerald-400 font-medium">Query executed successfully</span>
+      <span className="text-[10px] text-helm-fg3 ml-auto">{result.durationMs}ms</span>
+    </div>
+  )
+
+  // INSERT / UPDATE / DELETE with affected rows
+  if (isDml) return (
+    <div className="border-t border-pulseNode-border/10 px-4 py-3 flex items-center gap-2 bg-emerald-500/5">
+      <span className="text-emerald-400 text-base">✓</span>
+      <span className="text-xs text-emerald-400 font-medium">
+        {result.rowCount} row{result.rowCount !== 1 ? "s" : ""} affected
+      </span>
+      <span className="text-[10px] text-helm-fg3 ml-auto">{result.durationMs}ms</span>
+    </div>
+  )
+
+  // SELECT result table
   return (
     <div className="border-t border-pulseNode-border/10">
       <div className="px-3 py-1.5 bg-pulseNode-navy/50 flex items-center gap-2 border-b border-pulseNode-border/10">
@@ -122,10 +143,7 @@ function ResultsTable({ result }: { result: DbQueryResult }) {
         </span>
         <span className="text-pulseNode-border/30">·</span>
         <span className="text-[10px] text-helm-fg3">{result.durationMs}ms</span>
-        <button
-          onClick={exportCsv}
-          className="ml-auto text-[10px] text-helm-fg3 hover:text-helm-fg transition-colors"
-        >
+        <button onClick={exportCsv} className="ml-auto text-[10px] text-helm-fg3 hover:text-helm-fg transition-colors">
           Export CSV
         </button>
       </div>
@@ -134,10 +152,7 @@ function ResultsTable({ result }: { result: DbQueryResult }) {
           <thead>
             <tr className="bg-pulseNode-navyLight sticky top-0">
               {result.columns.map(c => (
-                <th
-                  key={c}
-                  className="px-3 py-1.5 text-left text-helm-fg3 font-normal border-b border-pulseNode-border/10 whitespace-nowrap"
-                >
+                <th key={c} className="px-3 py-1.5 text-left text-helm-fg3 font-normal border-b border-pulseNode-border/10 whitespace-nowrap">
                   {c}
                 </th>
               ))}
@@ -152,9 +167,7 @@ function ResultsTable({ result }: { result: DbQueryResult }) {
                     className="px-3 py-1 font-mono text-helm-fg whitespace-nowrap max-w-[200px] truncate"
                     title={cell == null ? "null" : String(cell)}
                   >
-                    {cell == null
-                      ? <span className="text-helm-fg3 italic">null</span>
-                      : String(cell)}
+                    {cell == null ? <span className="text-helm-fg3 italic">null</span> : String(cell)}
                   </td>
                 ))}
               </tr>
@@ -224,6 +237,8 @@ export function DatabaseQueryEditor({
           force,
         })
         setResult(res)
+        // Refresh sidebar tables so newly created tables appear immediately
+        loadSchema(selectedDatabase || undefined)
       } catch (err: unknown) {
         const apiErr = err as ApiError
         if (apiErr?.status === 422) {
@@ -365,7 +380,7 @@ export function DatabaseQueryEditor({
         )}
 
         {/* Results */}
-        {result && <ResultsTable result={result} />}
+        {result && <QueryResult result={result} />}
       </div>
 
       {/* Destructive query confirmation dialog */}
