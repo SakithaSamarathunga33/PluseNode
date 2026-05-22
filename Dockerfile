@@ -23,7 +23,7 @@ COPY --from=web-builder /app/.next/standalone ./
 COPY --from=web-builder /app/.next/static ./.next/static
 COPY --from=web-builder /app/public ./public
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["node", "--max-old-space-size=96", "server.js"]
 
 FROM node:20-alpine AS node-api
 WORKDIR /app
@@ -35,4 +35,4 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY server ./server
 EXPOSE 4001
-CMD ["node", "server/index.js"]
+CMD ["node", "--max-old-space-size=128", "server/index.js"]

@@ -1,14 +1,17 @@
-FROM python:3.12-slim
-
+# Build stage: compile C extensions (psutil, asyncpg, pydantic-core)
+FROM python:3.12-alpine AS builder
+RUN apk add --no-cache gcc musl-dev linux-headers libffi-dev
 WORKDIR /app
+COPY python/requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
+# Runtime stage: lean Alpine image, no build tools
+FROM python:3.12-alpine
+WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-
-COPY python/requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
-
+ENV PYTHONOPTIMIZE=1
+COPY --from=builder /install /usr/local
 COPY python ./
-
 EXPOSE 8001
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "1", "--no-access-log"]
