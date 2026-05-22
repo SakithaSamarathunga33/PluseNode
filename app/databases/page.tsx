@@ -242,7 +242,7 @@ function DbDetails({ db, onTableClick }: { db: Database; onTableClick?: (name: s
         {loading && <p className="px-3 py-4 text-xs text-helm-fg3">Loading tables…</p>}
 
         {!loading && displayTables.length > 0 && (
-          <div className="max-h-56 overflow-auto">
+          <div className="relative max-h-48 overflow-y-auto">
             <table className="pn-table w-full">
               <thead>
                 <tr>
@@ -288,7 +288,7 @@ function DbDetails({ db, onTableClick }: { db: Database; onTableClick?: (name: s
             </span>
           </div>
           {db.slowQueries && db.slowQueries.length > 0 ? (
-            <div className="max-h-44 overflow-auto">
+            <div className="max-h-36 overflow-y-auto">
               <table className="pn-table w-full">
                 <thead>
                   <tr>
