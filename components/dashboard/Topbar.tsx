@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
-import { RefreshCw, Bell, Settings, Search, Moon, Sun } from "lucide-react"
+import { RefreshCw, Bell, Settings, Search } from "lucide-react"
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
 
 const PAGE_TITLES: Record<string, string> = {
   "/containers":   "Containers",
@@ -20,21 +20,6 @@ const PAGE_TITLES: Record<string, string> = {
 export function Topbar() {
   const pathname = usePathname()
   const title = PAGE_TITLES[pathname] ?? "PulseNode"
-  const [theme, setTheme] = useState<"dark" | "light">("dark")
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem("pn-theme")
-    const nextTheme = saved === "light" ? "light" : "dark"
-    setTheme(nextTheme)
-    document.documentElement.dataset.theme = nextTheme
-  }, [])
-
-  function toggleTheme() {
-    const nextTheme = theme === "dark" ? "light" : "dark"
-    setTheme(nextTheme)
-    document.documentElement.dataset.theme = nextTheme
-    window.localStorage.setItem("pn-theme", nextTheme)
-  }
 
   return (
     <header
@@ -75,23 +60,7 @@ export function Topbar() {
 
       {/* Actions */}
       <div className="ml-auto flex items-center gap-0.5">
-        <button
-          onClick={toggleTheme}
-          className="relative p-2 rounded-lg transition-colors"
-          style={{ color: "var(--fg-3)" }}
-          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-2)"
-            ;(e.currentTarget as HTMLButtonElement).style.color = "var(--fg)"
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLButtonElement).style.background = "transparent"
-            ;(e.currentTarget as HTMLButtonElement).style.color = "var(--fg-3)"
-          }}
-        >
-          {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
-        </button>
+        <AnimatedThemeToggler className="pn-icon-btn" variant="circle" duration={520} />
         {[
           { Icon: RefreshCw, label: "Refresh" },
           { Icon: Bell, label: "Notifications", badge: true },

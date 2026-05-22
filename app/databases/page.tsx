@@ -1,51 +1,55 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
+import {
+  Activity,
+  AlertTriangle,
+  BarChart3,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  Database as DatabaseIcon,
+  Download,
+  Gauge,
+  HardDrive,
+  PlugZap,
+  Plus,
+  Search,
+  TerminalSquare,
+} from "lucide-react"
 import { nodeApi, pythonApi, API_BASE } from "@/lib/api"
-import type { Database, CustomConnection, DbMetrics } from "@/lib/types"
-import { StatCard } from "@/components/dashboard/StatCard"
-import { Pill } from "@/components/dashboard/Pill"
-import { ProgressBar } from "@/components/dashboard/ProgressBar"
-import BlurFade from "@/components/magicui/blur-fade"
+import type { CustomConnection, Database, DbMetrics } from "@/lib/types"
 import { DatabaseQueryEditor } from "@/components/dashboard/DatabaseQueryEditor"
 import { DatabaseMetricsPanel } from "@/components/dashboard/DatabaseMetricsPanel"
 import { CreateDatabaseModal } from "@/components/dashboard/CreateDatabaseModal"
 import { ConnectDatabaseModal } from "@/components/dashboard/ConnectDatabaseModal"
 import { DbIcon } from "@/components/dashboard/DbIcon"
 
-/* ── Engine colours ─────────────────────────────────────────────────── */
 const ENGINE_COLOR: Record<string, string> = {
-  postgres:      "var(--db-postgres)",
-  redis:         "var(--db-redis)",
-  mysql:         "var(--db-mysql)",
-  clickhouse:    "var(--db-clickhouse)",
-  mongodb:       "var(--db-other)",
-}
-function engineColor(e: string) { return ENGINE_COLOR[e] ?? "var(--db-other)" }
-
-/* ── Connection sparkline ────────────────────────────────────────────── */
-function ConnSpark({ data, color }: { data: number[]; color: string }) {
-  if (data.length < 2) return <div className="h-[40px] opacity-20 flex items-end">
-    <div className="w-full h-[2px] rounded" style={{ background: color }} />
-  </div>
-  const w = 100, h = 40
-  const max = Math.max(...data), min = Math.min(...data), range = max - min || 1
-  const step = w / (data.length - 1)
-  const pts = data.map((v, i) =>
-    `${(i * step).toFixed(1)},${(h - 2 - ((v - min) / range) * (h - 4)).toFixed(1)}`
-  )
-  const d = `M ${pts.join(" L ")}`
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="block">
-      <path d={`${d} L ${w},${h} L 0,${h} Z`} fill={color} fillOpacity={0.14} />
-      <path d={d} fill="none" stroke={color} strokeWidth={1.4} strokeLinejoin="round" strokeLinecap="round" />
-    </svg>
-  )
+  postgres: "var(--db-postgres)",
+  postgresql: "var(--db-postgres)",
+  redis: "var(--db-redis)",
+  mysql: "var(--db-mysql)",
+  clickhouse: "var(--db-clickhouse)",
+  mongodb: "var(--db-mongo)",
 }
 
-/* ── Download backup helper ──────────────────────────────────────────── */
+const STATUS_FILTERS = ["all", "ok", "warn", "bad"] as const
+type StatusFilter = (typeof STATUS_FILTERS)[number]
+
+function engineColor(engine: string) {
+  return ENGINE_COLOR[engine.toLowerCase()] ?? "var(--db-other)"
+}
+
+function statusTone(state: string) {
+  if (state === "ok") return "ok"
+  if (state === "warn") return "warn"
+  return "bad"
+}
+
 function triggerBackup(dbName: string) {
   const a = document.createElement("a")
   a.href = `${API_BASE}/api/database/${encodeURIComponent(dbName)}/backup`
@@ -55,316 +59,413 @@ function triggerBackup(dbName: string) {
   document.body.removeChild(a)
 }
 
-/* ── Connection string copy button ───────────────────────────────────── */
-function ConnectionStringSection({ dbName }: { dbName: string }) {
-  const [uri,     setUri]     = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [copied,  setCopied]  = useState(false)
-  const [open,    setOpen]    = useState(false)
+function ConnSpark({ data, color }: { data: number[]; color: string }) {
+  const values = data.length > 1 ? data : [0, 0]
+  const w = 92
+  const h = 28
+  const max = Math.max(...values)
+  const min = Math.min(...values)
+  const range = max - min || 1
+  const step = w / (values.length - 1)
+  const pts = values.map((v, i) =>
+    `${(i * step).toFixed(1)},${(h - 2 - ((v - min) / range) * (h - 4)).toFixed(1)}`
+  )
+  const d = `M ${pts.join(" L ")}`
 
-  async function load() {
-    if (uri) { setOpen(o => !o); return }
-    setOpen(true)
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="block">
+      <path d={`${d} L ${w},${h} L 0,${h} Z`} fill={color} fillOpacity={0.12} />
+      <path d={d} fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function KpiTile({
+  label,
+  value,
+  icon: Icon,
+  tone = "var(--acc)",
+  detail,
+}: {
+  label: string
+  value: string | number
+  icon: typeof DatabaseIcon
+  tone?: string
+  detail?: string
+}) {
+  return (
+    <div className="gsap-enter min-w-0 rounded-lg border border-pulseNode-border/10 bg-pulseNode-navyLight px-3 py-2 shadow-card">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">{label}</span>
+        <Icon size={13} style={{ color: tone }} />
+      </div>
+      <div className="mt-1 flex items-end gap-2">
+        <span className="text-lg font-semibold leading-none text-helm-fg">{value}</span>
+        {detail && <span className="truncate pb-0.5 text-[10px] text-helm-fg3">{detail}</span>}
+      </div>
+    </div>
+  )
+}
+
+function ConnectionStringPanel({ dbName }: { dbName: string }) {
+  const [uri, setUri] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
     setLoading(true)
-    try {
-      const res = await fetch(`${API_BASE}/api/database/${encodeURIComponent(dbName)}/connection-string`)
-      const data = await res.json()
-      setUri(data.connectionString || null)
-    } catch { setUri(null) }
-    finally { setLoading(false) }
-  }
+    fetch(`${API_BASE}/api/database/${encodeURIComponent(dbName)}/connection-string`)
+      .then(res => res.json())
+      .then(data => {
+        if (!cancelled) setUri(data.connectionString || null)
+      })
+      .catch(() => {
+        if (!cancelled) setUri(null)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [dbName])
 
   function copy() {
     if (!uri) return
     navigator.clipboard.writeText(uri)
     setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setTimeout(() => setCopied(false), 1600)
   }
 
   return (
-    <div className="border-t border-pulseNode-border/10">
-      <button
-        onClick={load}
-        className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] text-helm-fg3 hover:text-helm-fg transition-colors"
-      >
-        <span className="uppercase tracking-wider font-semibold">Connection String</span>
-        <span>{open ? "▲" : "▼"}</span>
-      </button>
-      {open && (
-        <div className="px-3 pb-3">
-          {loading && <p className="text-[10px] text-helm-fg3">Loading…</p>}
-          {!loading && uri && (
-            <div className="flex items-center gap-2 bg-pulseNode-navy rounded-lg px-2.5 py-2 border border-pulseNode-border/15">
-              <code className="flex-1 text-[10px] font-mono text-helm-fg break-all">{uri}</code>
-              <button
-                onClick={copy}
-                className="flex-shrink-0 text-[10px] text-pn-electric hover:text-pn-electric/80 font-medium transition-colors"
-              >
-                {copied ? "✓" : "Copy"}
-              </button>
-            </div>
-          )}
-          {!loading && !uri && <p className="text-[10px] text-red-400">Could not build connection string</p>}
-        </div>
-      )}
+    <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/50">
+      <div className="flex items-center gap-2 border-b border-pulseNode-border/10 px-3 py-2">
+        <PlugZap size={13} className="text-pn-electric" />
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">Connection string</span>
+      </div>
+      <div className="flex items-center gap-2 px-3 py-2">
+        {loading && <span className="text-xs text-helm-fg3">Loading connection string...</span>}
+        {!loading && uri && (
+          <>
+            <code className="min-w-0 flex-1 break-all rounded-md bg-pulseNode-navyLight px-2 py-1.5 font-mono text-[11px] text-helm-fg">
+              {uri}
+            </code>
+            <button onClick={copy} className="pn-icon-btn" title="Copy connection string" aria-label="Copy connection string">
+              {copied ? <Check size={13} /> : <Copy size={13} />}
+            </button>
+          </>
+        )}
+        {!loading && !uri && <span className="text-xs text-red-400">Could not build connection string.</span>}
+      </div>
     </div>
   )
 }
 
-/* ── DB Card ─────────────────────────────────────────────────────────── */
-function DbCard({ db, connHist, onQueryClick, onMetricsClick }: {
+function DbDetails({ db }: { db: Database }) {
+  return (
+    <div className="grid gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)]">
+      <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/40">
+        <div className="flex items-center justify-between border-b border-pulseNode-border/10 px-3 py-2">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">Tables</span>
+          <span className="font-mono text-[10px] text-helm-fg3">{db.tables?.length ?? 0} objects</span>
+        </div>
+        {db.tables && db.tables.length > 0 ? (
+          <div className="max-h-56 overflow-auto">
+            <table className="pn-table w-full">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th className="right">Rows</th>
+                  <th className="right">Total</th>
+                  <th className="right">Index</th>
+                </tr>
+              </thead>
+              <tbody>
+                {db.tables.map(table => (
+                  <tr key={table.name}>
+                    <td className="mono-cell">{table.name}</td>
+                    <td className="right dim">{table.rows.toLocaleString()}</td>
+                    <td className="right dim">{table.totalSize}</td>
+                    <td className="right dim">{table.indexSize}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="px-3 py-4 text-xs text-helm-fg3">
+            No table data available. Configure database introspection to populate schema details.
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-3">
+        <ConnectionStringPanel dbName={db.name} />
+        <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/40">
+          <div className="flex items-center justify-between border-b border-pulseNode-border/10 px-3 py-2">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">Slow queries</span>
+            <span className={`font-mono text-[10px] ${db.slow > 0 ? "text-amber-400" : "text-helm-fg3"}`}>
+              {db.slow} flagged
+            </span>
+          </div>
+          {db.slowQueries && db.slowQueries.length > 0 ? (
+            <div className="max-h-44 overflow-auto">
+              <table className="pn-table w-full">
+                <thead>
+                  <tr>
+                    <th>Query</th>
+                    <th className="right">Duration</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {db.slowQueries.map((query, i) => (
+                    <tr key={`${query.timestamp}-${i}`}>
+                      <td className="mono-cell max-w-[220px] truncate text-amber-400/90" title={query.query}>
+                        {query.query}
+                      </td>
+                      <td className="right dim">{query.duration}ms</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="px-3 py-4 text-xs text-helm-fg3">No slow queries reported.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DatabaseRow({
+  db,
+  connHist,
+  expanded,
+  selectedForQuery,
+  selectedForMetrics,
+  onExpand,
+  onQueryClick,
+  onMetricsClick,
+  onCloseQuery,
+  onCloseMetrics,
+}: {
   db: Database
   connHist: number[]
+  expanded: boolean
+  selectedForQuery: boolean
+  selectedForMetrics: boolean
+  onExpand: () => void
   onQueryClick: () => void
   onMetricsClick: () => void
+  onCloseQuery: () => void
+  onCloseMetrics: () => void
 }) {
-  const [expanded, setExpanded] = useState(false)
-  const color    = engineColor(db.engine)
-  const connPct  = db.maxConns > 0 ? Math.round((db.conns / db.maxConns) * 100) : 0
-  const stateTone = db.state === "ok" ? "ok" : db.state === "warn" ? "warn" : "bad"
+  const color = engineColor(db.engine)
+  const connPct = db.maxConns > 0 ? Math.round((db.conns / db.maxConns) * 100) : 0
   const isCoolify = db.name.toLowerCase().includes("coolify")
+  const tone = statusTone(db.state)
 
   return (
-    <div className="gsap-enter bg-pulseNode-navyLight rounded-xl border border-pulseNode-border/10 shadow-card overflow-hidden flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-pulseNode-border/10">
-        <div className="flex items-center gap-2 min-w-0">
-          <DbIcon engine={db.engine} size={18} className="flex-shrink-0" />
-          <span className="font-semibold text-sm text-helm-fg truncate">{db.name}</span>
-          <code className="text-[10px] text-helm-fg3 font-mono">{db.version}</code>
-          {isCoolify && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-pn-electric/15 text-pn-electric uppercase tracking-wider">
-              COOLIFY
+    <>
+      <tr className={`gsap-enter group ${expanded ? "selected" : ""}`}>
+        <td className="w-8 px-3">
+          <button
+            onClick={onExpand}
+            className="pn-icon-btn size-7"
+            aria-label={expanded ? `Collapse ${db.name}` : `Expand ${db.name}`}
+          >
+            {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          </button>
+        </td>
+        <td className="min-w-[240px]">
+          <div className="flex min-w-0 items-center gap-3">
+            <span
+              className="grid size-8 flex-shrink-0 place-items-center rounded-lg border"
+              style={{ borderColor: "var(--border)", background: "var(--bg-2)" }}
+            >
+              <DbIcon engine={db.engine} size={20} />
             </span>
-          )}
-        </div>
-        <Pill tone={stateTone} dot>{db.state}</Pill>
-      </div>
-
-      {/* Body */}
-      <div className="p-4 flex-1 space-y-3">
-        {/* Size + QPS */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <div className="text-[10px] text-helm-fg3 uppercase tracking-wider mb-0.5">Size</div>
-            <div className="text-sm font-semibold text-helm-fg">{db.size}</div>
-          </div>
-          <div>
-            <div className="text-[10px] text-helm-fg3 uppercase tracking-wider mb-0.5">QPS</div>
-            <div className="text-sm font-semibold text-helm-fg">
-              {db.qps > 0 ? db.qps.toLocaleString() : "—"}
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate text-sm font-semibold text-helm-fg">{db.name}</span>
+                {isCoolify && <span className="sev info">Coolify</span>}
+              </div>
+              <div className="mt-0.5 flex min-w-0 items-center gap-2">
+                <span className="font-mono text-[10px] uppercase text-helm-fg3">{db.engine}</span>
+                {db.version && <span className="truncate font-mono text-[10px] text-helm-fg4">{db.version}</span>}
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Connections bar */}
-        <div>
-          <div className="flex justify-between text-[10px] text-helm-fg3 mb-1">
-            <span>Connections</span>
-            <span>{db.conns > 0 ? `${db.conns} / ${db.maxConns}` : "—"}</span>
+        </td>
+        <td>
+          <span className={`pill ${tone}`}>
+            <span className="dot" />
+            {db.state}
+          </span>
+        </td>
+        <td className="hidden lg:table-cell">
+          <div className="font-mono text-xs text-helm-fg">{db.size}</div>
+        </td>
+        <td className="min-w-[150px]">
+          <div className="flex items-center justify-between gap-2 font-mono text-xs text-helm-fg">
+            <span>{db.conns > 0 ? db.conns : "-"}</span>
+            <span className="text-helm-fg3">/ {db.maxConns}</span>
           </div>
-          {db.conns > 0
-            ? <ProgressBar value={connPct} tone={connPct > 85 ? "bad" : connPct > 65 ? "warn" : "ok"} />
-            : <div className="h-[3px] rounded-full" style={{ background: "var(--pulseNode-navy, #0f1729)" }} />
-          }
-        </div>
-
-        {/* Connection history sparkline */}
-        <div className="opacity-60">
-          <ConnSpark data={connHist.length ? connHist : [0, 0]} color={color} />
-        </div>
-
-        {/* host:port */}
-        <div className="flex items-center justify-between">
-          <code className="text-[11px] text-helm-fg3 font-mono">{db.host}:{db.port}</code>
-          {db.slow > 0 && <Pill tone="warn">{db.slow} slow</Pill>}
-        </div>
-      </div>
-
-      {/* Expanded accordion */}
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-pulseNode-border/10">
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: `${Math.min(connPct, 100)}%`,
+                background: connPct > 85 ? "var(--bad)" : connPct > 65 ? "var(--warn)" : "var(--ok)",
+              }}
+            />
+          </div>
+        </td>
+        <td className="hidden xl:table-cell">
+          <div className="font-mono text-xs text-helm-fg">{db.qps > 0 ? db.qps.toLocaleString() : "-"}</div>
+        </td>
+        <td className="hidden xl:table-cell">
+          {db.slow > 0 ? (
+            <span className="inline-flex items-center gap-1 font-mono text-xs text-amber-400">
+              <AlertTriangle size={12} />
+              {db.slow}
+            </span>
+          ) : (
+            <span className="font-mono text-xs text-helm-fg3">0</span>
+          )}
+        </td>
+        <td className="hidden 2xl:table-cell">
+          <code className="block max-w-[210px] truncate font-mono text-[11px] text-helm-fg3">
+            {db.host}:{db.port}
+          </code>
+        </td>
+        <td className="hidden md:table-cell">
+          <ConnSpark data={connHist} color={color} />
+        </td>
+        <td className="right sticky right-0 z-10 min-w-[220px] bg-pulseNode-navyLight shadow-[-12px_0_18px_-18px_rgba(0,0,0,0.55)]">
+          <div className="flex justify-end gap-1.5">
+            <button
+              onClick={onQueryClick}
+              className={`pn-btn px-2.5 py-1.5 ${selectedForQuery ? "border-pn-electric/40 bg-pn-electric/10 text-pn-electric" : ""}`}
+            >
+              <TerminalSquare size={13} />
+              Query
+            </button>
+            <button
+              onClick={onMetricsClick}
+              className={`pn-btn px-2.5 py-1.5 ${selectedForMetrics ? "border-amber-500/40 bg-amber-500/10 text-amber-400" : ""}`}
+            >
+              <BarChart3 size={13} />
+              Metrics
+            </button>
+            <button onClick={() => triggerBackup(db.name)} className="pn-icon-btn" title="Backup" aria-label={`Backup ${db.name}`}>
+              <Download size={13} />
+            </button>
+          </div>
+        </td>
+      </tr>
       {expanded && (
-        <BlurFade delay={0.05}>
-          <div className="border-t border-pulseNode-border/10 px-4 py-3 space-y-4 bg-pulseNode-navy/30">
-            {/* Tables */}
-            {db.tables && db.tables.length > 0 ? (
-              <div>
-                <div className="text-[10px] uppercase tracking-wider text-helm-fg3 mb-2 font-semibold">Tables</div>
-                <table className="pn-table w-full text-xs">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th className="right">Rows</th>
-                      <th className="right">Total Size</th>
-                      <th className="right">Index Size</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {db.tables.map(t => (
-                      <tr key={t.name}>
-                        <td className="mono-cell">{t.name}</td>
-                        <td className="right dim">{t.rows.toLocaleString()}</td>
-                        <td className="right dim">{t.totalSize}</td>
-                        <td className="right dim">{t.indexSize}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-[11px] text-helm-fg3">
-                No table data — set <code className="font-mono">DATABASE_URL</code> to enable introspection.
-              </p>
-            )}
-
-            {/* Slow queries */}
-            {db.slowQueries && db.slowQueries.length > 0 && (
-              <div>
-                <div className="text-[10px] uppercase tracking-wider text-amber-400 mb-2 font-semibold">Slow Queries</div>
-                <table className="pn-table w-full text-xs">
-                  <thead>
-                    <tr>
-                      <th>Query</th>
-                      <th className="right">Duration</th>
-                      <th className="right">When</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {db.slowQueries.map((q, i) => (
-                      <tr key={i}>
-                        <td className="mono-cell text-amber-400/80">{q.query}</td>
-                        <td className="right dim">{q.duration}ms</td>
-                        <td className="right dim">{q.timestamp}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </BlurFade>
+        <tr>
+          <td colSpan={10} className="bg-pulseNode-navy/25 p-0">
+            <div className="space-y-3 p-3">
+              <DbDetails db={db} />
+              {selectedForMetrics && (
+                <DatabaseMetricsPanel
+                  db={db}
+                  onClose={onCloseMetrics}
+                />
+              )}
+              {selectedForQuery && (
+                <DatabaseQueryEditor
+                  db={db}
+                  onClose={onCloseQuery}
+                />
+              )}
+            </div>
+          </td>
+        </tr>
       )}
-
-      {/* Connection string (collapsible) */}
-      <ConnectionStringSection dbName={db.name} />
-
-      {/* Footer */}
-      <div className="border-t border-pulseNode-border/10 px-3 py-2 flex gap-2">
-        <button
-          onClick={onQueryClick}
-          className="flex-1 border border-pn-electric/30 text-pn-electric hover:bg-pn-electric/10 px-2 py-1 rounded-lg text-xs transition-colors text-center"
-        >
-          Query
-        </button>
-        <button
-          onClick={onMetricsClick}
-          className="flex-1 border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 px-2 py-1 rounded-lg text-xs transition-colors text-center"
-        >
-          Metrics
-        </button>
-        <button
-          onClick={() => triggerBackup(db.name)}
-          className="flex-1 border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-2 py-1 rounded-lg text-xs transition-colors text-center"
-        >
-          Backup
-        </button>
-        <button
-          onClick={() => setExpanded(p => !p)}
-          className="border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-2 py-1 rounded-lg text-xs transition-colors"
-        >
-          {expanded ? "▲" : "▼"}
-        </button>
-      </div>
-    </div>
+    </>
   )
 }
 
-/* ── Page ────────────────────────────────────────────────────────────── */
 export default function DatabasesPage() {
   const container = useRef<HTMLDivElement>(null)
-  const [databases,        setDatabases]        = useState<Database[]>([])
-  const [connHist,         setConnHist]         = useState<Record<string, number[]>>({})
-  const [totalConns,       setTotalConns]       = useState(0)
-  const [connHistory,      setConnHistory]      = useState<number[]>([0])
-  const [selectedDb,       setSelectedDb]       = useState<Database | null>(null)
-  const [selectedMetricsDb,setSelectedMetricsDb]= useState<Database | null>(null)
-  const [showCreate,       setShowCreate]       = useState(false)
-  const [showConnect,      setShowConnect]      = useState(false)
+  const [databases, setDatabases] = useState<Database[]>([])
+  const [connHist, setConnHist] = useState<Record<string, number[]>>({})
+  const [totalConns, setTotalConns] = useState(0)
+  const [connHistory, setConnHistory] = useState<number[]>([0])
+  const [selectedDb, setSelectedDb] = useState<Database | null>(null)
+  const [selectedMetricsDb, setSelectedMetricsDb] = useState<Database | null>(null)
+  const [expandedDb, setExpandedDb] = useState<string | null>(null)
+  const [showCreate, setShowCreate] = useState(false)
+  const [showConnect, setShowConnect] = useState(false)
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
 
   useEffect(() => {
-    // Step 1: Docker gives real running DB containers (always the source of truth)
     nodeApi.get<Database[]>("/api/docker/databases")
       .then(({ data }) => {
-        if (data.length > 0) {
-          setDatabases(data)
-          // Step 2: Try Python to enrich with introspection data (tables, sizes)
-          pythonApi.get<Database[]>("/database/inspect")
-            .then(({ data: pyData }) => {
-              if (!pyData.length) return
-              setDatabases(prev => prev.map(db => {
-                // Only enrich if Python found a DB with a matching host/name
-                const match = pyData.find(p =>
-                  p.host === db.host || p.host === db.name || p.name === db.name
-                )
-                if (!match) return db
+        if (data.length === 0) return
+        setDatabases(data)
+
+        pythonApi.get<Database[]>("/database/inspect")
+          .then(({ data: pyData }) => {
+            if (!pyData.length) return
+            setDatabases(prev => prev.map(db => {
+              const match = pyData.find(p => p.host === db.host || p.host === db.name || p.name === db.name)
+              if (!match) return db
+              return {
+                ...db,
+                size: match.size !== "-" ? match.size : db.size,
+                conns: match.conns > 0 ? match.conns : db.conns,
+                qps: match.qps > 0 ? match.qps : db.qps,
+                slow: match.slow,
+                tables: match.tables,
+                slowQueries: match.slowQueries,
+              }
+            }))
+          })
+          .catch(() => {})
+
+        data.forEach(db => {
+          nodeApi.get<DbMetrics>(`/api/database/${db.name}/metrics`)
+            .then(({ data: metrics }) => {
+              const get = (label: string) => metrics.metrics.find(x => x.label === label)?.value
+              const size = get("Database Size") || get("Used Memory") || get("Resident Memory")
+              const conns = Number(
+                get("Active Connections") ||
+                get("Connected Clients") ||
+                get("Current Connections") ||
+                get("Threads Connected") ||
+                0
+              )
+              setDatabases(prev => prev.map(d => {
+                if (d.name !== db.name) return d
                 return {
-                  ...db,
-                  size:        match.size !== "—" ? match.size : db.size,
-                  conns:       match.conns > 0    ? match.conns : db.conns,
-                  qps:         match.qps   > 0    ? match.qps   : db.qps,
-                  slow:        match.slow,
-                  tables:      match.tables,
-                  slowQueries: match.slowQueries,
+                  ...d,
+                  size: d.size === "-" && size ? String(size) : d.size,
+                  conns: d.conns === 0 && conns > 0 ? conns : d.conns,
                 }
               }))
             })
             .catch(() => {})
-
-          // Step 2b: For each container the Python API can't reach, pull size +
-          // connections directly from the Node.js metrics endpoint (fire-and-forget).
-          data.forEach(db => {
-            nodeApi.get<DbMetrics>(`/api/database/${db.name}/metrics`)
-              .then(({ data: m }) => {
-                const get = (label: string) =>
-                  m.metrics.find(x => x.label === label)?.value
-                // Each engine names its metrics differently — try all known labels
-                const size  = get("Database Size") || get("Used Memory") || get("Resident Memory")
-                const conns = Number(
-                  get("Active Connections") || get("Connected Clients") ||
-                  get("Current Connections") || get("Threads Connected") || 0
-                )
-                setDatabases(prev => prev.map(d => {
-                  if (d.name !== db.name) return d
-                  return {
-                    ...d,
-                    // Only fill in what's still missing — Python data wins if present
-                    size:  d.size === "—" && size ? String(size) : d.size,
-                    conns: d.conns === 0 && conns > 0 ? conns : d.conns,
-                  }
-                }))
-              })
-              .catch(() => {})
-          })
-        }
+        })
       })
       .catch(() => {})
 
-    // Step 3: Poll Python /database/connections every 10s to update counts + build sparklines
     function pollConnections() {
       pythonApi.get<{ name: string; conns: number }[]>("/database/connections")
         .then(({ data }) => {
           const total = data.reduce((s, d) => s + d.conns, 0)
           setTotalConns(total)
-          setConnHistory(prev => {
-            const next = [...prev.slice(-59), total]
-            return next
-          })
+          setConnHistory(prev => [...prev.slice(-59), total])
           setConnHist(prev => {
             const next = { ...prev }
             for (const d of data) {
               const h = next[d.name] ?? []
               next[d.name] = [...h.slice(-19), d.conns]
             }
-            // Also update databases connection counts
             setDatabases(dbs => dbs.map(db => {
               const found = data.find(d => d.name === db.name || d.name === db.host)
               return found && found.conns > 0 ? { ...db, conns: found.conns } : db
@@ -374,6 +475,7 @@ export default function DatabasesPage() {
         })
         .catch(() => {})
     }
+
     pollConnections()
     const timer = setInterval(pollConnections, 10000)
     return () => clearInterval(timer)
@@ -381,25 +483,46 @@ export default function DatabasesPage() {
 
   useGSAP(() => {
     gsap.from(".gsap-enter", {
-      y: 20, opacity: 0, duration: 0.5, stagger: 0.08, ease: "power2.out",
+      y: 10,
+      opacity: 0,
+      duration: 0.35,
+      stagger: 0.035,
+      ease: "power2.out",
     })
   }, { scope: container })
 
-  const totalQps  = databases.reduce((s, d) => s + d.qps,  0)
+  const totalQps = databases.reduce((s, d) => s + d.qps, 0)
   const totalSlow = databases.reduce((s, d) => s + d.slow, 0)
+  const unhealthy = databases.filter(d => d.state !== "ok").length
+
+  const filteredDatabases = useMemo(() => {
+    const needle = search.trim().toLowerCase()
+    return databases.filter(db => {
+      const matchesStatus = statusFilter === "all" || db.state === statusFilter
+      const matchesSearch =
+        !needle ||
+        db.name.toLowerCase().includes(needle) ||
+        db.engine.toLowerCase().includes(needle) ||
+        db.host.toLowerCase().includes(needle)
+      return matchesStatus && matchesSearch
+    })
+  }, [databases, search, statusFilter])
 
   return (
-    <div ref={container} className="p-6 space-y-6">
-      {/* Page header */}
-      <div className="flex items-start justify-between">
+    <div ref={container} className="p-4 sm:p-6">
+      <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-helm-fg">Databases</h1>
-          <p className="text-sm text-helm-fg3 mt-0.5">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-helm-fg">Databases</h1>
+            <span className="live">Live</span>
+          </div>
+          <p className="mt-1 text-sm text-helm-fg3">
             {databases.length} databases · {totalConns} connections
             {totalQps > 0 && ` · ${totalQps.toLocaleString()} QPS`}
           </p>
         </div>
-        <div className="flex gap-2">
+
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={async () => {
               for (const db of databases) {
@@ -407,87 +530,132 @@ export default function DatabasesPage() {
                 await new Promise(r => setTimeout(r, 600))
               }
             }}
-            className="border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-3 py-1.5 rounded-lg text-sm transition-colors"
+            className="pn-btn"
           >
+            <Download size={13} />
             Backup all
           </button>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
-          >
-            + Create database
+          <button onClick={() => setShowCreate(true)} className="pn-btn">
+            <Plus size={13} />
+            Create database
           </button>
-          <button
-            onClick={() => setShowConnect(true)}
-            className="bg-[var(--acc)] text-white shadow-sm shadow-[var(--acc-soft)] px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-[var(--acc-2)] transition-colors"
-          >
-            + Connect database
+          <button onClick={() => setShowConnect(true)} className="pn-btn-primary">
+            <PlugZap size={13} />
+            Connect database
           </button>
         </div>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="gsap-enter">
-          <StatCard label="Databases"   value={databases.length} tone="acc" />
-        </div>
-        <div className="gsap-enter">
-          <StatCard label="Connections" value={totalConns} tone="acc" spark={connHistory} />
-        </div>
-        <div className="gsap-enter">
-          <StatCard
-            label="Queries/sec"
-            value={totalQps > 0 ? totalQps.toLocaleString() : "—"}
-            tone="info"
-            animate={false}
-          />
-        </div>
-        <div className="gsap-enter">
-          <StatCard label="Slow queries" value={totalSlow} tone={totalSlow > 0 ? "warn" : "ok"} />
-        </div>
+      <div className="mb-4 grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <KpiTile label="Databases" value={databases.length} icon={DatabaseIcon} />
+        <KpiTile label="Connections" value={totalConns} icon={Activity} detail={`${Math.max(...connHistory)} peak`} tone="var(--ok)" />
+        <KpiTile label="Queries/sec" value={totalQps > 0 ? totalQps.toLocaleString() : "-"} icon={Gauge} tone="var(--info)" />
+        <KpiTile label="Slow queries" value={totalSlow} icon={AlertTriangle} tone={totalSlow > 0 ? "var(--warn)" : "var(--ok)"} detail={unhealthy > 0 ? `${unhealthy} attention` : "healthy"} />
       </div>
 
-      {/* DB card grid */}
-      {databases.length === 0 ? (
-        <div className="text-center py-16 text-helm-fg3 text-sm">
-          Loading database containers…
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {databases.map(db => (
-              <DbCard
-                key={db.name}
-                db={db}
-                connHist={connHist[db.name] ?? connHist[db.host] ?? []}
-                onQueryClick={() => setSelectedDb(prev => prev?.name === db.name ? null : db)}
-                onMetricsClick={() => setSelectedMetricsDb(prev => prev?.name === db.name ? null : db)}
+      <div className="pn-card overflow-hidden rounded-lg">
+        <div className="flex flex-col gap-3 border-b border-pulseNode-border/10 bg-pulseNode-navyLight px-3 py-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="pn-search">
+              <Search size={13} className="text-helm-fg3" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search databases, engines, hosts"
               />
-            ))}
+            </div>
+            <div className="flex rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy p-1">
+              {STATUS_FILTERS.map(filter => (
+                <button
+                  key={filter}
+                  onClick={() => setStatusFilter(filter)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium capitalize transition-colors ${
+                    statusFilter === filter
+                      ? "bg-pulseNode-navyLight text-helm-fg shadow-sm"
+                      : "text-helm-fg3 hover:text-helm-fg"
+                  }`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
           </div>
+          <div className="flex flex-wrap gap-2">
+            <span className="pn-chip">
+              <span className="label">Rows</span>
+              <span className="value">{filteredDatabases.length}</span>
+            </span>
+            <span className="pn-chip">
+              <span className="label">Storage</span>
+              <span className="value"><HardDrive size={12} className="inline" /> tracked</span>
+            </span>
+          </div>
+        </div>
 
-          {selectedMetricsDb && (
-            <DatabaseMetricsPanel
-              db={selectedMetricsDb}
-              onClose={() => setSelectedMetricsDb(null)}
-            />
-          )}
+        {databases.length === 0 ? (
+          <div className="flex min-h-[280px] items-center justify-center px-4 text-center">
+            <div>
+              <DatabaseIcon size={28} className="mx-auto mb-3 text-helm-fg3" />
+              <p className="text-sm font-medium text-helm-fg">Loading database containers</p>
+              <p className="mt-1 text-xs text-helm-fg3">Detected databases and external connections will appear here.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="pn-table min-w-[1120px]">
+              <thead>
+                <tr>
+                  <th className="w-8"></th>
+                  <th>Database</th>
+                  <th>State</th>
+                  <th className="hidden lg:table-cell">Size</th>
+                  <th>Connections</th>
+                  <th className="hidden xl:table-cell">QPS</th>
+                  <th className="hidden xl:table-cell">Slow</th>
+                  <th className="hidden 2xl:table-cell">Endpoint</th>
+                  <th className="hidden md:table-cell">Activity</th>
+                  <th className="right sticky right-0 z-10 bg-pulseNode-navyLight shadow-[-12px_0_18px_-18px_rgba(0,0,0,0.55)]">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredDatabases.map(db => (
+                  <DatabaseRow
+                    key={db.name}
+                    db={db}
+                    connHist={connHist[db.name] ?? connHist[db.host] ?? []}
+                    expanded={expandedDb === db.name}
+                    selectedForQuery={selectedDb?.name === db.name}
+                    selectedForMetrics={selectedMetricsDb?.name === db.name}
+                    onExpand={() => setExpandedDb(prev => prev === db.name ? null : db.name)}
+                    onQueryClick={() => {
+                      setExpandedDb(db.name)
+                      setSelectedMetricsDb(null)
+                      setSelectedDb(prev => prev?.name === db.name ? null : db)
+                    }}
+                    onMetricsClick={() => {
+                      setExpandedDb(db.name)
+                      setSelectedDb(null)
+                      setSelectedMetricsDb(prev => prev?.name === db.name ? null : db)
+                    }}
+                    onCloseQuery={() => setSelectedDb(null)}
+                    onCloseMetrics={() => setSelectedMetricsDb(null)}
+                  />
+                ))}
+              </tbody>
+            </table>
+            {filteredDatabases.length === 0 && (
+              <div className="border-t border-pulseNode-border/10 px-4 py-10 text-center text-sm text-helm-fg3">
+                No databases match the current filters.
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
-          {selectedDb && (
-            <DatabaseQueryEditor
-              db={selectedDb}
-              onClose={() => setSelectedDb(null)}
-            />
-          )}
-        </>
-      )}
-
-      {/* Modals */}
       {showCreate && (
         <CreateDatabaseModal
           onClose={() => setShowCreate(false)}
           onCreated={() => {
-            // Refresh docker databases list after provisioning
             nodeApi.get<Database[]>("/api/docker/databases")
               .then(({ data }) => { if (data.length > 0) setDatabases(data) })
               .catch(() => {})
@@ -499,21 +667,20 @@ export default function DatabasesPage() {
         <ConnectDatabaseModal
           onClose={() => setShowConnect(false)}
           onSaved={(conn: CustomConnection) => {
-            // Add saved external connection as a pseudo-database card
             setDatabases(prev => [
               ...prev.filter(d => d.name !== conn.name),
               {
-                name:    conn.name || `${conn.engine} @ ${conn.host}`,
-                engine:  conn.engine,
+                name: conn.name || `${conn.engine} @ ${conn.host}`,
+                engine: conn.engine,
                 version: conn.version || "",
-                host:    conn.host,
-                port:    conn.port,
-                size:    "—",
-                conns:   0,
+                host: conn.host,
+                port: conn.port,
+                size: "-",
+                conns: 0,
                 maxConns: 100,
-                qps:     0,
-                slow:    0,
-                state:   "ok",
+                qps: 0,
+                slow: 0,
+                state: "ok",
               },
             ])
             setShowConnect(false)
