@@ -13,6 +13,7 @@ import { DatabaseQueryEditor } from "@/components/dashboard/DatabaseQueryEditor"
 import { DatabaseMetricsPanel } from "@/components/dashboard/DatabaseMetricsPanel"
 import { CreateDatabaseModal } from "@/components/dashboard/CreateDatabaseModal"
 import { ConnectDatabaseModal } from "@/components/dashboard/ConnectDatabaseModal"
+import { DbIcon } from "@/components/dashboard/DbIcon"
 
 /* ── Engine colours ─────────────────────────────────────────────────── */
 const ENGINE_COLOR: Record<string, string> = {
@@ -128,7 +129,7 @@ function DbCard({ db, connHist, onQueryClick, onMetricsClick }: {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-pulseNode-border/10">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: color }} />
+          <DbIcon engine={db.engine} size={18} className="flex-shrink-0" />
           <span className="font-semibold text-sm text-helm-fg truncate">{db.name}</span>
           <code className="text-[10px] text-helm-fg3 font-mono">{db.version}</code>
           {isCoolify && (

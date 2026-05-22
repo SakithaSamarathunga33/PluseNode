@@ -2,12 +2,13 @@
 
 import { useState } from "react"
 import type { ProvisionResult } from "@/lib/types"
+import { DbIcon } from "@/components/dashboard/DbIcon"
 
 const ENGINES = [
-  { id: "postgres", label: "PostgreSQL", color: "#336791", desc: "Relational · postgres:16-alpine" },
-  { id: "mysql",    label: "MySQL",      color: "#00758f", desc: "Relational · mysql:8.0" },
-  { id: "redis",    label: "Redis",      color: "#dc382d", desc: "Key-value  · redis:7-alpine" },
-  { id: "mongodb",  label: "MongoDB",    color: "#4db33d", desc: "Document   · mongo:7" },
+  { id: "postgres", label: "PostgreSQL", desc: "Relational · postgres:16-alpine" },
+  { id: "mysql",    label: "MySQL",      desc: "Relational · mysql:8.0" },
+  { id: "redis",    label: "Redis",      desc: "Key-value  · redis:7-alpine" },
+  { id: "mongodb",  label: "MongoDB",    desc: "Document   · mongo:7" },
 ]
 
 type Phase = "pick" | "provisioning" | "done" | "error"
@@ -92,7 +93,7 @@ export function CreateDatabaseModal({ onClose, onCreated }: { onClose: () => voi
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: e.color }} />
+                      <DbIcon engine={e.id} size={22} />
                       <span className="font-semibold text-sm text-helm-fg">{e.label}</span>
                     </div>
                     <span className="text-[10px] text-helm-fg3">{e.desc}</span>
@@ -148,7 +149,7 @@ export function CreateDatabaseModal({ onClose, onCreated }: { onClose: () => voi
                 </div>
               </div>
               <p className="text-[10px] text-helm-fg3">The container uses <code className="font-mono">--restart unless-stopped</code> and will survive VPS reboots.</p>
-              <button onClick={onClose} className="w-full bg-pn-electric hover:bg-pn-electric/90 text-white rounded-xl py-2 text-sm font-semibold transition-colors">
+              <button onClick={onClose} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl py-2 text-sm font-semibold transition-colors">
                 Done
               </button>
             </div>
@@ -165,7 +166,7 @@ export function CreateDatabaseModal({ onClose, onCreated }: { onClose: () => voi
                 <button onClick={onClose} className="flex-1 border border-pulseNode-border/20 text-helm-fg3 rounded-xl py-2 text-sm transition-colors">
                   Close
                 </button>
-                <button onClick={() => setPhase("pick")} className="flex-1 bg-pn-electric hover:bg-pn-electric/90 text-white rounded-xl py-2 text-sm font-semibold transition-colors">
+                <button onClick={() => setPhase("pick")} className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl py-2 text-sm font-semibold transition-colors">
                   Try again
                 </button>
               </div>

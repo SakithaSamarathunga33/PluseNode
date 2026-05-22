@@ -150,11 +150,10 @@ export function ConnectDatabaseModal({
             {(phase === "input" || phase === "error" || phase === "tested") && (
               <button
                 onClick={phase === "tested" ? saveConnection : testConnection}
-                disabled={!connStr.trim()}
                 className={`flex-1 rounded-xl py-2 text-sm font-semibold transition-colors ${
                   phase === "tested"
                     ? "bg-emerald-600 hover:bg-emerald-500 text-white"
-                    : "bg-pn-electric hover:bg-pn-electric/90 disabled:bg-pulseNode-border/20 disabled:text-helm-fg3 text-white"
+                    : "bg-violet-600 hover:bg-violet-500 text-white"
                 }`}
               >
                 {phase === "tested" ? "Save to monitoring" : "Test Connection"}
