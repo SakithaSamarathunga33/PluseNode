@@ -142,14 +142,16 @@ function ConnectionStringPanel({ dbName }: { dbName: string }) {
         <PlugZap size={13} className="text-pn-electric" />
         <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">Connection string</span>
       </div>
-      <div className="flex items-center gap-2 px-3 py-2">
-        {loading && <span className="text-xs text-helm-fg3">Loading connection string...</span>}
+      <div className="flex items-center gap-2 overflow-hidden px-3 py-2">
+        {loading && <span className="text-xs text-helm-fg3">Loading…</span>}
         {!loading && uri && (
           <>
-            <code className="min-w-0 flex-1 break-all rounded-md bg-pulseNode-navyLight px-2 py-1.5 font-mono text-[11px] text-helm-fg">
-              {uri}
-            </code>
-            <button onClick={copy} className="pn-icon-btn" title="Copy connection string" aria-label="Copy connection string">
+            <div className="min-w-0 flex-1 overflow-x-auto rounded-md bg-pulseNode-navyLight">
+              <code className="block whitespace-nowrap px-2 py-1.5 font-mono text-[11px] text-helm-fg">
+                {uri}
+              </code>
+            </div>
+            <button onClick={copy} className="pn-icon-btn flex-shrink-0" title="Copy" aria-label="Copy connection string">
               {copied ? <Check size={13} /> : <Copy size={13} />}
             </button>
           </>
