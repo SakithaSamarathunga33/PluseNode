@@ -89,14 +89,23 @@ async function _postgresSchema(creds, selectedDb) {
       const dbClient = new Client({ host: creds.host, port: creds.port, user: creds.user, password: creds.password, database: selectedDb, connectionTimeoutMillis: 5000 })
       await dbClient.connect()
       try {
-        const tRes = await dbClient.query(`
-          SELECT c.relname AS name,
-                 GREATEST(c.reltuples::bigint, 0) AS rows
+        // Get table names first
+        const nameRes = await dbClient.query(`
+          SELECT c.relname AS name
           FROM pg_class c
           JOIN pg_namespace n ON n.oid = c.relnamespace
           WHERE c.relkind = 'r' AND n.nspname NOT IN ('pg_catalog','information_schema')
-          ORDER BY c.reltuples DESC`)
-        tables = tRes.rows.map(r => ({ name: r.name, rows: Number(r.rows) }))
+          ORDER BY c.relname`)
+        // Run COUNT(*) per table — only accurate real-time source
+        for (const t of nameRes.rows) {
+          try {
+            const cRes = await dbClient.query(`SELECT COUNT(*)::int AS rows FROM "${t.name}"`)
+            tables.push({ name: t.name, rows: cRes.rows[0].rows })
+          } catch {
+            tables.push({ name: t.name, rows: 0 })
+          }
+        }
+        tables.sort((a, b) => b.rows - a.rows)
       } finally { await dbClient.end() }
     }
     return { databases, tables }
