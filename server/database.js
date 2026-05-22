@@ -123,7 +123,7 @@ async function _redisSchema(creds) {
   try {
     const count = await redis.dbsize()
     return { databases: ["db0"], tables: [{ name: `${count} keys total`, rows: count }] }
-  } finally { redis.disconnect() }
+  } finally { await redis.disconnect() }
 }
 
 async function _mongoSchema(creds, selectedDb) {
@@ -201,7 +201,7 @@ async function _runRedis(creds, command) {
       return { columns, rows, rowCount: rows.length }
     }
     return { columns: ["result"], rows: [[String(result ?? "nil")]], rowCount: 1 }
-  } finally { redis.disconnect() }
+  } finally { await redis.disconnect() }
 }
 
 async function _runMongo(creds, query, database) {
@@ -209,7 +209,11 @@ async function _runMongo(creds, query, database) {
   const match = query.trim().match(/^(\S+)\s*(.*)$/s)
   if (!match) throw new Error("Format: <collection> {json filter}")
   const [, collection, filterStr] = match
-  const filter = filterStr.trim() ? JSON.parse(filterStr) : {}
+  let filter = {}
+  if (filterStr.trim()) {
+    try { filter = JSON.parse(filterStr) }
+    catch { throw new Error("Invalid JSON filter — use format: {\"key\": \"value\"}") }
+  }
   const auth = creds.user ? `${encodeURIComponent(creds.user)}:${encodeURIComponent(creds.password)}@` : ""
   const client = new MongoClient(`mongodb://${auth}${creds.host}:${creds.port}`, { serverSelectionTimeoutMS: 5000 })
   await client.connect()
