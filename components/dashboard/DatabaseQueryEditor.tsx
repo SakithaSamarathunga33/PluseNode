@@ -155,7 +155,7 @@ export function DatabaseQueryEditor({
     nodeApi
       .get<DbSchemaResult>(`/api/database/${db.name}/schema?database=${encodeURIComponent(selectedDatabase)}`)
       .then(({ data }) => setSchema(prev => ({ ...prev, tables: data.tables })))
-      .catch(() => {})
+      .catch(err => setError(err instanceof Error ? err.message : "Failed to load tables"))
   }, [db.name, selectedDatabase])
 
   const runQuery = useCallback(
@@ -173,7 +173,8 @@ export function DatabaseQueryEditor({
         setResult(res)
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Query failed"
-        if (msg.startsWith("422")) {
+        const status = parseInt(msg.split(" ")[0], 10)
+        if (status === 422) {
           setShowWarning(true)
         } else {
           setError(msg)
@@ -225,7 +226,9 @@ export function DatabaseQueryEditor({
               </select>
             </>
           )}
-          <span className="text-[10px] text-green-400">● connected</span>
+          <span className={`text-[10px] ${error ? "text-red-400" : "text-green-400"}`}>
+            {error ? "● error" : "● connected"}
+          </span>
           <button
             onClick={onClose}
             aria-label="Close query editor"
