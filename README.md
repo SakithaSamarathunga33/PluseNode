@@ -6,24 +6,34 @@ A self-hosted VPS monitoring dashboard — containers, system stats, processes, 
 
 ---
 
-## One-command deploy
+## One-command install
 
 ```bash
-git clone https://github.com/SakithaSamarathunga33/vps.git
-cd vps
-./deploy.sh
+curl -fsSL https://raw.githubusercontent.com/SakithaSamarathunga33/vps/main/install.sh | bash
 ```
 
-The script detects your server's public IP, writes the config, builds all three Docker images, and starts everything behind Nginx on port 80. When it finishes you'll see:
+The script:
+1. Checks Docker and Docker Compose v2 are installed
+2. Clones the repo into `~/pulsenode` (or `/opt/pulsenode` when run as root)
+3. Detects your server's public IP — one prompt to confirm
+4. Writes the config, builds all Docker images, starts everything behind Nginx on port 80
+5. Polls until services are ready, then prints your clickable dashboard URL
+
+When it finishes you'll see:
 
 ```
-  Dashboard   →  http://YOUR_IP/
-  Containers  →  http://YOUR_IP/containers
-  Stats       →  http://YOUR_IP/stats
-  Processes   →  http://YOUR_IP/processes
-  Databases   →  http://YOUR_IP/databases
-  Networks    →  http://YOUR_IP/networks
+  ✓  PulseNode is live!
+
+  Open in browser  →  http://YOUR_IP/
+
+  Quick links:
+    http://YOUR_IP/containers
+    http://YOUR_IP/stats
+    http://YOUR_IP/processes
+    http://YOUR_IP/databases
 ```
+
+**Re-running the same command updates an existing install** (git pull + rebuild).
 
 ### Requirements
 
@@ -31,8 +41,9 @@ The script detects your server's public IP, writes the config, builds all three 
 |------------|---------|
 | Docker | 24+ |
 | Docker Compose plugin (v2) | 2.20+ |
+| git | any |
 | Linux VPS | Any distro with Docker |
-| Open port | 80 (or custom via `LISTEN_PORT`) |
+| Open port | 80 |
 
 > The Node.js API mounts `/var/run/docker.sock` to read containers, images, and networks from the host Docker daemon.
 
