@@ -225,3 +225,15 @@ export interface SparkData {
   load: number[]
   io: number[]
 }
+
+export interface DbSchemaResult {
+  databases: string[]
+  tables: Array<{ name: string; rows: number }>
+}
+
+export interface DbQueryResult {
+  columns: string[]
+  rows: unknown[][]
+  rowCount: number
+  durationMs: number
+}
