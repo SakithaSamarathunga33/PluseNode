@@ -13,6 +13,7 @@ const { initPM2, getAllProcesses, restartApp }                    = require("./p
 const { getCoolifyProjects, getCoolifyDeployments,
         enrichContainersWithCoolify }                             = require("./coolify")
 const { getHostInfo, getCpuUsage, getDisk, getNetworkRates }       = require("./host")
+const { getDbSchema, executeQuery, isDestructiveQuery }            = require("./database")
 
 /* ── App setup ─────────────────────────────────────────────────────────────── */
 const app    = express()
@@ -184,6 +185,33 @@ app.get("/api/host", async (req, res) => {
     const containers = await getContainers().catch(() => [])
     const running = containers.filter(c => c.state === "running").length
     res.json(getHostInfo(running))
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/* ── Database query routes ─────────────────────────────────────────────────── */
+
+/** Return database list and (optionally) table list for a DB container */
+app.get("/api/database/:name/schema", async (req, res) => {
+  try {
+    const schema = await getDbSchema(req.params.name, req.query.database || null)
+    res.json(schema)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/** Execute a query against a DB container */
+app.post("/api/database/:name/query", async (req, res) => {
+  const { query, database, force } = req.body
+  if (!query || typeof query !== "string")
+    return res.status(400).json({ error: "query is required" })
+  if (!force && isDestructiveQuery(query))
+    return res.status(422).json({ error: "Destructive query detected. Send force:true to proceed." })
+  try {
+    const result = await executeQuery(req.params.name, query, database || null)
+    res.json(result)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
