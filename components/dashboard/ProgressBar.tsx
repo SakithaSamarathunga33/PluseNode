@@ -1,5 +1,4 @@
 "use client"
-import { motion } from "framer-motion"
 
 interface ProgressBarProps {
   value: number
@@ -22,12 +21,9 @@ export function ProgressBar({ value, tone = "", className }: ProgressBarProps) {
       className={`h-[3px] rounded-full overflow-hidden${className ? ` ${className}` : ""}`}
       style={{ background: "var(--bg-3)" }}
     >
-      <motion.div
-        className="h-full rounded-full"
-        style={{ backgroundColor: FILL_COLORS[t as keyof typeof FILL_COLORS] }}
-        initial={{ width: 0 }}
-        animate={{ width: `${Math.min(100, value)}%` }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+      <div
+        className="h-full rounded-full transition-[width] duration-[600ms] ease-out"
+        style={{ backgroundColor: FILL_COLORS[t as keyof typeof FILL_COLORS], width: `${Math.min(100, value)}%` }}
       />
     </div>
   )

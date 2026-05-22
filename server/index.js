@@ -326,8 +326,9 @@ app.post("/api/docker/build-cache/clear", async (req, res) => {
 
 // Alert state tracking
 let alertCount = 0
-const unreadAlerts = []
-const cpuHistory   = []   // last 30 samples for threshold detection
+const unreadAlerts = []   // capped at 500
+const cpuHistory   = []   // capped at 30 samples for threshold detection
+const MAX_ALERTS   = 500
 
 io.on("connection", socket => {
   console.log(`[socket] client connected: ${socket.id}`)
@@ -353,8 +354,8 @@ const systemMetricsInterval = setInterval(() => {
   const disk = getDisk()
   const net  = getNetworkRates()
 
+  if (cpuHistory.length >= 30) cpuHistory.shift()
   cpuHistory.push(cpu)
-  if (cpuHistory.length > 30) cpuHistory.shift()
 
   if (io.engine.clientsCount === 0) return
   io.emit("system:metrics", {
@@ -372,8 +373,16 @@ const alertCheckInterval = setInterval(() => {
   const recentCpu = cpuHistory.slice(-3)
   const sustained = recentCpu.length === 3 && recentCpu.every(v => v > 85)
 
+  const pushAlert = (alert) => {
+    if (unreadAlerts.length >= MAX_ALERTS) unreadAlerts.shift()
+    unreadAlerts.push(alert)
+    alertCount++
+    io.emit("alert:new",   alert)
+    io.emit("alert:count", alertCount)
+  }
+
   if (sustained) {
-    const alert = {
+    pushAlert({
       id: `alert-${Date.now()}`,
       sev: "warn",
       title: `CPU sustained above 85% (${cpuHistory.at(-1)?.toFixed(1)}%)`,
@@ -382,16 +391,13 @@ const alertCheckInterval = setInterval(() => {
       rule: "host.cpu > 85% for 30s",
       state: "firing",
       read: false,
-    }
-    alertCount++
-    io.emit("alert:new",   alert)
-    io.emit("alert:count", alertCount)
+    })
   }
 
   // RAM spike check
   const ram = 40 + Math.random() * 60
   if (ram > 90) {
-    const alert = {
+    pushAlert({
       id: `alert-${Date.now()}-ram`,
       sev: "warn",
       title: `RAM above 90% (${ram.toFixed(1)}%)`,
@@ -400,10 +406,7 @@ const alertCheckInterval = setInterval(() => {
       rule: "host.mem > 90%",
       state: "firing",
       read: false,
-    }
-    alertCount++
-    io.emit("alert:new",   alert)
-    io.emit("alert:count", alertCount)
+    })
   }
 }, 10000)
 

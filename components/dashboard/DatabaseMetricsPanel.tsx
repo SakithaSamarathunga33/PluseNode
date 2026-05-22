@@ -44,7 +44,7 @@ export function DatabaseMetricsPanel({
 
   useEffect(() => {
     fetchMetrics()
-    const timer = setInterval(fetchMetrics, 5000)
+    const timer = setInterval(() => { if (!document.hidden) fetchMetrics() }, 5000)
     return () => clearInterval(timer)
   }, [fetchMetrics])
 

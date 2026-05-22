@@ -587,7 +587,7 @@ export default function DatabasesPage() {
     }
 
     pollConnections()
-    const timer = setInterval(pollConnections, 10000)
+    const timer = setInterval(() => { if (!document.hidden) pollConnections() }, 10000)
     return () => clearInterval(timer)
   }, [])
 

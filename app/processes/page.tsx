@@ -379,8 +379,8 @@ export default function ProcessesPage() {
 
     fetchProcesses()
     fetchCores()
-    const t1 = setInterval(fetchProcesses, 3000)
-    const t2 = setInterval(fetchCores, 3000)
+    const t1 = setInterval(() => { if (!document.hidden) fetchProcesses() }, 5000)
+    const t2 = setInterval(() => { if (!document.hidden) fetchCores() }, 5000)
     return () => { clearInterval(t1); clearInterval(t2) }
   }, [])
 

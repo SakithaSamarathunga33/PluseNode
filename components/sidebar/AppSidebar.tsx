@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import {
@@ -87,11 +86,10 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
     setOpenSections(prev => ({ ...prev, [label]: !prev[label] }))
 
   return (
-    <motion.aside
-      animate={{ width: collapsed ? 52 : 220 }}
-      transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-      className="relative flex-shrink-0 h-screen flex flex-col overflow-hidden z-20"
+    <aside
+      className="relative flex-shrink-0 h-screen flex flex-col overflow-hidden z-20 transition-[width] duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
       style={{
+        width: collapsed ? 52 : 220,
         background: "var(--bg-1)",
         borderRight: "1px solid var(--border)",
       }}
@@ -115,13 +113,7 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
           </span>
         </div>
         {!collapsed && (
-          <motion.div
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ delay: 0.05 }}
-            className="flex flex-col min-w-0 gap-1"
-          >
+          <div className="flex flex-col min-w-0 gap-1 animate-in fade-in slide-in-from-left-2 duration-150 fill-mode-both" style={{ animationDelay: "50ms" }}>
             <span className="relative block h-[30px] w-[158px] overflow-hidden">
               <img
                 src="/logodark-removebg-preview.png"
@@ -137,7 +129,7 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
             <span className="text-[9px] tracking-widest uppercase" style={{ color: "var(--fg-3)" }}>
               vps · console
             </span>
-          </motion.div>
+          </div>
         )}
       </div>
 
@@ -167,9 +159,9 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
               </button>
             )}
 
-            <motion.div
-              animate={{ height: collapsed || openSections[section.label] ? "auto" : 0, overflow: "hidden" }}
-              transition={{ duration: 0.18 }}
+            <div
+              className="overflow-hidden transition-all duration-[180ms]"
+              style={{ maxHeight: (collapsed || openSections[section.label]) ? "500px" : "0" }}
             >
               {section.items.map(item => {
                 const isActive = pathname === item.href
@@ -235,7 +227,7 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
                   </Link>
                 )
               })}
-            </motion.div>
+            </div>
           </div>
         ))}
       </nav>
@@ -254,11 +246,9 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
               </span>
             </div>
             <div className="h-[3px] rounded-full overflow-hidden" style={{ background: "var(--bg-3)" }}>
-              <motion.div
-                className="h-full rounded-full"
-                style={{ background: "var(--acc)" }}
-                animate={{ width: `${cpu}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+              <div
+                className="h-full rounded-full transition-[width] duration-[800ms] ease-out"
+                style={{ background: "var(--acc)", width: `${cpu}%` }}
               />
             </div>
             <div className="flex items-center gap-2">
@@ -315,6 +305,6 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
           }
         </button>
       </div>
-    </motion.aside>
+    </aside>
   )
 }

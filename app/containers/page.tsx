@@ -108,7 +108,7 @@ function LogsPanel({ container, onClose }: { container: Container; onClose: () =
   useEffect(() => {
     setLoading(true)
     fetchLogs()
-    const t = setInterval(fetchLogs, 3000)
+    const t = setInterval(() => { if (!document.hidden) fetchLogs() }, 5000)
     return () => clearInterval(t)
   }, [fetchLogs])
 

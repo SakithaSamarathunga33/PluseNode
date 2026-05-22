@@ -1,5 +1,4 @@
 "use client"
-import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 interface BlurFadeProps {
@@ -17,13 +16,11 @@ export default function BlurFade({
   duration = 0.4,
 }: BlurFadeProps) {
   return (
-    <motion.div
-      className={cn(className)}
-      initial={{ opacity: 0, filter: "blur(6px)", y: 8 }}
-      animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-      transition={{ duration, delay, ease: [0.4, 0, 0.2, 1] }}
+    <div
+      className={cn("animate-in fade-in slide-in-from-bottom-2 fill-mode-both", className)}
+      style={{ animationDuration: `${duration}s`, animationDelay: `${delay}s` }}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }
