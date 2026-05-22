@@ -7,7 +7,7 @@ import Link from "next/link"
 import {
   Container, BarChart3, Activity, Layers, Network,
   Database, Shield, FileCode2, BellRing,
-  ChevronDown, Cpu, PanelLeftClose, PanelLeftOpen,
+  ChevronDown, Cpu, PanelLeftClose, PanelLeftOpen, Settings,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { BorderBeam } from "@/components/magicui/border-beam"
@@ -61,10 +61,19 @@ const NAV_SECTIONS: NavSection[] = [
 interface AppSidebarProps { alertCount?: number }
 
 export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
-  const [collapsed, setCollapsed] = useState(false)
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({ Workspace: true, Resources: true, Security: true })
-  const [cpu, setCpu] = useState(HOST.cpu.usage)
+  const [collapsed,     setCollapsed]     = useState(false)
+  const [openSections,  setOpenSections]  = useState<Record<string, boolean>>({ Workspace: true, Resources: true, Security: true })
+  const [cpu,           setCpu]           = useState(HOST.cpu.usage)
+  const [hasUpdate,     setHasUpdate]     = useState(false)
   const pathname = usePathname()
+
+  // Check for updates once on mount (non-blocking)
+  useEffect(() => {
+    fetch("/api/system/version")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.hasUpdate) setHasUpdate(true) })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     try {
@@ -263,6 +272,25 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
             </p>
           </div>
         )}
+
+        {/* Settings link */}
+        <Link
+          href="/settings"
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors mb-1 relative ${
+            pathname === "/settings"
+              ? "bg-pn-electric/10 text-pn-electric"
+              : "text-helm-fg3 hover:text-helm-fg hover:bg-pulseNode-border/10"
+          }`}
+        >
+          <Settings size={14} className="flex-shrink-0" />
+          {!collapsed && <span className="font-medium">Settings</span>}
+          {hasUpdate && (
+            <span className={`${collapsed ? "absolute -top-1 -right-1" : "ml-auto"} relative flex h-2 w-2`}>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400" />
+            </span>
+          )}
+        </Link>
 
         <button
           onClick={() => setCollapsed(v => !v)}
