@@ -14,7 +14,9 @@ const { getCoolifyProjects, getCoolifyDeployments,
         enrichContainersWithCoolify }                             = require("./coolify")
 const { getHostInfo, getCpuUsage, getDisk, getNetworkRates }       = require("./host")
 const { getDbSchema, executeQuery, isDestructiveQuery,
-        getDbMetrics, streamDbBackup }                             = require("./database")
+        getDbMetrics, streamDbBackup,
+        getConnectionString, testExternalConnection, provisionDatabase,
+        listCustomConnections, addCustomConnection, removeCustomConnection } = require("./database")
 
 /* ── App setup ─────────────────────────────────────────────────────────────── */
 const app    = express()
@@ -192,6 +194,48 @@ app.get("/api/host", async (req, res) => {
 })
 
 /* ── Database query routes ─────────────────────────────────────────────────── */
+
+/* ── Custom external connections ───────────────────────────────────────────── */
+
+app.get("/api/database/custom", (req, res) => {
+  try   { res.json(listCustomConnections()) }
+  catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+app.post("/api/database/custom/test", async (req, res) => {
+  const { connectionString } = req.body
+  if (!connectionString) return res.status(400).json({ error: "connectionString required" })
+  try   { res.json(await testExternalConnection(connectionString)) }
+  catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+app.post("/api/database/custom/save", (req, res) => {
+  const { connectionString, name, engine, host, port, version } = req.body
+  if (!connectionString) return res.status(400).json({ error: "connectionString required" })
+  try   { res.json(addCustomConnection({ connectionString, name, engine, host, port, version })) }
+  catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+app.delete("/api/database/custom/:id", (req, res) => {
+  try   { removeCustomConnection(req.params.id); res.json({ ok: true }) }
+  catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+/* ── Provision new database container ──────────────────────────────────────── */
+
+app.post("/api/database/provision", async (req, res) => {
+  const { engine } = req.body
+  if (!engine) return res.status(400).json({ error: "engine required" })
+  try   { res.json(await provisionDatabase(engine)) }
+  catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+/* ── Connection string for a Docker DB container ───────────────────────────── */
+
+app.get("/api/database/:name/connection-string", async (req, res) => {
+  try   { res.json(await getConnectionString(req.params.name)) }
+  catch (err) { res.status(500).json({ error: err.message }) }
+})
 
 /** Return database list and (optionally) table list for a DB container */
 app.get("/api/database/:name/schema", async (req, res) => {

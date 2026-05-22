@@ -39,6 +39,7 @@ services:
       - "${NODE_PORT:-4001}:4001"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - pn-data:/app/data
     pid: "host"
     restart: unless-stopped
     deploy:
@@ -67,3 +68,6 @@ services:
           memory: 192M
         reservations:
           memory: 48M
+
+volumes:
+  pn-data:

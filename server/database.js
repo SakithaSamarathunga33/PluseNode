@@ -1,7 +1,12 @@
 // server/database.js
 "use strict"
 
+const fs     = require("fs")
+const path   = require("path")
+const crypto = require("crypto")
 const { getDockerInstance, isMock } = require("./docker")
+
+const CONNECTIONS_FILE = "/app/data/connections.json"
 
 // ── Env parsing ───────────────────────────────────────────────────────────────
 
@@ -431,4 +436,170 @@ async function streamDbBackup(containerName, res) {
   await new Promise((resolve, reject) => { stream.on("end", resolve); stream.on("error", reject) })
 }
 
-module.exports = { getDbSchema, executeQuery, isDestructiveQuery, getDbMetrics, streamDbBackup }
+// ── Connection strings ────────────────────────────────────────────────────────
+
+function buildConnectionString(engine, user, password, host, port, database) {
+  const p = encodeURIComponent(password || "")
+  switch (engine) {
+    case "postgres":
+      return `postgresql://${user}:${p}@${host}:${port}/${database}`
+    case "mysql":
+      return `mysql://${user}:${p}@${host}:${port}/${database || ""}`
+    case "redis":
+      return password ? `redis://:${p}@${host}:${port}` : `redis://${host}:${port}`
+    case "mongodb":
+      return user
+        ? `mongodb://${encodeURIComponent(user)}:${p}@${host}:${port}/${database}?authSource=admin`
+        : `mongodb://${host}:${port}/${database}`
+    default:
+      return `${engine}://${host}:${port}`
+  }
+}
+
+async function getConnectionString(containerName) {
+  const creds = await getDbCredentials(containerName)
+  if (isMock()) return { connectionString: null, isExternal: false }
+
+  const docker   = getDockerInstance()
+  const info     = await docker.getContainer(containerName).inspect()
+  const portKey  = { postgres: "5432/tcp", mysql: "3306/tcp", redis: "6379/tcp", mongodb: "27017/tcp" }[creds.engine]
+  const bindings = info.NetworkSettings?.Ports?.[portKey] || []
+  const extPort  = bindings[0]?.HostPort
+
+  const rawOrigin = process.env.NEXT_PUBLIC_ORIGIN || ""
+  const vpsHost   = rawOrigin.replace(/^https?:\/\//, "").split("/")[0].split(":")[0] || "localhost"
+
+  const host = extPort ? vpsHost : creds.host
+  const port = extPort || String(creds.port)
+  const connStr = buildConnectionString(creds.engine, creds.user, creds.password, host, port, creds.database)
+  return { connectionString: connStr, isExternal: !!extPort }
+}
+
+// ── Custom (external) connections ─────────────────────────────────────────────
+
+function _loadConns() {
+  try { return JSON.parse(fs.readFileSync(CONNECTIONS_FILE, "utf8")) } catch { return [] }
+}
+function _saveConns(list) {
+  try {
+    fs.mkdirSync(path.dirname(CONNECTIONS_FILE), { recursive: true })
+    fs.writeFileSync(CONNECTIONS_FILE, JSON.stringify(list, null, 2))
+  } catch (e) { console.error("[db] save connections:", e.message) }
+}
+
+function listCustomConnections() { return _loadConns() }
+
+function addCustomConnection(data) {
+  const list  = _loadConns()
+  const entry = { id: crypto.randomUUID(), ...data, addedAt: new Date().toISOString() }
+  list.push(entry)
+  _saveConns(list)
+  return entry
+}
+
+function removeCustomConnection(id) {
+  _saveConns(_loadConns().filter(c => c.id !== id))
+}
+
+async function testExternalConnection(connectionString) {
+  const url      = new URL(connectionString)
+  const protocol = url.protocol.replace(":", "")
+  const engine   = (protocol === "postgresql") ? "postgres" : protocol
+  const host     = url.hostname
+  const port     = Number(url.port) || { postgres: 5432, mysql: 3306, redis: 6379, mongodb: 27017 }[engine] || 5432
+  const user     = decodeURIComponent(url.username || "")
+  const password = decodeURIComponent(url.password || "")
+  const database = (url.pathname || "").replace(/^\//, "").split("?")[0]
+
+  if (engine === "postgres") {
+    const { Client } = require("pg")
+    const client = new Client({ host, port, user, password, database, connectionTimeoutMillis: 5000 })
+    await client.connect()
+    const r = await client.query("SELECT version()")
+    await client.end()
+    const version = r.rows[0]?.version?.match(/PostgreSQL\s+([\d.]+)/)?.[1] || ""
+    return { engine, host, port, user, database, version }
+  }
+  if (engine === "mysql") {
+    const mysql = require("mysql2/promise")
+    const conn  = await mysql.createConnection({ host, port, user, password, database: database || undefined, connectTimeout: 5000 })
+    const [rows] = await conn.query("SELECT VERSION() AS v")
+    await conn.end()
+    return { engine, host, port, user, database, version: rows[0]?.v || "" }
+  }
+  if (engine === "redis") {
+    const Redis = require("ioredis")
+    const redis = new Redis({ host, port, password: password || undefined, connectTimeout: 5000, lazyConnect: true })
+    await redis.connect()
+    const info = await redis.info("server")
+    await redis.disconnect()
+    const version = info.match(/redis_version:([^\r\n]+)/)?.[1]?.trim() || ""
+    return { engine, host, port, version }
+  }
+  if (engine === "mongodb") {
+    const { MongoClient } = require("mongodb")
+    const client = new MongoClient(connectionString, { serverSelectionTimeoutMS: 5000 })
+    await client.connect()
+    const info = await client.db("admin").admin().serverInfo()
+    await client.close()
+    return { engine, host, port, user, database, version: info.version || "" }
+  }
+  throw new Error(`Unsupported engine: ${engine}`)
+}
+
+// ── Provision new database container ─────────────────────────────────────────
+
+async function provisionDatabase(engine) {
+  if (isMock()) throw new Error("Not available in mock mode")
+  const docker   = getDockerInstance()
+  const password = crypto.randomBytes(24).toString("base64url")
+  const suffix   = crypto.randomBytes(3).toString("hex")
+  const name     = `pn-${engine}-${suffix}`
+
+  const CFGS = {
+    postgres: { image: "postgres:16-alpine", env: [`POSTGRES_PASSWORD=${password}`, "POSTGRES_USER=postgres", "POSTGRES_DB=postgres"], port: "5432/tcp", user: "postgres", db: "postgres" },
+    mysql:    { image: "mysql:8.0",          env: [`MYSQL_ROOT_PASSWORD=${password}`, "MYSQL_DATABASE=mydb"],                                          port: "3306/tcp", user: "root",     db: "mydb"     },
+    redis:    { image: "redis:7-alpine",     env: [],  cmd: ["redis-server", "--requirepass", password],                                               port: "6379/tcp" },
+    mongodb:  { image: "mongo:7",            env: [`MONGO_INITDB_ROOT_USERNAME=root`, `MONGO_INITDB_ROOT_PASSWORD=${password}`, "MONGO_INITDB_DATABASE=mydb"], port: "27017/tcp", user: "root", db: "mydb" },
+  }
+  const cfg = CFGS[engine]
+  if (!cfg) throw new Error(`Unknown engine: ${engine}`)
+
+  // Pull image (may take minutes for first-time pull)
+  await new Promise((resolve, reject) => {
+    docker.pull(cfg.image, (err, stream) => {
+      if (err) return reject(err)
+      docker.modem.followProgress(stream, err2 => err2 ? reject(err2) : resolve())
+    })
+  })
+
+  // Create + start container; let Docker pick a free host port
+  const opts = {
+    Image: cfg.image, name,
+    Env:   cfg.env,
+    ExposedPorts: { [cfg.port]: {} },
+    HostConfig: {
+      PortBindings:  { [cfg.port]: [{ HostPort: "" }] },
+      RestartPolicy: { Name: "unless-stopped" },
+    },
+  }
+  if (cfg.cmd) opts.Cmd = cfg.cmd
+
+  const container = await docker.createContainer(opts)
+  await container.start()
+
+  const info       = await container.inspect()
+  const assignedPort = info.NetworkSettings.Ports[cfg.port]?.[0]?.HostPort || "0"
+
+  const rawOrigin = process.env.NEXT_PUBLIC_ORIGIN || ""
+  const vpsHost   = rawOrigin.replace(/^https?:\/\//, "").split("/")[0].split(":")[0] || "localhost"
+  const connStr   = buildConnectionString(engine, cfg.user || "", password, vpsHost, assignedPort, cfg.db || "")
+
+  return { name, engine, image: cfg.image, port: assignedPort, password, connectionString: connStr }
+}
+
+module.exports = {
+  getDbSchema, executeQuery, isDestructiveQuery, getDbMetrics, streamDbBackup,
+  getConnectionString, testExternalConnection, provisionDatabase,
+  listCustomConnections, addCustomConnection, removeCustomConnection,
+}

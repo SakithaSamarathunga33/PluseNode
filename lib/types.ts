@@ -237,6 +237,26 @@ export interface DbMetrics {
   metrics: DbMetricItem[]
 }
 
+export interface ProvisionResult {
+  name: string
+  engine: string
+  image: string
+  port: string
+  password: string
+  connectionString: string
+}
+
+export interface CustomConnection {
+  id: string
+  connectionString: string
+  name?: string
+  engine: string
+  host: string
+  port: number
+  version?: string
+  addedAt: string
+}
+
 export interface DbSchemaResult {
   databases: string[]
   tables: Array<{ name: string; rows: number }>

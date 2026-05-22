@@ -4,13 +4,15 @@ import { useState, useRef, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import { nodeApi, pythonApi, API_BASE } from "@/lib/api"
-import type { Database } from "@/lib/types"
+import type { Database, CustomConnection } from "@/lib/types"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
 import { ProgressBar } from "@/components/dashboard/ProgressBar"
 import BlurFade from "@/components/magicui/blur-fade"
 import { DatabaseQueryEditor } from "@/components/dashboard/DatabaseQueryEditor"
 import { DatabaseMetricsPanel } from "@/components/dashboard/DatabaseMetricsPanel"
+import { CreateDatabaseModal } from "@/components/dashboard/CreateDatabaseModal"
+import { ConnectDatabaseModal } from "@/components/dashboard/ConnectDatabaseModal"
 
 /* ── Engine colours ─────────────────────────────────────────────────── */
 const ENGINE_COLOR: Record<string, string> = {
@@ -50,6 +52,62 @@ function triggerBackup(dbName: string) {
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
+}
+
+/* ── Connection string copy button ───────────────────────────────────── */
+function ConnectionStringSection({ dbName }: { dbName: string }) {
+  const [uri,     setUri]     = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [copied,  setCopied]  = useState(false)
+  const [open,    setOpen]    = useState(false)
+
+  async function load() {
+    if (uri) { setOpen(o => !o); return }
+    setOpen(true)
+    setLoading(true)
+    try {
+      const res = await fetch(`${API_BASE}/api/database/${encodeURIComponent(dbName)}/connection-string`)
+      const data = await res.json()
+      setUri(data.connectionString || null)
+    } catch { setUri(null) }
+    finally { setLoading(false) }
+  }
+
+  function copy() {
+    if (!uri) return
+    navigator.clipboard.writeText(uri)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="border-t border-pulseNode-border/10">
+      <button
+        onClick={load}
+        className="w-full flex items-center justify-between px-3 py-1.5 text-[10px] text-helm-fg3 hover:text-helm-fg transition-colors"
+      >
+        <span className="uppercase tracking-wider font-semibold">Connection String</span>
+        <span>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3">
+          {loading && <p className="text-[10px] text-helm-fg3">Loading…</p>}
+          {!loading && uri && (
+            <div className="flex items-center gap-2 bg-pulseNode-navy rounded-lg px-2.5 py-2 border border-pulseNode-border/15">
+              <code className="flex-1 text-[10px] font-mono text-helm-fg break-all">{uri}</code>
+              <button
+                onClick={copy}
+                className="flex-shrink-0 text-[10px] text-pn-electric hover:text-pn-electric/80 font-medium transition-colors"
+              >
+                {copied ? "✓" : "Copy"}
+              </button>
+            </div>
+          )}
+          {!loading && !uri && <p className="text-[10px] text-red-400">Could not build connection string</p>}
+        </div>
+      )}
+    </div>
+  )
 }
 
 /* ── DB Card ─────────────────────────────────────────────────────────── */
@@ -185,6 +243,9 @@ function DbCard({ db, connHist, onQueryClick, onMetricsClick }: {
         </BlurFade>
       )}
 
+      {/* Connection string (collapsible) */}
+      <ConnectionStringSection dbName={db.name} />
+
       {/* Footer */}
       <div className="border-t border-pulseNode-border/10 px-3 py-2 flex gap-2">
         <button
@@ -209,7 +270,7 @@ function DbCard({ db, connHist, onQueryClick, onMetricsClick }: {
           onClick={() => setExpanded(p => !p)}
           className="border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-2 py-1 rounded-lg text-xs transition-colors"
         >
-          {expanded ? "Collapse" : "Expand"}
+          {expanded ? "▲" : "▼"}
         </button>
       </div>
     </div>
@@ -225,6 +286,8 @@ export default function DatabasesPage() {
   const [connHistory,      setConnHistory]      = useState<number[]>([0])
   const [selectedDb,       setSelectedDb]       = useState<Database | null>(null)
   const [selectedMetricsDb,setSelectedMetricsDb]= useState<Database | null>(null)
+  const [showCreate,       setShowCreate]       = useState(false)
+  const [showConnect,      setShowConnect]      = useState(false)
 
   useEffect(() => {
     // Step 1: Docker gives real running DB containers (always the source of truth)
@@ -311,12 +374,26 @@ export default function DatabasesPage() {
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => databases.forEach(db => triggerBackup(db.name))}
+            onClick={async () => {
+              for (const db of databases) {
+                triggerBackup(db.name)
+                await new Promise(r => setTimeout(r, 600))
+              }
+            }}
             className="border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-3 py-1.5 rounded-lg text-sm transition-colors"
           >
             Backup all
           </button>
-          <button className="bg-pn-electric text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-pn-electric/90 transition-colors">
+          <button
+            onClick={() => setShowCreate(true)}
+            className="border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+          >
+            + Create database
+          </button>
+          <button
+            onClick={() => setShowConnect(true)}
+            className="bg-pn-electric text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-pn-electric/90 transition-colors"
+          >
             + Connect database
           </button>
         </div>
@@ -376,6 +453,45 @@ export default function DatabasesPage() {
             />
           )}
         </>
+      )}
+
+      {/* Modals */}
+      {showCreate && (
+        <CreateDatabaseModal
+          onClose={() => setShowCreate(false)}
+          onCreated={() => {
+            // Refresh docker databases list after provisioning
+            nodeApi.get<Database[]>("/api/docker/databases")
+              .then(({ data }) => { if (data.length > 0) setDatabases(data) })
+              .catch(() => {})
+          }}
+        />
+      )}
+
+      {showConnect && (
+        <ConnectDatabaseModal
+          onClose={() => setShowConnect(false)}
+          onSaved={(conn: CustomConnection) => {
+            // Add saved external connection as a pseudo-database card
+            setDatabases(prev => [
+              ...prev.filter(d => d.name !== conn.name),
+              {
+                name:    conn.name || `${conn.engine} @ ${conn.host}`,
+                engine:  conn.engine,
+                version: conn.version || "",
+                host:    conn.host,
+                port:    conn.port,
+                size:    "—",
+                conns:   0,
+                maxConns: 100,
+                qps:     0,
+                slow:    0,
+                state:   "ok",
+              },
+            ])
+            setShowConnect(false)
+          }}
+        />
       )}
     </div>
   )
