@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import { nodeApi, pythonApi, API_BASE } from "@/lib/api"
-import type { Database, CustomConnection } from "@/lib/types"
+import type { Database, CustomConnection, DbMetrics } from "@/lib/types"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
 import { ProgressBar } from "@/components/dashboard/ProgressBar"
@@ -318,6 +318,32 @@ export default function DatabasesPage() {
               }))
             })
             .catch(() => {})
+
+          // Step 2b: For each container the Python API can't reach, pull size +
+          // connections directly from the Node.js metrics endpoint (fire-and-forget).
+          data.forEach(db => {
+            nodeApi.get<DbMetrics>(`/api/database/${db.name}/metrics`)
+              .then(({ data: m }) => {
+                const get = (label: string) =>
+                  m.metrics.find(x => x.label === label)?.value
+                // Each engine names its metrics differently — try all known labels
+                const size  = get("Database Size") || get("Used Memory") || get("Resident Memory")
+                const conns = Number(
+                  get("Active Connections") || get("Connected Clients") ||
+                  get("Current Connections") || get("Threads Connected") || 0
+                )
+                setDatabases(prev => prev.map(d => {
+                  if (d.name !== db.name) return d
+                  return {
+                    ...d,
+                    // Only fill in what's still missing — Python data wins if present
+                    size:  d.size === "—" && size ? String(size) : d.size,
+                    conns: d.conns === 0 && conns > 0 ? conns : d.conns,
+                  }
+                }))
+              })
+              .catch(() => {})
+          })
         }
       })
       .catch(() => {})
