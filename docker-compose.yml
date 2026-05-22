@@ -14,6 +14,13 @@ services:
       - node-api
       - python-api
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+        reservations:
+          memory: 64M
 
   node-api:
     build:
@@ -34,6 +41,13 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     pid: "host"
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+        reservations:
+          memory: 64M
 
   python-api:
     build:
@@ -46,3 +60,10 @@ services:
       - "${PYTHON_PORT:-8001}:8001"
     pid: "host"
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 192M
+        reservations:
+          memory: 48M

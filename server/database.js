@@ -89,7 +89,7 @@ async function _postgresSchema(creds, selectedDb) {
       const dbClient = new Client({ host: creds.host, port: creds.port, user: creds.user, password: creds.password, database: selectedDb, connectionTimeoutMillis: 5000 })
       await dbClient.connect()
       try {
-        const tRes = await dbClient.query("SELECT tablename AS name, n_live_tup AS rows FROM pg_stat_user_tables ORDER BY n_live_tup DESC")
+        const tRes = await dbClient.query("SELECT relname AS name, n_live_tup AS rows FROM pg_stat_user_tables ORDER BY n_live_tup DESC")
         tables = tRes.rows.map(r => ({ name: r.name, rows: Number(r.rows) }))
       } finally { await dbClient.end() }
     }

@@ -22,6 +22,12 @@ export const nodeApi = {
     if (!res.ok) throw new Error(`${res.status} ${path}`)
     return res.json() as Promise<T>
   },
+
+  delete: async <T>(path: string): Promise<T> => {
+    const res = await fetch(`${NODE_API}${path}`, { method: "DELETE" })
+    if (!res.ok) throw new Error(`${res.status} ${path}`)
+    return res.json() as Promise<T>
+  },
 }
 
 export const pythonApi = {

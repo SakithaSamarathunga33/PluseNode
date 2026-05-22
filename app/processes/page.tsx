@@ -357,26 +357,31 @@ export default function ProcessesPage() {
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
   useEffect(() => {
-    pythonApi.get<PyProcess[]>("/metrics/processes")
-      .then(({ data }) => {
-        if (data.length >= 5) setProcesses(data.map(mapPyProcess))
-        else return nodeApi.get<Process[]>("/api/pm2/list")
-          .then(({ data: pm2 }) => { if (pm2.length) setProcesses(pm2) })
-      })
-      .catch(() => {
-        nodeApi.get<Process[]>("/api/pm2/list")
-          .then(({ data }) => { if (data.length) setProcesses(data) })
-          .catch(() => {})
-      })
+    function fetchProcesses() {
+      pythonApi.get<PyProcess[]>("/metrics/processes")
+        .then(({ data }) => {
+          if (data.length >= 5) setProcesses(data.map(mapPyProcess))
+          else return nodeApi.get<Process[]>("/api/pm2/list")
+            .then(({ data: pm2 }) => { if (pm2.length) setProcesses(pm2) })
+        })
+        .catch(() => {
+          nodeApi.get<Process[]>("/api/pm2/list")
+            .then(({ data }) => { if (data.length) setProcesses(data) })
+            .catch(() => {})
+        })
+    }
 
     function fetchCores() {
       pythonApi.get<{ cpuCores?: number[] }>("/metrics/live")
         .then(({ data }) => { if (data.cpuCores?.length) setCpuCores(data.cpuCores) })
         .catch(() => {})
     }
+
+    fetchProcesses()
     fetchCores()
-    const t = setInterval(fetchCores, 3000)
-    return () => clearInterval(t)
+    const t1 = setInterval(fetchProcesses, 3000)
+    const t2 = setInterval(fetchCores, 3000)
+    return () => { clearInterval(t1); clearInterval(t2) }
   }, [])
 
   useGSAP(() => {
@@ -640,7 +645,12 @@ export default function ProcessesPage() {
                       <td>
                         <div className="flex items-center gap-2">
                           {proc.type === "pm2" && <span className="bg-pn-cyan/10 text-pn-cyan text-[9px] px-1.5 py-0.5 rounded font-bold flex-shrink-0">PM2</span>}
-                          <span className="font-mono text-[12px] text-helm-fg truncate max-w-[380px]" title={proc.cmd}>{proc.cmd}</span>
+                          <div className="min-w-0">
+                            <p className="text-[12px] font-semibold text-helm-fg truncate max-w-[300px]">
+                              {proc.name || proc.cmd.split("/").pop()?.split(" ")[0] || proc.cmd}
+                            </p>
+                            <p className="font-mono text-[10px] text-helm-fg3 truncate max-w-[300px]" title={proc.cmd}>{proc.cmd}</p>
+                          </div>
                         </div>
                       </td>
                       <td>{proc.state === "R" ? <Pill tone="ok" dot>Running</Pill> : <Pill tone="outline">Sleep</Pill>}</td>
@@ -699,7 +709,14 @@ export default function ProcessesPage() {
                     <tr key={proc.pid} style={{ borderLeft: "2px solid var(--warn)" }}>
                       <td className="mono-cell" style={{ color: "var(--warn)" }}>{proc.pid}</td>
                       <td className="dim">{proc.user}</td>
-                      <td><span className="font-mono text-[12px] truncate max-w-[400px]" style={{ color: "var(--fg)" }}>{proc.cmd}</span></td>
+                      <td>
+                        <div className="min-w-0">
+                          <p className="text-[12px] font-semibold truncate max-w-[350px]" style={{ color: "var(--fg)" }}>
+                            {proc.name || proc.cmd.split("/").pop()?.split(" ")[0] || proc.cmd}
+                          </p>
+                          <p className="font-mono text-[10px] truncate max-w-[350px]" style={{ color: "var(--fg-3)" }} title={proc.cmd}>{proc.cmd}</p>
+                        </div>
+                      </td>
                       <td>
                         <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold"
                           style={{ background: "var(--warn-soft)", color: "var(--warn)" }}>

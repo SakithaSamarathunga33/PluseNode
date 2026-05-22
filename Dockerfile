@@ -18,12 +18,12 @@ FROM node:20-alpine AS web
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
-COPY --from=web-builder /app/package.json /app/package-lock.json ./
-COPY --from=web-builder /app/node_modules ./node_modules
-COPY --from=web-builder /app/.next ./.next
+ENV HOSTNAME=0.0.0.0
+COPY --from=web-builder /app/.next/standalone ./
+COPY --from=web-builder /app/.next/static ./.next/static
 COPY --from=web-builder /app/public ./public
 EXPOSE 3000
-CMD ["npm", "run", "start"]
+CMD ["node", "server.js"]
 
 FROM node:20-alpine AS node-api
 WORKDIR /app

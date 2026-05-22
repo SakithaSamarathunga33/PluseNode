@@ -1,13 +1,18 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import {
   RefreshCw, SlidersHorizontal, Plus, Square, RotateCcw,
   FileText, Terminal, BarChart2, Trash2, LayoutGrid, Settings2,
-  Calendar, ChevronDown,
+  Calendar, ChevronDown, X, Send, Loader2, Play, AlertTriangle,
 } from "lucide-react"
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader,
+  AlertDialogTitle, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog"
 import { CONTAINERS as MOCK_CONTAINERS, HOST as MOCK_HOST } from "@/lib/mock-data"
 import { nodeApi } from "@/lib/api"
 import { getSocket } from "@/lib/socket"
@@ -81,6 +86,202 @@ function StatCard({
   )
 }
 
+// ── Logs panel ─────────────────────────────────────────────────────────────────
+
+function LogsPanel({ container, onClose }: { container: Container; onClose: () => void }) {
+  const [logs, setLogs]       = useState("Loading…")
+  const [loading, setLoading] = useState(true)
+  const [tail, setTail]       = useState(200)
+  const scrollRef             = useRef<HTMLDivElement>(null)
+
+  const fetchLogs = useCallback(async () => {
+    try {
+      const { data } = await nodeApi.get<{ logs: string }>(`/api/docker/logs/${container.id}?tail=${tail}`)
+      setLogs(data.logs || "(no output)")
+    } catch {
+      setLogs("[error fetching logs]")
+    } finally {
+      setLoading(false)
+    }
+  }, [container.id, tail])
+
+  useEffect(() => {
+    setLoading(true)
+    fetchLogs()
+    const t = setInterval(fetchLogs, 3000)
+    return () => clearInterval(t)
+  }, [fetchLogs])
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+  }, [logs])
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+        style={{ borderBottom: "1px solid var(--border)" }}>
+        <div className="flex items-center gap-2">
+          <FileText size={14} style={{ color: "var(--acc)" }} />
+          <span className="font-semibold text-sm" style={{ color: "var(--fg)" }}>Logs</span>
+          <span className="text-xs font-mono px-2 py-0.5 rounded"
+            style={{ background: "var(--bg-3)", color: "var(--fg-3)" }}>{container.name}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <select
+            value={tail}
+            onChange={e => setTail(Number(e.target.value))}
+            className="text-xs px-2 py-1 rounded focus:outline-none"
+            style={{ background: "var(--bg-3)", border: "1px solid var(--border)", color: "var(--fg-2)" }}
+          >
+            {[50, 100, 200, 500, 1000].map(n => (
+              <option key={n} value={n}>{n} lines</option>
+            ))}
+          </select>
+          <button onClick={fetchLogs} title="Refresh"
+            className="p-1.5 rounded transition-colors"
+            style={{ color: "var(--fg-3)" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--fg)" }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--fg-3)" }}>
+            <RefreshCw size={13} />
+          </button>
+          <button onClick={onClose} title="Close"
+            className="p-1.5 rounded transition-colors"
+            style={{ color: "var(--fg-3)" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--fg)" }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--fg-3)" }}>
+            <X size={14} />
+          </button>
+        </div>
+      </div>
+
+      {/* Live badge */}
+      <div className="flex items-center gap-1.5 px-4 py-1.5 flex-shrink-0"
+        style={{ borderBottom: "1px solid var(--border)", background: "var(--bg-2)" }}>
+        <span className="w-1.5 h-1.5 rounded-full status-live" style={{ background: "var(--ok)" }} />
+        <span className="text-[10px]" style={{ color: "var(--fg-3)" }}>Live · refreshes every 3s</span>
+        {loading && <Loader2 size={10} className="animate-spin ml-auto" style={{ color: "var(--fg-3)" }} />}
+      </div>
+
+      {/* Log output */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4"
+        style={{ background: "var(--bg)" }}>
+        <pre className="text-[11px] leading-relaxed font-mono whitespace-pre-wrap break-all"
+          style={{ color: "var(--fg-2)" }}>{logs}</pre>
+      </div>
+    </div>
+  )
+}
+
+// ── Terminal panel ──────────────────────────────────────────────────────────────
+
+type TermLine = { type: "cmd" | "out" | "err"; text: string }
+
+function TerminalPanel({ container, onClose }: { container: Container; onClose: () => void }) {
+  const [lines, setLines]   = useState<TermLine[]>([
+    { type: "out", text: `Connected to ${container.name}. Type a command below.` },
+  ])
+  const [cmd, setCmd]       = useState("")
+  const [running, setRunning] = useState(false)
+  const scrollRef           = useRef<HTMLDivElement>(null)
+  const inputRef            = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+  }, [lines])
+
+  const run = async () => {
+    const trimmed = cmd.trim()
+    if (!trimmed || running) return
+    setCmd("")
+    setLines(prev => [...prev, { type: "cmd", text: `$ ${trimmed}` }])
+    setRunning(true)
+    try {
+      const result = await nodeApi.post<{ output: string }>(`/api/docker/exec/${container.id}`, { cmd: trimmed })
+      const out = (result.output || "").trimEnd()
+      setLines(prev => [...prev, { type: "out", text: out || "(no output)" }])
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "exec failed"
+      setLines(prev => [...prev, { type: "err", text: `[error] ${msg}` }])
+    } finally {
+      setRunning(false)
+      setTimeout(() => inputRef.current?.focus(), 50)
+    }
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+        style={{ borderBottom: "1px solid var(--border)" }}>
+        <div className="flex items-center gap-2">
+          <Terminal size={14} style={{ color: "var(--ok)" }} />
+          <span className="font-semibold text-sm" style={{ color: "var(--fg)" }}>Terminal</span>
+          <span className="text-xs font-mono px-2 py-0.5 rounded"
+            style={{ background: "var(--bg-3)", color: "var(--fg-3)" }}>{container.name}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setLines([{ type: "out", text: "Session cleared." }])} title="Clear"
+            className="text-[10px] px-2 py-1 rounded transition-colors"
+            style={{ background: "var(--bg-3)", color: "var(--fg-3)", border: "1px solid var(--border)" }}>
+            Clear
+          </button>
+          <button onClick={onClose} title="Close"
+            className="p-1.5 rounded transition-colors"
+            style={{ color: "var(--fg-3)" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--fg)" }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--fg-3)" }}>
+            <X size={14} />
+          </button>
+        </div>
+      </div>
+
+      {/* Output */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 font-mono text-[11px]"
+        style={{ background: "var(--bg)" }}
+        onClick={() => inputRef.current?.focus()}>
+        {lines.map((l, i) => (
+          <div key={i} className="leading-relaxed whitespace-pre-wrap break-all"
+            style={{
+              color: l.type === "cmd" ? "var(--acc)" : l.type === "err" ? "var(--bad)" : "var(--fg-2)",
+              marginBottom: l.type === "cmd" ? "2px" : "8px",
+            }}>
+            {l.text}
+          </div>
+        ))}
+        {running && (
+          <div className="flex items-center gap-1.5" style={{ color: "var(--fg-3)" }}>
+            <Loader2 size={10} className="animate-spin" /> running…
+          </div>
+        )}
+      </div>
+
+      {/* Input */}
+      <div className="flex items-center gap-2 px-3 py-2.5 flex-shrink-0"
+        style={{ borderTop: "1px solid var(--border)", background: "var(--bg-2)" }}>
+        <span className="font-mono text-[11px]" style={{ color: "var(--acc)" }}>$</span>
+        <input
+          ref={inputRef}
+          type="text"
+          value={cmd}
+          onChange={e => setCmd(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") run() }}
+          placeholder={running ? "running…" : "type a command…"}
+          disabled={running}
+          className="flex-1 bg-transparent font-mono text-[11px] focus:outline-none"
+          style={{ color: "var(--fg)", caretColor: "var(--acc)" }}
+          autoFocus
+        />
+        <button onClick={run} disabled={running || !cmd.trim()}
+          className="p-1.5 rounded transition-colors"
+          style={{ color: cmd.trim() && !running ? "var(--acc)" : "var(--fg-3)" }}>
+          <Send size={12} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── Filter chip ────────────────────────────────────────────────────────────────
 
 function FilterChip({ label, value }: { label: string; value: string }) {
@@ -98,15 +299,74 @@ function FilterChip({ label, value }: { label: string; value: string }) {
   )
 }
 
+// ── Remove confirmation dialog ─────────────────────────────────────────────────
+
+function RemoveDialog({ container, onConfirm, onClose }: {
+  container: Container; onConfirm: () => void; onClose: () => void
+}) {
+  return (
+    <AlertDialog open onOpenChange={open => { if (!open) onClose() }}>
+      <AlertDialogContent className="max-w-sm p-0 overflow-hidden gap-0"
+        style={{ background: "var(--card-elev)", border: "1px solid var(--border-2)", color: "var(--fg)" }}>
+        <div className="flex flex-col items-center justify-center gap-3 px-6 py-7"
+          style={{ background: "var(--bad-soft)" }}>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+            style={{ background: "var(--bad-soft)", border: "2px solid var(--bad)" }}>
+            <AlertTriangle size={28} style={{ color: "var(--bad)" }} />
+          </div>
+          <AlertDialogHeader className="text-center gap-1">
+            <AlertDialogTitle className="text-base font-bold" style={{ color: "var(--bad)" }}>
+              Remove container?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[12px]" style={{ color: "var(--fg-3)" }}>
+              This will permanently remove the container. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+        </div>
+        <div className="flex items-center gap-3 px-5 py-3"
+          style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", background: "var(--bg-2)" }}>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "var(--bad-soft)", border: "1px solid var(--bad)" }}>
+            <Trash2 size={13} style={{ color: "var(--bad)" }} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[12px] font-semibold truncate" style={{ color: "var(--fg)" }}>{container.name}</p>
+            <p className="text-[10px] font-mono truncate" style={{ color: "var(--fg-3)" }}>{container.image}</p>
+          </div>
+        </div>
+        <AlertDialogFooter className="flex-row gap-3 px-5 py-4 border-0 bg-transparent rounded-none"
+          style={{ background: "var(--card-elev)" }}>
+          <AlertDialogCancel className="flex-1 py-2 rounded-xl text-sm font-medium transition-colors"
+            style={{ background: "var(--bg-3)", border: "1px solid var(--border-2)", color: "var(--fg-2)" }}>
+            Cancel
+          </AlertDialogCancel>
+          <button onClick={() => { onConfirm(); onClose() }}
+            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+            style={{ background: "var(--bad)" }}>
+            <Trash2 size={15} /> Remove
+          </button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
 // ── Action button ──────────────────────────────────────────────────────────────
 
-function ActionBtn({ icon, title, danger }: { icon: React.ReactNode; title: string; danger?: boolean }) {
+function ActionBtn({
+  icon, title, danger, onClick, disabled,
+}: {
+  icon: React.ReactNode; title: string; danger?: boolean; onClick?: () => void; disabled?: boolean
+}) {
   return (
     <button
       title={title}
-      className="p-1.5 rounded-md text-xs transition-colors"
+      onClick={onClick}
+      disabled={disabled}
+      className="p-1.5 rounded-md text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       style={{ color: danger ? "var(--bad)" : "var(--fg-3)" }}
       onMouseEnter={e => {
+        if (disabled) return
         const el = e.currentTarget as HTMLButtonElement
         el.style.background = danger ? "var(--bad-soft)" : "var(--bg-hover)"
         el.style.color = danger ? "var(--bad)" : "var(--fg)"
@@ -147,8 +407,13 @@ export default function ContainersPage() {
   const [host, setHost]             = useState<HostInfo>(MOCK_HOST)
   const [containerHist, setContainerHist] = useState<ContainerHistory>({})
   const [netHist, setNetHist]       = useState<number[]>([0, 0])
+  const [cpuHist, setCpuHist]       = useState<number[]>([0, 0])
+  const [ramHist, setRamHist]       = useState<number[]>([0, 0])
   const [netRx, setNetRx]           = useState(0)
   const [netTx, setNetTx]           = useState(0)
+  const [panel, setPanel]           = useState<{ type: "logs" | "terminal"; container: Container } | null>(null)
+  const [actionBusy, setActionBusy] = useState<Record<string, boolean>>({})
+  const [removeTarget, setRemoveTarget] = useState<Container | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -184,11 +449,19 @@ export default function ContainersPage() {
       })
     }
 
-    // Live network I/O every 2s
+    // Live system metrics every 3s
     const onSystemMetrics = (m: SystemMetrics) => {
       setNetHist(prev => pushCapped(prev, m.netIn, 60))
+      setCpuHist(prev => pushCapped(prev, m.cpu, 60))
+      setRamHist(prev => pushCapped(prev, m.ram, 60))
       setNetRx(Math.round(m.netIn))
       setNetTx(Math.round(m.netOut))
+      setHost(prev => ({
+        ...prev,
+        cpu: { ...prev.cpu, usage: Math.round(m.cpu * 10) / 10 },
+        memory: { ...prev.memory, pct: Math.round(m.ram * 10) / 10 },
+        disk: { ...prev.disk, pct: Math.round(m.disk * 10) / 10 },
+      }))
     }
 
     socket.on("container:stats", onContainerStats)
@@ -198,6 +471,53 @@ export default function ContainersPage() {
       socket.off("system:metrics",  onSystemMetrics)
     }
   }, [])
+
+  const refreshContainers = useCallback(() => {
+    nodeApi.get<Container[]>("/api/docker/containers")
+      .then(({ data }) => setContainers(data))
+      .catch(() => {})
+  }, [])
+
+  const handleStop = useCallback(async (c: Container) => {
+    setActionBusy(prev => ({ ...prev, [`stop-${c.id}`]: true }))
+    try {
+      await nodeApi.post(`/api/docker/stop/${c.id}`)
+      setTimeout(refreshContainers, 1200)
+    } catch {}
+    setActionBusy(prev => ({ ...prev, [`stop-${c.id}`]: false }))
+  }, [refreshContainers])
+
+  const handleRestart = useCallback(async (c: Container) => {
+    setActionBusy(prev => ({ ...prev, [`restart-${c.id}`]: true }))
+    try {
+      await nodeApi.post(`/api/docker/restart/${c.id}`)
+      setTimeout(refreshContainers, 2000)
+    } catch {}
+    setActionBusy(prev => ({ ...prev, [`restart-${c.id}`]: false }))
+  }, [refreshContainers])
+
+  const handleStart = useCallback(async (c: Container) => {
+    setActionBusy(prev => ({ ...prev, [`start-${c.id}`]: true }))
+    try {
+      await nodeApi.post(`/api/docker/start/${c.id}`)
+      setTimeout(refreshContainers, 1200)
+    } catch {}
+    setActionBusy(prev => ({ ...prev, [`start-${c.id}`]: false }))
+  }, [refreshContainers])
+
+  const handleRemove = useCallback(async (c: Container) => {
+    setRemoveTarget(c)
+  }, [])
+
+  const confirmRemove = useCallback(async (c: Container) => {
+    setActionBusy(prev => ({ ...prev, [`remove-${c.id}`]: true }))
+    try {
+      await nodeApi.delete(`/api/docker/remove/${c.id}`)
+      setContainers(prev => prev.filter(x => x.id !== c.id))
+      if (panel?.container.id === c.id) setPanel(null)
+    } catch {}
+    setActionBusy(prev => ({ ...prev, [`remove-${c.id}`]: false }))
+  }, [panel])
 
   useGSAP(() => {
     gsap.fromTo(
@@ -317,7 +637,7 @@ export default function ContainersPage() {
           label="CPU"
           value={host.cpu.usage}
           unit="%"
-          spark={netHist}
+          spark={cpuHist}
           sparkColor="var(--acc)"
           sub={<span>{host.cpu.cores} cores · {host.cpu.model.split("@")[0].trim()}</span>}
         />
@@ -327,7 +647,7 @@ export default function ContainersPage() {
           label="Memory"
           value={host.memory.pct}
           unit="%"
-          spark={netHist}
+          spark={ramHist}
           sparkColor="var(--warn)"
           sub={<span>{host.memory.used}/{host.memory.total} {host.memory.unit}</span>}
         />
@@ -578,12 +898,45 @@ export default function ContainersPage() {
                   {/* Actions */}
                   <td className="right">
                     <div className="flex items-center justify-end gap-0.5">
-                      <ActionBtn icon={<Square size={13} />}      title="Stop"    danger />
-                      <ActionBtn icon={<RotateCcw size={13} />}   title="Restart" />
-                      <ActionBtn icon={<FileText size={13} />}    title="Logs" />
-                      <ActionBtn icon={<Terminal size={13} />}    title="Shell" />
-                      <ActionBtn icon={<BarChart2 size={13} />}   title="Stats" />
-                      <ActionBtn icon={<Trash2 size={13} />}      title="Remove"  danger />
+                      {c.state !== "running" ? (
+                        <ActionBtn
+                          icon={actionBusy[`start-${c.id}`] ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />}
+                          title="Start"
+                          disabled={actionBusy[`start-${c.id}`]}
+                          onClick={() => handleStart(c)}
+                        />
+                      ) : (
+                        <ActionBtn
+                          icon={actionBusy[`stop-${c.id}`] ? <Loader2 size={13} className="animate-spin" /> : <Square size={13} />}
+                          title="Stop" danger
+                          disabled={actionBusy[`stop-${c.id}`]}
+                          onClick={() => handleStop(c)}
+                        />
+                      )}
+                      <ActionBtn
+                        icon={actionBusy[`restart-${c.id}`] ? <Loader2 size={13} className="animate-spin" /> : <RotateCcw size={13} />}
+                        title="Restart"
+                        disabled={actionBusy[`restart-${c.id}`]}
+                        onClick={() => handleRestart(c)}
+                      />
+                      <ActionBtn
+                        icon={<FileText size={13} />}
+                        title="Logs"
+                        onClick={() => setPanel({ type: "logs", container: c })}
+                      />
+                      <ActionBtn
+                        icon={<Terminal size={13} />}
+                        title="Shell"
+                        disabled={c.state !== "running"}
+                        onClick={() => setPanel({ type: "terminal", container: c })}
+                      />
+                      <ActionBtn icon={<BarChart2 size={13} />} title="Stats" disabled />
+                      <ActionBtn
+                        icon={actionBusy[`remove-${c.id}`] ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                        title="Remove" danger
+                        disabled={actionBusy[`remove-${c.id}`]}
+                        onClick={() => handleRemove(c)}
+                      />
                     </div>
                   </td>
                 </tr>
@@ -606,6 +959,44 @@ export default function ContainersPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Remove confirmation dialog ── */}
+      {removeTarget && (
+        <RemoveDialog
+          container={removeTarget}
+          onConfirm={() => confirmRemove(removeTarget)}
+          onClose={() => setRemoveTarget(null)}
+        />
+      )}
+
+      {/* ── Side panel overlay ── */}
+      {panel && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40"
+            style={{ background: "rgba(0,0,0,0.35)" }}
+            onClick={() => setPanel(null)}
+          />
+          {/* Drawer */}
+          <div
+            className="fixed top-0 right-0 bottom-0 z-50 flex flex-col"
+            style={{
+              width: "clamp(340px, 38vw, 560px)",
+              background: "var(--card)",
+              borderLeft: "1px solid var(--border)",
+              boxShadow: "-8px 0 32px rgba(0,0,0,0.25)",
+            }}
+          >
+            {panel.type === "logs" && (
+              <LogsPanel container={panel.container} onClose={() => setPanel(null)} />
+            )}
+            {panel.type === "terminal" && (
+              <TerminalPanel container={panel.container} onClose={() => setPanel(null)} />
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }

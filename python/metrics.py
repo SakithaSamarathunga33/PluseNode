@@ -133,7 +133,7 @@ async def collect_metrics() -> None:
             metrics_deque.append(snapshot())
         except Exception:
             pass
-        await asyncio.sleep(1)
+        await asyncio.sleep(3)
 
 
 def get_live_metrics() -> dict[str, Any]:
@@ -179,4 +179,4 @@ def get_processes() -> list[dict[str, Any]]:
             pass
 
     procs.sort(key=lambda x: x["cpu"], reverse=True)
-    return procs[:50]
+    return procs[:30]

@@ -185,6 +185,64 @@ async function sampleContainerStats() {
   return stats
 }
 
+/**
+ * Start a stopped/exited container by ID.
+ * @param {string} id
+ */
+async function startContainer(id) {
+  if (DOCKER_MOCK) return
+  await docker.getContainer(id).start()
+}
+
+/**
+ * Remove a container by ID (force-removes even if running).
+ * @param {string} id
+ */
+async function removeContainer(id) {
+  if (DOCKER_MOCK) return
+  await docker.getContainer(id).remove({ force: true })
+}
+
+/**
+ * Execute a shell command inside a running container and return stdout+stderr.
+ * @param {string} id  container short-ID
+ * @param {string} cmd shell command string
+ * @returns {Promise<string>}
+ */
+async function execCommand(id, cmd) {
+  if (DOCKER_MOCK) {
+    const lines = [
+      `$ ${cmd}`,
+      `[mock] simulated output for: ${cmd}`,
+      `total 48`,
+      `drwxr-xr-x  1 root root 4096 Jan  1 00:00 .`,
+      `drwxr-xr-x  1 root root 4096 Jan  1 00:00 ..`,
+    ]
+    return lines.join("\n")
+  }
+  const container = docker.getContainer(id)
+  const exec = await container.exec({
+    Cmd: ["sh", "-c", cmd],
+    AttachStdout: true,
+    AttachStderr: true,
+  })
+  const stream = await exec.start({ hijack: true, stdin: false })
+  return new Promise(resolve => {
+    const chunks = []
+    stream.on("data", chunk => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)))
+    stream.on("end", () => {
+      // Docker multiplexed stream: each chunk has an 8-byte header (1 byte stream type + 3 reserved + 4 byte size)
+      const out = chunks.map(buf => {
+        if (buf.length > 8 && (buf[0] === 1 || buf[0] === 2)) return buf.slice(8).toString("utf8")
+        return buf.toString("utf8")
+      }).join("")
+      resolve(out.replace(/[\x00-\x08\x0E-\x1F]/g, ""))
+    })
+    stream.on("error", () => resolve("[exec error]"))
+    setTimeout(() => resolve("[timeout: command exceeded 15s]"), 15000)
+  })
+}
+
 /** @returns {import('dockerode') | null} */
 function getDockerInstance() { return docker }
 
@@ -193,7 +251,10 @@ module.exports = {
   getContainers,
   getContainerLogs,
   restartContainer,
+  startContainer,
   stopContainer,
+  removeContainer,
+  execCommand,
   getImages,
   getNetworks,
   sampleContainerStats,
