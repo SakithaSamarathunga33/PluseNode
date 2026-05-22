@@ -1,0 +1,16 @@
+# Pre-built image overlay — pulls from GitHub Container Registry instead of building.
+# Used automatically by install.sh when GHCR images are available.
+#
+# Manual usage:
+#   docker compose -f docker-compose.yml -f docker-compose.standalone.yml -f docker-compose.ghcr.yml pull
+#   docker compose -f docker-compose.yml -f docker-compose.standalone.yml -f docker-compose.ghcr.yml up -d
+
+services:
+  web:
+    image: ghcr.io/sakithasamarathunga33/vps-web:latest
+
+  node-api:
+    image: ghcr.io/sakithasamarathunga33/vps-node-api:latest
+
+  python-api:
+    image: ghcr.io/sakithasamarathunga33/vps-python-api:latest

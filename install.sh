@@ -98,15 +98,20 @@ EOF
 echo -e "  ${G}✓ .env.local written${N}"
 echo ""
 
-# ── Build and start ────────────────────────────────────────────────────────────
-echo -e "${C}━━━  Building and starting containers  ━━━━━━━━━━━━━━━━━━━━━${N}"
-echo -e "  ${Y}First run takes a few minutes — building Docker images...${N}"
-echo ""
+# ── Pull pre-built images or build from source ─────────────────────────────────
+echo -e "${C}━━━  Starting containers  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${N}"
 
-docker compose \
-  -f docker-compose.yml \
-  -f docker-compose.standalone.yml \
-  up -d --build
+COMPOSE_BASE="-f docker-compose.yml -f docker-compose.standalone.yml"
+
+if docker compose $COMPOSE_BASE -f docker-compose.ghcr.yml pull 2>/dev/null; then
+  echo -e "  ${G}✓ Using pre-built images from GitHub Container Registry${N}"
+  echo ""
+  docker compose $COMPOSE_BASE -f docker-compose.ghcr.yml up -d
+else
+  echo -e "  ${Y}Pre-built images unavailable — building from source (this takes a few minutes)...${N}"
+  echo ""
+  docker compose $COMPOSE_BASE up -d --build
+fi
 
 # ── Wait for services ──────────────────────────────────────────────────────────
 echo ""
