@@ -83,11 +83,12 @@ function SchemaSidebar({
             <button
               key={t.name}
               onClick={() => onTableClick(t.name)}
-              className="w-full text-left px-2 py-1 rounded text-[11px] font-mono text-helm-fg3 hover:text-helm-fg hover:bg-pulseNode-border/10 flex items-center justify-between gap-1"
+              title={`Click to view data`}
+              className="w-full text-left px-2 py-1 rounded text-[11px] font-mono text-helm-fg3 hover:text-pn-electric hover:bg-pulseNode-border/10 flex items-center justify-between gap-1 group transition-colors"
             >
-              <span className="truncate">{t.name}</span>
+              <span className="truncate group-hover:underline">{t.name}</span>
               <span className="text-[9px] text-helm-fg3 flex-shrink-0">
-                {t.rows.toLocaleString()}
+                {t.rows > 0 ? t.rows.toLocaleString() : "—"}
               </span>
             </button>
           ))
@@ -245,12 +246,14 @@ export function DatabaseQueryEditor({
           setShowWarning(true)
         } else {
           setError(apiErr?.message || "Query failed")
+          // Refresh sidebar even on error — prior statements may have committed
+          loadSchema(selectedDatabase || undefined)
         }
       } finally {
         setLoading(false)
       }
     },
-    [query, db.name, selectedDatabase, hasQuery]
+    [query, db.name, selectedDatabase, hasQuery] // eslint-disable-line react-hooks/exhaustive-deps
   )
 
   async function handleCreateDb(name: string) {
@@ -267,11 +270,26 @@ export function DatabaseQueryEditor({
     }
   }
 
-  function handleTableClick(tableName: string) {
-    if (isRedis) setQuery("KEYS *")
-    else if (isMongo) setQuery(`${tableName} {}`)
-    else setQuery(`SELECT * FROM ${tableName} LIMIT 100;`)
-    textareaRef.current?.focus()
+  async function handleTableClick(tableName: string) {
+    const q = isRedis ? "KEYS *"
+            : isMongo ? `${tableName} {}`
+            : `SELECT * FROM ${tableName} LIMIT 100;`
+    setQuery(q)
+    setError(null)
+    setResult(null)
+    setLoading(true)
+    try {
+      const res = await nodeApi.post<DbQueryResult>(`/api/database/${db.name}/query`, {
+        query: q,
+        database: selectedDatabase || undefined,
+        force: false,
+      })
+      setResult(res)
+    } catch (err: unknown) {
+      setError((err as ApiError)?.message || "Query failed")
+    } finally {
+      setLoading(false)
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -371,13 +389,25 @@ export function DatabaseQueryEditor({
           </div>
         </div>
 
-        {/* Error banner — shows the actual server error message */}
-        {error && (
-          <div className="px-4 py-2.5 bg-red-500/10 border-t border-red-500/20 flex items-start gap-2">
-            <span className="text-red-400 flex-shrink-0 mt-0.5">⚠</span>
-            <p className="text-xs text-red-400 font-mono break-all">{error}</p>
-          </div>
-        )}
+        {/* Error / warning banner */}
+        {error && (() => {
+          const isWarn = /already exists|duplicate/i.test(error)
+          return (
+            <div className={`px-4 py-2.5 border-t flex items-start gap-2 ${
+              isWarn
+                ? "bg-amber-500/10 border-amber-500/20"
+                : "bg-red-500/10 border-red-500/20"
+            }`}>
+              <span className={`flex-shrink-0 mt-0.5 ${isWarn ? "text-amber-400" : "text-red-400"}`}>
+                {isWarn ? "⚠" : "✕"}
+              </span>
+              <p className={`text-xs font-mono break-all ${isWarn ? "text-amber-400" : "text-red-400"}`}>
+                {error}
+                {isWarn && <span className="ml-2 not-italic opacity-70">(other statements in the batch may have succeeded)</span>}
+              </p>
+            </div>
+          )
+        })()}
 
         {/* Results */}
         {result && <QueryResult result={result} />}
