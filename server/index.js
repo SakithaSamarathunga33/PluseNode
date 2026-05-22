@@ -297,9 +297,7 @@ app.get("/api/coolify/deployments", async (req, res) => {
 })
 
 /** Clear Docker build cache — streams output via SSE */
-app.post("/api/docker/build-cache/clear", (req, res) => {
-  const { spawn } = require("child_process")
-
+app.post("/api/docker/build-cache/clear", async (req, res) => {
   res.setHeader("Content-Type", "text/event-stream")
   res.setHeader("Cache-Control", "no-cache")
   res.setHeader("Connection", "keep-alive")
@@ -307,31 +305,21 @@ app.post("/api/docker/build-cache/clear", (req, res) => {
 
   const send = (obj) => res.write(`data: ${JSON.stringify(obj)}\n\n`)
 
-  const proc = spawn("docker", ["builder", "prune", "-f"])
+  try {
+    const docker = getDockerInstance()
+    if (!docker) throw new Error("Docker unavailable")
 
-  proc.stdout.on("data", (chunk) => {
-    chunk.toString().split("\n").filter(Boolean).forEach(line => send({ type: "line", text: line }))
-  })
-
-  proc.stderr.on("data", (chunk) => {
-    chunk.toString().split("\n").filter(Boolean).forEach(line => send({ type: "line", text: line }))
-  })
-
-  proc.on("close", (code) => {
-    if (code === 0) {
-      send({ type: "done" })
-    } else {
-      send({ type: "error", text: `Process exited with code ${code}` })
-    }
-    res.end()
-  })
-
-  proc.on("error", (err) => {
+    send({ type: "line", text: "Pruning build cache via Docker API..." })
+    const result = await docker.pruneBuilder()
+    const freed = result?.SpaceReclaimed ?? 0
+    const mb = (freed / 1024 / 1024).toFixed(1)
+    send({ type: "line", text: `Space reclaimed: ${mb} MB` })
+    send({ type: "done" })
+  } catch (err) {
     send({ type: "error", text: err.message })
-    res.end()
-  })
+  }
 
-  req.on("close", () => proc.kill())
+  res.end()
 })
 
 /* ── Socket.io ─────────────────────────────────────────────────────────────── */
