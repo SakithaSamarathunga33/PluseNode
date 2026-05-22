@@ -29,6 +29,8 @@ FROM node:20-alpine AS node-api
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NODE_PORT=4001
+ARG  PULSENODE_VERSION=dev
+ENV  PULSENODE_VERSION=${PULSENODE_VERSION}
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY server ./server

@@ -59,6 +59,7 @@ jobs:
       - name: Build and push node-api
         uses: docker/build-push-action@v5
         with:
+          build-args: PULSENODE_VERSION=${{ steps.tag.outputs.new_tag }}
           context: .
           file: Dockerfile
           target: node-api

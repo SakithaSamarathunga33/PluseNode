@@ -13,6 +13,7 @@ const { initPM2, getAllProcesses, restartApp }                    = require("./p
 const { getCoolifyProjects, getCoolifyDeployments,
         enrichContainersWithCoolify }                             = require("./coolify")
 const { getHostInfo, getCpuUsage, getDisk, getNetworkRates }       = require("./host")
+const { getVersionInfo, getUpdateState, triggerUpdate }               = require("./system")
 const { getDbSchema, executeQuery, isDestructiveQuery,
         getDbMetrics, streamDbBackup,
         getConnectionString, testExternalConnection, provisionDatabase,
@@ -417,6 +418,27 @@ const alertCheckInterval = setInterval(() => {
     io.emit("alert:count", alertCount)
   }
 }, 10000)
+
+/* ── System / version / update ────────────────────────────────────────────── */
+
+app.get("/api/system/version", async (req, res) => {
+  try   { res.json(await getVersionInfo()) }
+  catch (err) { res.status(500).json({ error: err.message }) }
+})
+
+app.get("/api/system/update/status", (req, res) => {
+  res.json(getUpdateState())
+})
+
+app.post("/api/system/update", async (req, res) => {
+  try {
+    // Start update asynchronously — helper container survives node-api going down
+    triggerUpdate().catch(() => {})
+    res.json({ started: true, message: "Update started. The dashboard will restart shortly." })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
 
 /* ── Startup ───────────────────────────────────────────────────────────────── */
 async function start() {
