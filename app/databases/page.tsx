@@ -9,6 +9,7 @@ import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
 import { ProgressBar } from "@/components/dashboard/ProgressBar"
 import BlurFade from "@/components/magicui/blur-fade"
+import { DatabaseQueryEditor } from "@/components/dashboard/DatabaseQueryEditor"
 
 /* ── Engine colours ─────────────────────────────────────────────────── */
 const ENGINE_COLOR: Record<string, string> = {
@@ -50,7 +51,7 @@ function ActionBtn({ children }: { children: React.ReactNode }) {
 }
 
 /* ── DB Card ─────────────────────────────────────────────────────────── */
-function DbCard({ db, connHist }: { db: Database; connHist: number[] }) {
+function DbCard({ db, connHist, onQueryClick }: { db: Database; connHist: number[]; onQueryClick: () => void }) {
   const [expanded, setExpanded] = useState(false)
   const color    = engineColor(db.engine)
   const connPct  = db.maxConns > 0 ? Math.round((db.conns / db.maxConns) * 100) : 0
@@ -179,7 +180,12 @@ function DbCard({ db, connHist }: { db: Database; connHist: number[] }) {
 
       {/* Footer */}
       <div className="border-t border-pulseNode-border/10 px-3 py-2 flex gap-2">
-        <ActionBtn>Query</ActionBtn>
+        <button
+          onClick={onQueryClick}
+          className="flex-1 border border-pn-electric/30 text-pn-electric hover:bg-pn-electric/10 px-2 py-1 rounded-lg text-xs transition-colors text-center"
+        >
+          Query
+        </button>
         <ActionBtn>Metrics</ActionBtn>
         <ActionBtn>Backup</ActionBtn>
         <button
@@ -200,6 +206,7 @@ export default function DatabasesPage() {
   const [connHist,    setConnHist]    = useState<Record<string, number[]>>({})
   const [totalConns,  setTotalConns]  = useState(0)
   const [connHistory, setConnHistory] = useState<number[]>([0])
+  const [selectedDb,  setSelectedDb]  = useState<Database | null>(null)
 
   useEffect(() => {
     // Step 1: Docker gives real running DB containers (always the source of truth)
@@ -321,15 +328,25 @@ export default function DatabasesPage() {
           Loading database containers…
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {databases.map(db => (
-            <DbCard
-              key={db.name}
-              db={db}
-              connHist={connHist[db.name] ?? connHist[db.host] ?? []}
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {databases.map(db => (
+              <DbCard
+                key={db.name}
+                db={db}
+                connHist={connHist[db.name] ?? connHist[db.host] ?? []}
+                onQueryClick={() => setSelectedDb(prev => prev?.name === db.name ? null : db)}
+              />
+            ))}
+          </div>
+
+          {selectedDb && (
+            <DatabaseQueryEditor
+              db={selectedDb}
+              onClose={() => setSelectedDb(null)}
             />
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   )
