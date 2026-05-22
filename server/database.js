@@ -20,9 +20,12 @@ function parseEnv(envArr) {
 }
 
 function getContainerIp(info) {
-  const networks = Object.values(info.NetworkSettings.Networks || {})
-  const found = networks.find(n => n.IPAddress)
-  return found?.IPAddress || info.Name.replace(/^\//, "")
+  const entries = Object.entries(info.NetworkSettings.Networks || {})
+  // Prefer non-bridge networks — node-api can reach those via Docker DNS/IP
+  const nonBridge = entries.find(([name, n]) => name !== "bridge" && n.IPAddress)
+  if (nonBridge) return nonBridge[1].IPAddress
+  const any = entries.find(([, n]) => n.IPAddress)
+  return any?.[1].IPAddress || info.Name.replace(/^\//, "")
 }
 
 // ── Credential detection ──────────────────────────────────────────────────────
@@ -588,7 +591,26 @@ async function provisionDatabase(engine) {
   const container = await docker.createContainer(opts)
   await container.start()
 
-  const info       = await container.inspect()
+  // Connect the new container to the same networks as this (node-api) container
+  // so that metrics, schema, and query endpoints can reach it by hostname.
+  try {
+    const hostname     = require("os").hostname()
+    const allCtrs      = await docker.listContainers({ all: false })
+    const selfCtr      = allCtrs.find(c =>
+      c.Id.startsWith(hostname) || c.Names.some(n => n.includes("node-api"))
+    )
+    const targetNets   = selfCtr
+      ? Object.keys(selfCtr.NetworkSettings.Networks).filter(n => n !== "bridge")
+      : []
+    for (const netName of targetNets) {
+      try { await docker.getNetwork(netName).connect({ Container: name }) }
+      catch (e) { console.warn(`[provision] could not join ${netName}:`, e.message) }
+    }
+  } catch (e) {
+    console.warn("[provision] network attachment failed:", e.message)
+  }
+
+  const info         = await container.inspect()
   const assignedPort = info.NetworkSettings.Ports[cfg.port]?.[0]?.HostPort || "0"
 
   const rawOrigin = process.env.NEXT_PUBLIC_ORIGIN || ""
