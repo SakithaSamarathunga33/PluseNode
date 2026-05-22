@@ -185,13 +185,15 @@ function QueryResult({ result }: { result: DbQueryResult }) {
 export function DatabaseQueryEditor({
   db,
   onClose,
+  initialQuery = "",
 }: {
   db: Database
   onClose: () => void
+  initialQuery?: string
 }) {
   const [schema,           setSchema]           = useState<DbSchemaResult>({ databases: [], tables: [] })
   const [selectedDatabase, setSelectedDatabase] = useState("")
-  const [query,            setQuery]            = useState("")
+  const [query,            setQuery]            = useState(initialQuery)
   const [result,           setResult]           = useState<DbQueryResult | null>(null)
   const [error,            setError]            = useState<string | null>(null)
   const [loading,          setLoading]          = useState(false)

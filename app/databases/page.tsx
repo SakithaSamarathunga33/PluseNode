@@ -28,6 +28,26 @@ import { CreateDatabaseModal } from "@/components/dashboard/CreateDatabaseModal"
 import { ConnectDatabaseModal } from "@/components/dashboard/ConnectDatabaseModal"
 import { DbIcon } from "@/components/dashboard/DbIcon"
 
+type TabId = "overview" | "query" | "metrics"
+
+function TabBtn({ active, onClick, label, icon: Icon }: {
+  active: boolean; onClick: () => void; label: string; icon: typeof DatabaseIcon
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-1.5 border-b-2 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide transition-colors ${
+        active
+          ? "border-pn-electric text-pn-electric"
+          : "border-transparent text-helm-fg3 hover:text-helm-fg"
+      }`}
+    >
+      <Icon size={12} />
+      {label}
+    </button>
+  )
+}
+
 const ENGINE_COLOR: Record<string, string> = {
   postgres: "var(--db-postgres)",
   postgresql: "var(--db-postgres)",
@@ -162,7 +182,7 @@ function ConnectionStringPanel({ dbName }: { dbName: string }) {
   )
 }
 
-function DbDetails({ db }: { db: Database }) {
+function DbDetails({ db, onTableClick }: { db: Database; onTableClick?: (name: string) => void }) {
   const [dbs,        setDbs]        = useState<string[]>([])
   const [selectedDb, setSelectedDb] = useState("")
   const [tables,     setTables]     = useState<Array<{ name: string; rows: number }>>([])
@@ -234,7 +254,12 @@ function DbDetails({ db }: { db: Database }) {
               </thead>
               <tbody>
                 {displayTables.map(t => (
-                  <tr key={t.name}>
+                  <tr
+                    key={t.name}
+                    onClick={() => onTableClick?.(t.name)}
+                    className={onTableClick ? "cursor-pointer hover:bg-pn-electric/5" : ""}
+                    title={onTableClick ? `Query: SELECT * FROM ${t.name} LIMIT 100` : undefined}
+                  >
                     <td className="mono-cell">{t.name}</td>
                     <td className="right dim">{t.rows.toLocaleString()}</td>
                     {hasSize && <td className="right dim">{t.totalSize ?? "—"}</td>}
@@ -292,29 +317,75 @@ function DbDetails({ db }: { db: Database }) {
   )
 }
 
+// ── DbExpand — tabbed expand area ─────────────────────────────────────────────
+
+function DbExpand({ db, tab, onTabChange }: {
+  db: Database
+  tab: TabId
+  onTabChange: (t: TabId) => void
+}) {
+  const [queryKey,     setQueryKey]     = useState(0)
+  const [pendingQuery, setPendingQuery] = useState("")
+
+  function handleTableClick(tableName: string) {
+    const q = db.engine === "redis"   ? "KEYS *"
+             : db.engine === "mongodb" ? `${tableName} {}`
+             : `SELECT * FROM ${tableName} LIMIT 100;`
+    setPendingQuery(q)
+    setQueryKey(k => k + 1)
+    onTabChange("query")
+  }
+
+  return (
+    <div>
+      {/* Tab bar */}
+      <div className="flex border-b border-pulseNode-border/10 bg-pulseNode-navy/30">
+        <TabBtn active={tab === "overview"} onClick={() => onTabChange("overview")} label="Overview" icon={DatabaseIcon} />
+        <TabBtn active={tab === "query"}    onClick={() => onTabChange("query")}    label="Query"    icon={TerminalSquare} />
+        <TabBtn active={tab === "metrics"}  onClick={() => onTabChange("metrics")}  label="Metrics"  icon={BarChart3} />
+      </div>
+
+      {/* Tab content */}
+      <div className="p-3">
+        {tab === "overview" && (
+          <DbDetails db={db} onTableClick={handleTableClick} />
+        )}
+        {tab === "query" && (
+          <DatabaseQueryEditor
+            key={queryKey}
+            db={db}
+            initialQuery={pendingQuery}
+            onClose={() => onTabChange("overview")}
+          />
+        )}
+        {tab === "metrics" && (
+          <DatabaseMetricsPanel db={db} onClose={() => onTabChange("overview")} />
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── DatabaseRow ───────────────────────────────────────────────────────────────
+
 function DatabaseRow({
   db,
   connHist,
   expanded,
-  selectedForQuery,
-  selectedForMetrics,
   onExpand,
-  onQueryClick,
-  onMetricsClick,
-  onCloseQuery,
-  onCloseMetrics,
 }: {
   db: Database
   connHist: number[]
   expanded: boolean
-  selectedForQuery: boolean
-  selectedForMetrics: boolean
   onExpand: () => void
-  onQueryClick: () => void
-  onMetricsClick: () => void
-  onCloseQuery: () => void
-  onCloseMetrics: () => void
 }) {
+  const [tab, setTab] = useState<TabId>("overview")
+
+  function openTab(t: TabId) {
+    if (!expanded) onExpand()
+    setTab(t)
+  }
+
   const color = engineColor(db.engine)
   const connPct = db.maxConns > 0 ? Math.round((db.conns / db.maxConns) * 100) : 0
   const isCoolify = db.name.toLowerCase().includes("coolify")
@@ -400,15 +471,15 @@ function DatabaseRow({
         <td className="right sticky right-0 z-10 min-w-[220px] bg-pulseNode-navyLight shadow-[-12px_0_18px_-18px_rgba(0,0,0,0.55)]">
           <div className="flex justify-end gap-1.5">
             <button
-              onClick={onQueryClick}
-              className={`pn-btn px-2.5 py-1.5 ${selectedForQuery ? "border-pn-electric/40 bg-pn-electric/10 text-pn-electric" : ""}`}
+              onClick={() => openTab("query")}
+              className={`pn-btn px-2.5 py-1.5 ${expanded && tab === "query" ? "border-pn-electric/40 bg-pn-electric/10 text-pn-electric" : ""}`}
             >
               <TerminalSquare size={13} />
               Query
             </button>
             <button
-              onClick={onMetricsClick}
-              className={`pn-btn px-2.5 py-1.5 ${selectedForMetrics ? "border-amber-500/40 bg-amber-500/10 text-amber-400" : ""}`}
+              onClick={() => openTab("metrics")}
+              className={`pn-btn px-2.5 py-1.5 ${expanded && tab === "metrics" ? "border-pn-electric/40 bg-pn-electric/10 text-pn-electric" : ""}`}
             >
               <BarChart3 size={13} />
               Metrics
@@ -422,21 +493,7 @@ function DatabaseRow({
       {expanded && (
         <tr>
           <td colSpan={10} className="bg-pulseNode-navy/25 p-0">
-            <div className="space-y-3 p-3">
-              <DbDetails db={db} />
-              {selectedForMetrics && (
-                <DatabaseMetricsPanel
-                  db={db}
-                  onClose={onCloseMetrics}
-                />
-              )}
-              {selectedForQuery && (
-                <DatabaseQueryEditor
-                  db={db}
-                  onClose={onCloseQuery}
-                />
-              )}
-            </div>
+            <DbExpand db={db} tab={tab} onTabChange={setTab} />
           </td>
         </tr>
       )}
@@ -450,8 +507,6 @@ export default function DatabasesPage() {
   const [connHist, setConnHist] = useState<Record<string, number[]>>({})
   const [totalConns, setTotalConns] = useState(0)
   const [connHistory, setConnHistory] = useState<number[]>([0])
-  const [selectedDb, setSelectedDb] = useState<Database | null>(null)
-  const [selectedMetricsDb, setSelectedMetricsDb] = useState<Database | null>(null)
   const [expandedDb, setExpandedDb] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [showConnect, setShowConnect] = useState(false)
@@ -679,21 +734,7 @@ export default function DatabasesPage() {
                     db={db}
                     connHist={connHist[db.name] ?? connHist[db.host] ?? []}
                     expanded={expandedDb === db.name}
-                    selectedForQuery={selectedDb?.name === db.name}
-                    selectedForMetrics={selectedMetricsDb?.name === db.name}
                     onExpand={() => setExpandedDb(prev => prev === db.name ? null : db.name)}
-                    onQueryClick={() => {
-                      setExpandedDb(db.name)
-                      setSelectedMetricsDb(null)
-                      setSelectedDb(prev => prev?.name === db.name ? null : db)
-                    }}
-                    onMetricsClick={() => {
-                      setExpandedDb(db.name)
-                      setSelectedDb(null)
-                      setSelectedMetricsDb(prev => prev?.name === db.name ? null : db)
-                    }}
-                    onCloseQuery={() => setSelectedDb(null)}
-                    onCloseMetrics={() => setSelectedMetricsDb(null)}
                   />
                 ))}
               </tbody>
