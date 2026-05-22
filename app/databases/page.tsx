@@ -3,13 +3,14 @@
 import { useState, useRef, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
-import { nodeApi, pythonApi } from "@/lib/api"
+import { nodeApi, pythonApi, API_BASE } from "@/lib/api"
 import type { Database } from "@/lib/types"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
 import { ProgressBar } from "@/components/dashboard/ProgressBar"
 import BlurFade from "@/components/magicui/blur-fade"
 import { DatabaseQueryEditor } from "@/components/dashboard/DatabaseQueryEditor"
+import { DatabaseMetricsPanel } from "@/components/dashboard/DatabaseMetricsPanel"
 
 /* ── Engine colours ─────────────────────────────────────────────────── */
 const ENGINE_COLOR: Record<string, string> = {
@@ -41,17 +42,23 @@ function ConnSpark({ data, color }: { data: number[]; color: string }) {
   )
 }
 
-/* ── Action button ───────────────────────────────────────────────────── */
-function ActionBtn({ children }: { children: React.ReactNode }) {
-  return (
-    <button className="flex-1 border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-2 py-1 rounded-lg text-xs transition-colors text-center">
-      {children}
-    </button>
-  )
+/* ── Download backup helper ──────────────────────────────────────────── */
+function triggerBackup(dbName: string) {
+  const a = document.createElement("a")
+  a.href = `${API_BASE}/api/database/${encodeURIComponent(dbName)}/backup`
+  a.download = `${dbName}-backup`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
 }
 
 /* ── DB Card ─────────────────────────────────────────────────────────── */
-function DbCard({ db, connHist, onQueryClick }: { db: Database; connHist: number[]; onQueryClick: () => void }) {
+function DbCard({ db, connHist, onQueryClick, onMetricsClick }: {
+  db: Database
+  connHist: number[]
+  onQueryClick: () => void
+  onMetricsClick: () => void
+}) {
   const [expanded, setExpanded] = useState(false)
   const color    = engineColor(db.engine)
   const connPct  = db.maxConns > 0 ? Math.round((db.conns / db.maxConns) * 100) : 0
@@ -186,8 +193,18 @@ function DbCard({ db, connHist, onQueryClick }: { db: Database; connHist: number
         >
           Query
         </button>
-        <ActionBtn>Metrics</ActionBtn>
-        <ActionBtn>Backup</ActionBtn>
+        <button
+          onClick={onMetricsClick}
+          className="flex-1 border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 px-2 py-1 rounded-lg text-xs transition-colors text-center"
+        >
+          Metrics
+        </button>
+        <button
+          onClick={() => triggerBackup(db.name)}
+          className="flex-1 border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-2 py-1 rounded-lg text-xs transition-colors text-center"
+        >
+          Backup
+        </button>
         <button
           onClick={() => setExpanded(p => !p)}
           className="border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-2 py-1 rounded-lg text-xs transition-colors"
@@ -202,11 +219,12 @@ function DbCard({ db, connHist, onQueryClick }: { db: Database; connHist: number
 /* ── Page ────────────────────────────────────────────────────────────── */
 export default function DatabasesPage() {
   const container = useRef<HTMLDivElement>(null)
-  const [databases,   setDatabases]   = useState<Database[]>([])
-  const [connHist,    setConnHist]    = useState<Record<string, number[]>>({})
-  const [totalConns,  setTotalConns]  = useState(0)
-  const [connHistory, setConnHistory] = useState<number[]>([0])
-  const [selectedDb,  setSelectedDb]  = useState<Database | null>(null)
+  const [databases,        setDatabases]        = useState<Database[]>([])
+  const [connHist,         setConnHist]         = useState<Record<string, number[]>>({})
+  const [totalConns,       setTotalConns]       = useState(0)
+  const [connHistory,      setConnHistory]      = useState<number[]>([0])
+  const [selectedDb,       setSelectedDb]       = useState<Database | null>(null)
+  const [selectedMetricsDb,setSelectedMetricsDb]= useState<Database | null>(null)
 
   useEffect(() => {
     // Step 1: Docker gives real running DB containers (always the source of truth)
@@ -292,8 +310,11 @@ export default function DatabasesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-3 py-1.5 rounded-lg text-sm transition-colors">
-            Backup
+          <button
+            onClick={() => databases.forEach(db => triggerBackup(db.name))}
+            className="border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-3 py-1.5 rounded-lg text-sm transition-colors"
+          >
+            Backup all
           </button>
           <button className="bg-pn-electric text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-pn-electric/90 transition-colors">
             + Connect database
@@ -336,9 +357,17 @@ export default function DatabasesPage() {
                 db={db}
                 connHist={connHist[db.name] ?? connHist[db.host] ?? []}
                 onQueryClick={() => setSelectedDb(prev => prev?.name === db.name ? null : db)}
+                onMetricsClick={() => setSelectedMetricsDb(prev => prev?.name === db.name ? null : db)}
               />
             ))}
           </div>
+
+          {selectedMetricsDb && (
+            <DatabaseMetricsPanel
+              db={selectedMetricsDb}
+              onClose={() => setSelectedMetricsDb(null)}
+            />
+          )}
 
           {selectedDb && (
             <DatabaseQueryEditor

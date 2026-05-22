@@ -1,6 +1,8 @@
 const NODE_API   = process.env.NEXT_PUBLIC_NODE_API   ?? ""
 const PYTHON_API = process.env.NEXT_PUBLIC_PYTHON_API ?? ""
 
+export const API_BASE = NODE_API
+
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<{ data: T; mock: boolean }> {
   const res = await fetch(url, { cache: "no-store", ...init })
   if (!res.ok) throw new Error(`${res.status} ${url}`)

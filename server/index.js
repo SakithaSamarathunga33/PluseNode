@@ -13,7 +13,8 @@ const { initPM2, getAllProcesses, restartApp }                    = require("./p
 const { getCoolifyProjects, getCoolifyDeployments,
         enrichContainersWithCoolify }                             = require("./coolify")
 const { getHostInfo, getCpuUsage, getDisk, getNetworkRates }       = require("./host")
-const { getDbSchema, executeQuery, isDestructiveQuery }            = require("./database")
+const { getDbSchema, executeQuery, isDestructiveQuery,
+        getDbMetrics, streamDbBackup }                             = require("./database")
 
 /* ── App setup ─────────────────────────────────────────────────────────────── */
 const app    = express()
@@ -199,6 +200,24 @@ app.get("/api/database/:name/schema", async (req, res) => {
     res.json(schema)
   } catch (err) {
     res.status(500).json({ error: err.message })
+  }
+})
+
+/** Live metrics for a DB container */
+app.get("/api/database/:name/metrics", async (req, res) => {
+  try {
+    res.json(await getDbMetrics(req.params.name))
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/** Stream a dump file from a DB container as a download */
+app.get("/api/database/:name/backup", async (req, res) => {
+  try {
+    await streamDbBackup(req.params.name, res)
+  } catch (err) {
+    if (!res.headersSent) res.status(500).json({ error: err.message })
   }
 })
 

@@ -226,6 +226,17 @@ export interface SparkData {
   io: number[]
 }
 
+export interface DbMetricItem {
+  label: string
+  value: string | number
+  tone?: "ok" | "warn" | "bad" | "info"
+}
+
+export interface DbMetrics {
+  engine: string
+  metrics: DbMetricItem[]
+}
+
 export interface DbSchemaResult {
   databases: string[]
   tables: Array<{ name: string; rows: number }>
