@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
 import type { CustomConnection } from "@/lib/types"
 
 type Phase = "input" | "testing" | "tested" | "saving" | "saved" | "error"
@@ -12,11 +13,14 @@ export function ConnectDatabaseModal({
   onClose: () => void
   onSaved: (conn: CustomConnection) => void
 }) {
+  const [mounted,    setMounted]    = useState(false)
   const [phase,      setPhase]      = useState<Phase>("input")
   const [connStr,    setConnStr]    = useState("")
   const [alias,      setAlias]      = useState("")
   const [testResult, setTestResult] = useState<{ engine: string; host: string; port: number; version?: string } | null>(null)
   const [errMsg,     setErrMsg]     = useState("")
+
+  useEffect(() => setMounted(true), [])
 
   async function testConnection() {
     if (!connStr.trim()) return
@@ -71,8 +75,10 @@ export function ConnectDatabaseModal({
     mongodb:  "mongodb://user:pass@host:27017/db",
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+  if (!mounted) return null
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-pulseNode-navyLight rounded-2xl border border-pulseNode-border/20 shadow-2xl w-full max-w-lg">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-pulseNode-border/10">
@@ -153,7 +159,7 @@ export function ConnectDatabaseModal({
                 className={`flex-1 rounded-xl py-2 text-sm font-semibold transition-colors ${
                   phase === "tested"
                     ? "bg-emerald-600 hover:bg-emerald-500 text-white"
-                    : "bg-violet-600 hover:bg-violet-500 text-white"
+                    : "bg-[var(--acc)] hover:bg-[var(--acc-2)] text-white shadow-sm shadow-[var(--acc-soft)]"
                 }`}
               >
                 {phase === "tested" ? "Save to monitoring" : "Test Connection"}
@@ -174,6 +180,7 @@ export function ConnectDatabaseModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

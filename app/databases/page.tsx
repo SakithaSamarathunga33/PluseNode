@@ -393,7 +393,7 @@ export default function DatabasesPage() {
           </button>
           <button
             onClick={() => setShowConnect(true)}
-            className="bg-pn-electric text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-pn-electric/90 transition-colors"
+            className="bg-[var(--acc)] text-white shadow-sm shadow-[var(--acc-soft)] px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-[var(--acc-2)] transition-colors"
           >
             + Connect database
           </button>

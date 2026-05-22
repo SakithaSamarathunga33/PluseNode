@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
 import type { ProvisionResult } from "@/lib/types"
 import { DbIcon } from "@/components/dashboard/DbIcon"
 
@@ -37,10 +38,13 @@ function CopyField({ label, value }: { label: string; value: string }) {
 }
 
 export function CreateDatabaseModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [mounted,  setMounted]  = useState(false)
   const [phase,    setPhase]    = useState<Phase>("pick")
   const [engine,   setEngine]   = useState("")
   const [result,   setResult]   = useState<ProvisionResult | null>(null)
   const [errMsg,   setErrMsg]   = useState("")
+
+  useEffect(() => setMounted(true), [])
 
   async function provision() {
     setPhase("provisioning")
@@ -65,8 +69,10 @@ export function CreateDatabaseModal({ onClose, onCreated }: { onClose: () => voi
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+  if (!mounted) return null
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-pulseNode-navyLight rounded-2xl border border-pulseNode-border/20 shadow-2xl w-full max-w-lg">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-pulseNode-border/10">
@@ -149,7 +155,7 @@ export function CreateDatabaseModal({ onClose, onCreated }: { onClose: () => voi
                 </div>
               </div>
               <p className="text-[10px] text-helm-fg3">The container uses <code className="font-mono">--restart unless-stopped</code> and will survive VPS reboots.</p>
-              <button onClick={onClose} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl py-2 text-sm font-semibold transition-colors">
+              <button onClick={onClose} className="w-full bg-[var(--acc)] hover:bg-[var(--acc-2)] text-white rounded-xl py-2 text-sm font-semibold shadow-sm shadow-[var(--acc-soft)] transition-colors">
                 Done
               </button>
             </div>
@@ -166,7 +172,7 @@ export function CreateDatabaseModal({ onClose, onCreated }: { onClose: () => voi
                 <button onClick={onClose} className="flex-1 border border-pulseNode-border/20 text-helm-fg3 rounded-xl py-2 text-sm transition-colors">
                   Close
                 </button>
-                <button onClick={() => setPhase("pick")} className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl py-2 text-sm font-semibold transition-colors">
+                <button onClick={() => setPhase("pick")} className="flex-1 bg-[var(--acc)] hover:bg-[var(--acc-2)] text-white rounded-xl py-2 text-sm font-semibold shadow-sm shadow-[var(--acc-soft)] transition-colors">
                   Try again
                 </button>
               </div>
@@ -174,6 +180,7 @@ export function CreateDatabaseModal({ onClose, onCreated }: { onClose: () => voi
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

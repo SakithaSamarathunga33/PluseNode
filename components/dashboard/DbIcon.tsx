@@ -1,7 +1,41 @@
+import Image from "next/image"
+
+const DB_ICON_SRC: Record<string, string> = {
+  postgres: "/images/postgresql.svg",
+  postgresql: "/images/postgresql.svg",
+  mysql: "/images/mysql.svg",
+  mariadb: "/images/mysql.svg",
+  redis: "/images/redis.svg",
+  mongodb: "/images/mongodb.svg",
+  mongo: "/images/mongodb.svg",
+  firebase: "/images/firebase.svg",
+  supabase: "/images/supabase.svg",
+  oracle: "/images/oracle.svg",
+  aws: "/images/aws.svg",
+  azure: "/images/azure.svg",
+}
+
 export function DbIcon({ engine, size = 20, className = "" }: { engine: string; size?: number; className?: string }) {
+  const normalizedEngine = engine.toLowerCase()
+  const imageSrc = DB_ICON_SRC[normalizedEngine]
+
+  if (imageSrc) {
+    return (
+      <Image
+        src={imageSrc}
+        alt=""
+        aria-hidden="true"
+        width={size}
+        height={size}
+        className={`object-contain ${className}`}
+        style={{ width: size, height: size }}
+      />
+    )
+  }
+
   const p = { width: size, height: size, viewBox: "0 0 32 32", fill: "none", className }
 
-  switch (engine.toLowerCase()) {
+  switch (normalizedEngine) {
 
     case "postgres":
       return (
