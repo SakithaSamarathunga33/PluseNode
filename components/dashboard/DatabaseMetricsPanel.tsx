@@ -49,11 +49,11 @@ export function DatabaseMetricsPanel({
   }, [fetchMetrics])
 
   return (
-    <div className="bg-pulseNode-navyLight rounded-xl border border-amber-500/20 overflow-hidden">
+    <div className="bg-pulseNode-navyLight rounded-xl border border-pulseNode-border/20 overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-2.5 bg-pulseNode-navy border-b border-pulseNode-border/10">
         <span className="font-semibold text-sm text-helm-fg">{db.name}</span>
-        <span className="text-[10px] font-medium text-amber-400 uppercase tracking-wider">Metrics</span>
+        <span className="text-[10px] font-medium text-pn-electric uppercase tracking-wider">Metrics</span>
         {!loading && !error && (
           <span className="text-[9px] text-helm-fg3">live · refreshes every 5s</span>
         )}

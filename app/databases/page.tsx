@@ -21,7 +21,7 @@ import {
   TerminalSquare,
 } from "lucide-react"
 import { nodeApi, pythonApi, API_BASE } from "@/lib/api"
-import type { CustomConnection, Database, DbMetrics } from "@/lib/types"
+import type { CustomConnection, Database, DbMetrics, DbSchemaResult } from "@/lib/types"
 import { DatabaseQueryEditor } from "@/components/dashboard/DatabaseQueryEditor"
 import { DatabaseMetricsPanel } from "@/components/dashboard/DatabaseMetricsPanel"
 import { CreateDatabaseModal } from "@/components/dashboard/CreateDatabaseModal"
@@ -161,39 +161,92 @@ function ConnectionStringPanel({ dbName }: { dbName: string }) {
 }
 
 function DbDetails({ db }: { db: Database }) {
+  const [dbs,        setDbs]        = useState<string[]>([])
+  const [selectedDb, setSelectedDb] = useState("")
+  const [tables,     setTables]     = useState<Array<{ name: string; rows: number }>>([])
+  const [loading,    setLoading]    = useState(true)
+
+  // Fetch databases list on mount
+  useEffect(() => {
+    nodeApi.get<DbSchemaResult>(`/api/database/${db.name}/schema`)
+      .then(({ data }) => {
+        setDbs(data.databases)
+        const first = data.databases[0] || ""
+        setSelectedDb(first)
+        // schema without ?database returns tables too for redis/non-relational
+        if (data.tables.length) { setTables(data.tables); setLoading(false) }
+      })
+      .catch(() => setLoading(false))
+  }, [db.name])
+
+  // Re-fetch tables when selected DB changes
+  useEffect(() => {
+    if (!selectedDb) return
+    setLoading(true)
+    nodeApi.get<DbSchemaResult>(`/api/database/${db.name}/schema?database=${encodeURIComponent(selectedDb)}`)
+      .then(({ data }) => setTables(data.tables))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [db.name, selectedDb])
+
+  // Merge size info from Python if available (Python has totalSize/indexSize, schema API has rows)
+  const displayTables = tables.map(t => {
+    const pyRow = db.tables?.find(p => p.name === t.name)
+    return { ...t, totalSize: pyRow?.totalSize, indexSize: pyRow?.indexSize }
+  })
+
+  const hasSize = displayTables.some(t => t.totalSize)
+
   return (
     <div className="grid gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)]">
       <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/40">
-        <div className="flex items-center justify-between border-b border-pulseNode-border/10 px-3 py-2">
+        {/* Header with optional DB selector */}
+        <div className="flex items-center justify-between gap-2 border-b border-pulseNode-border/10 px-3 py-2">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">Tables</span>
-          <span className="font-mono text-[10px] text-helm-fg3">{db.tables?.length ?? 0} objects</span>
+          <div className="flex items-center gap-2">
+            {dbs.length > 1 && (
+              <select
+                value={selectedDb}
+                onChange={e => setSelectedDb(e.target.value)}
+                className="bg-pulseNode-navy border border-pulseNode-border/20 text-helm-fg text-[10px] rounded px-1.5 py-0.5 cursor-pointer"
+              >
+                {dbs.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            )}
+            <span className="font-mono text-[10px] text-helm-fg3">{displayTables.length} objects</span>
+          </div>
         </div>
-        {db.tables && db.tables.length > 0 ? (
+
+        {loading && <p className="px-3 py-4 text-xs text-helm-fg3">Loading tables…</p>}
+
+        {!loading && displayTables.length > 0 && (
           <div className="max-h-56 overflow-auto">
             <table className="pn-table w-full">
               <thead>
                 <tr>
                   <th>Name</th>
                   <th className="right">Rows</th>
-                  <th className="right">Total</th>
-                  <th className="right">Index</th>
+                  {hasSize && <th className="right">Total</th>}
+                  {hasSize && <th className="right">Index</th>}
                 </tr>
               </thead>
               <tbody>
-                {db.tables.map(table => (
-                  <tr key={table.name}>
-                    <td className="mono-cell">{table.name}</td>
-                    <td className="right dim">{table.rows.toLocaleString()}</td>
-                    <td className="right dim">{table.totalSize}</td>
-                    <td className="right dim">{table.indexSize}</td>
+                {displayTables.map(t => (
+                  <tr key={t.name}>
+                    <td className="mono-cell">{t.name}</td>
+                    <td className="right dim">{t.rows.toLocaleString()}</td>
+                    {hasSize && <td className="right dim">{t.totalSize ?? "—"}</td>}
+                    {hasSize && <td className="right dim">{t.indexSize ?? "—"}</td>}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        ) : (
+        )}
+
+        {!loading && displayTables.length === 0 && (
           <p className="px-3 py-4 text-xs text-helm-fg3">
-            No table data available. Configure database introspection to populate schema details.
+            {db.engine === "redis" ? "Redis has no tables." : "No tables found in this database."}
           </p>
         )}
       </div>
