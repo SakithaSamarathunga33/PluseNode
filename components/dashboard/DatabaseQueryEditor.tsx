@@ -72,26 +72,28 @@ function SchemaSidebar({
       )}
 
       {/* Tables list */}
-      <div className="flex-1 overflow-y-auto p-2">
-        <div className="text-[10px] uppercase tracking-wider text-helm-fg3 mb-2 font-semibold px-1">
-          Tables
+      <div className="flex-1 overflow-y-auto">
+        <div className="sticky top-0 bg-pulseNode-navy px-3 py-1.5 text-[10px] uppercase tracking-wider text-helm-fg3 font-semibold border-b border-pulseNode-border/10">
+          Tables · {tables.length}
         </div>
         {tables.length === 0 ? (
-          <p className="text-[10px] text-helm-fg3 px-1">No tables found</p>
+          <p className="px-3 py-3 text-[10px] text-helm-fg3">No tables found</p>
         ) : (
-          tables.map(t => (
-            <button
-              key={t.name}
-              onClick={() => onTableClick(t.name)}
-              title={`Click to view data`}
-              className="w-full text-left px-2 py-1 rounded text-[11px] font-mono text-helm-fg3 hover:text-pn-electric hover:bg-pulseNode-border/10 flex items-center justify-between gap-1 group transition-colors"
-            >
-              <span className="truncate group-hover:underline">{t.name}</span>
-              <span className="text-[9px] text-helm-fg3 flex-shrink-0">
-                {t.rows > 0 ? t.rows.toLocaleString() : "—"}
-              </span>
-            </button>
-          ))
+          <div className="py-1">
+            {tables.map(t => (
+              <button
+                key={t.name}
+                onClick={() => onTableClick(t.name)}
+                title="Click to SELECT * from this table"
+                className="w-full text-left px-3 py-1 text-[11px] font-mono text-helm-fg3 hover:text-pn-electric hover:bg-pulseNode-border/10 flex items-center justify-between gap-2 transition-colors"
+              >
+                <span className="truncate">{t.name}</span>
+                <span className="text-[10px] text-helm-fg3 flex-shrink-0 tabular-nums">
+                  {t.rows > 0 ? t.rows.toLocaleString() : "—"}
+                </span>
+              </button>
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -339,8 +341,8 @@ export function DatabaseQueryEditor({
           </button>
         </div>
 
-        {/* Body: sidebar + editor */}
-        <div className="flex" style={{ minHeight: 260 }}>
+        {/* Body: sidebar + editor — fixed height so sidebar overflow-y-auto actually scrolls */}
+        <div className="flex h-80">
           <SchemaSidebar
             tables={schema.tables}
             engine={db.engine}
@@ -355,8 +357,7 @@ export function DatabaseQueryEditor({
               onChange={e => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
-              className="flex-1 bg-pulseNode-navy font-mono text-xs text-helm-fg p-3 resize-none outline-none placeholder:text-helm-fg3/40"
-              style={{ minHeight: 180 }}
+              className="flex-1 bg-pulseNode-navy font-mono text-xs text-helm-fg p-3 resize-none outline-none placeholder:text-helm-fg3/40 min-h-0"
               spellCheck={false}
             />
             {/* Toolbar */}
