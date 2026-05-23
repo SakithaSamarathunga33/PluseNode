@@ -19,7 +19,13 @@ import {
   Plus,
   Search,
   TerminalSquare,
+  Trash2,
 } from "lucide-react"
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader,
+  AlertDialogTitle, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog"
 import { nodeApi, pythonApi, API_BASE } from "@/lib/api"
 import type { CustomConnection, Database, DbMetrics, DbSchemaResult } from "@/lib/types"
 import { DatabaseQueryEditor } from "@/components/dashboard/DatabaseQueryEditor"
@@ -366,6 +372,58 @@ function DbExpand({ db, tab, onTabChange }: {
   )
 }
 
+// ── DeleteDialog ──────────────────────────────────────────────────────────────
+
+function DeleteDialog({ db, onConfirm, onClose }: {
+  db: Database; onConfirm: () => void; onClose: () => void
+}) {
+  return (
+    <AlertDialog open onOpenChange={open => { if (!open) onClose() }}>
+      <AlertDialogContent className="max-w-sm p-0 overflow-hidden gap-0"
+        style={{ background: "var(--card-elev)", border: "1px solid var(--border-2)", color: "var(--fg)" }}>
+        <div className="flex flex-col items-center justify-center gap-3 px-6 py-7"
+          style={{ background: "var(--bad-soft)" }}>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+            style={{ background: "var(--bad-soft)", border: "2px solid var(--bad)" }}>
+            <AlertTriangle size={28} style={{ color: "var(--bad)" }} />
+          </div>
+          <AlertDialogHeader className="text-center gap-1">
+            <AlertDialogTitle className="text-base font-bold" style={{ color: "var(--bad)" }}>
+              Delete cluster?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[12px]" style={{ color: "var(--fg-3)" }}>
+              This will permanently remove the database container and all its data. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+        </div>
+        <div className="flex items-center gap-3 px-5 py-3"
+          style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", background: "var(--bg-2)" }}>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "var(--bad-soft)", border: "1px solid var(--bad)" }}>
+            <Trash2 size={13} style={{ color: "var(--bad)" }} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[12px] font-semibold truncate" style={{ color: "var(--fg)" }}>{db.name}</p>
+            <p className="text-[10px] font-mono truncate" style={{ color: "var(--fg-3)" }}>{db.engine} · {db.host}:{db.port}</p>
+          </div>
+        </div>
+        <AlertDialogFooter className="flex-row gap-3 px-5 py-4 border-0 bg-transparent rounded-none"
+          style={{ background: "var(--card-elev)" }}>
+          <AlertDialogCancel className="flex-1 py-2 rounded-xl text-sm font-medium transition-colors"
+            style={{ background: "var(--bg-3)", border: "1px solid var(--border-2)", color: "var(--fg-2)" }}>
+            Cancel
+          </AlertDialogCancel>
+          <button onClick={() => { onConfirm(); onClose() }}
+            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+            style={{ background: "var(--bad)" }}>
+            <Trash2 size={15} /> Delete
+          </button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
 // ── DatabaseRow ───────────────────────────────────────────────────────────────
 
 function DatabaseRow({
@@ -373,11 +431,13 @@ function DatabaseRow({
   connHist,
   expanded,
   onExpand,
+  onDelete,
 }: {
   db: Database
   connHist: number[]
   expanded: boolean
   onExpand: () => void
+  onDelete: (db: Database) => void
 }) {
   const [tab, setTab] = useState<TabId>("overview")
 
@@ -487,6 +547,15 @@ function DatabaseRow({
             <button onClick={() => triggerBackup(db.name)} className="pn-icon-btn" title="Backup" aria-label={`Backup ${db.name}`}>
               <Download size={13} />
             </button>
+            <button
+              onClick={() => onDelete(db)}
+              className="pn-icon-btn"
+              title="Delete cluster"
+              aria-label={`Delete ${db.name}`}
+              style={{ color: "var(--bad)" }}
+            >
+              <Trash2 size={13} />
+            </button>
           </div>
         </td>
       </tr>
@@ -508,6 +577,7 @@ export default function DatabasesPage() {
   const [totalConns, setTotalConns] = useState(0)
   const [connHistory, setConnHistory] = useState<number[]>([0])
   const [expandedDb, setExpandedDb] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Database | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [showConnect, setShowConnect] = useState(false)
   const [search, setSearch] = useState("")
@@ -735,6 +805,7 @@ export default function DatabasesPage() {
                     connHist={connHist[db.name] ?? connHist[db.host] ?? []}
                     expanded={expandedDb === db.name}
                     onExpand={() => setExpandedDb(prev => prev === db.name ? null : db.name)}
+                    onDelete={setDeleteTarget}
                   />
                 ))}
               </tbody>
@@ -780,6 +851,19 @@ export default function DatabasesPage() {
               },
             ])
             setShowConnect(false)
+          }}
+        />
+      )}
+
+      {deleteTarget && (
+        <DeleteDialog
+          db={deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={() => {
+            const id = deleteTarget.containerId ?? deleteTarget.name
+            nodeApi.delete(`/api/docker/remove/${id}`)
+              .then(() => setDatabases(prev => prev.filter(d => d.name !== deleteTarget.name)))
+              .catch(() => {})
           }}
         />
       )}

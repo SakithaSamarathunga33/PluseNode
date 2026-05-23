@@ -93,6 +93,7 @@ app.get("/api/docker/databases", async (req, res) => {
         const versionMatch = c.image.match(/:([0-9][^-]*)/)
         return {
           name: c.name,
+          containerId: c.id,
           engine: meta.engine,
           version: versionMatch ? versionMatch[1] : "latest",
           host: c.name,

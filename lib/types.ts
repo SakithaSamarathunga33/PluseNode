@@ -84,6 +84,7 @@ export interface DockerNetwork {
 
 export interface Database {
   name: string
+  containerId?: string
   engine: string
   version: string
   host: string
