@@ -56,31 +56,17 @@ jobs:
             ghcr.io/${{ env.OWNER }}/vps-web:latest
             ghcr.io/${{ env.OWNER }}/vps-web:${{ steps.tag.outputs.new_tag }}
 
-      - name: Build and push node-api
+      - name: Build and push go-api
         uses: docker/build-push-action@v5
         with:
-          build-args: PULSENODE_VERSION=${{ steps.tag.outputs.new_tag }}
-          context: .
-          file: Dockerfile
-          target: node-api
+          context: ./backend
+          file: ./backend/Dockerfile
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ghcr.io/${{ env.OWNER }}/vps-node-api:latest
-            ghcr.io/${{ env.OWNER }}/vps-node-api:${{ steps.tag.outputs.new_tag }}
-
-      - name: Build and push python-api
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile.python
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: |
-            ghcr.io/${{ env.OWNER }}/vps-python-api:latest
-            ghcr.io/${{ env.OWNER }}/vps-python-api:${{ steps.tag.outputs.new_tag }}
+            ghcr.io/${{ env.OWNER }}/vps-go-api:latest
+            ghcr.io/${{ env.OWNER }}/vps-go-api:${{ steps.tag.outputs.new_tag }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -102,8 +88,7 @@ jobs:
             | Image | Tags |
             |-------|------|
             | `ghcr.io/sakithasamarathunga33/vps-web` | `${{ steps.tag.outputs.new_tag }}`, `latest` |
-            | `ghcr.io/sakithasamarathunga33/vps-node-api` | `${{ steps.tag.outputs.new_tag }}`, `latest` |
-            | `ghcr.io/sakithasamarathunga33/vps-python-api` | `${{ steps.tag.outputs.new_tag }}`, `latest` |
+            | `ghcr.io/sakithasamarathunga33/vps-go-api` | `${{ steps.tag.outputs.new_tag }}`, `latest` |
 
             ### Changes
             ${{ steps.tag.outputs.changelog }}
