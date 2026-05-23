@@ -19,6 +19,17 @@ type UPlotChartProps = {
   max?: number
 }
 
+// Canvas cannot resolve CSS custom properties — convert via a temporary DOM element
+function resolveCssColor(value: string | undefined): string | undefined {
+  if (!value || !value.includes("var(")) return value
+  const el = document.createElement("div")
+  el.style.color = value
+  document.documentElement.appendChild(el)
+  const resolved = getComputedStyle(el).color
+  el.remove()
+  return resolved || value
+}
+
 export function UPlotChart({ series, height = 200, mode = "line", max }: UPlotChartProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<uPlot | null>(null)
@@ -33,6 +44,8 @@ export function UPlotChart({ series, height = 200, mode = "line", max }: UPlotCh
     const root = rootRef.current
     if (!root) return
 
+    const mutedColor = resolveCssColor("var(--pn-muted)") ?? "#8a8a96"
+
     const buildOptions = (): uPlot.Options => ({
       width: root.clientWidth || 400,
       height,
@@ -41,14 +54,14 @@ export function UPlotChart({ series, height = 200, mode = "line", max }: UPlotCh
       scales: { x: { time: false }, y: { range: max ? [0, max] : undefined } },
       axes: [
         {
-          stroke: "var(--pn-muted)",
+          stroke: mutedColor,
           grid: { show: false },
           ticks: { show: false },
           values: (_, vals) => vals.map(v => String(v)),
           font: "10px sans-serif",
         },
         {
-          stroke: "var(--pn-muted)",
+          stroke: mutedColor,
           grid: { stroke: "rgba(220,232,245,0.06)", width: 1 },
           ticks: { show: false },
           font: "10px sans-serif",
@@ -58,8 +71,8 @@ export function UPlotChart({ series, height = 200, mode = "line", max }: UPlotCh
         {},
         ...series.map(s => ({
           label: s.label,
-          stroke: s.color,
-          fill: mode === "line" ? s.fill : undefined,
+          stroke: resolveCssColor(s.color),
+          fill: mode === "line" ? resolveCssColor(s.fill) : undefined,
           width: s.width ?? 1.5,
           paths: mode === "bar" ? uPlot.paths.bars!({ size: [0.65, 60] }) : undefined,
         })),
