@@ -12,7 +12,7 @@ import type { LucideIcon } from "lucide-react"
 import { BorderBeam } from "@/components/magicui/border-beam"
 import { NumberTicker } from "@/components/magicui/number-ticker"
 import { cn } from "@/lib/utils"
-import { getSocket } from "@/lib/socket"
+import { getSSE } from "@/lib/sse"
 import type { SystemMetrics } from "@/lib/types"
 import { HOST } from "@/lib/mock-data"
 
@@ -76,9 +76,10 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
 
   useEffect(() => {
     try {
-      const socket = getSocket()
-      socket.on("system:metrics", (m: SystemMetrics) => setCpu(m.cpu))
-      return () => { socket.off("system:metrics") }
+      const es = getSSE()
+      const listener = (e: Event) => setCpu(JSON.parse((e as MessageEvent).data).cpu)
+      es.addEventListener("metrics", listener)
+      return () => { es.removeEventListener("metrics", listener) }
     } catch { /* socket not available in SSR */ }
   }, [])
 

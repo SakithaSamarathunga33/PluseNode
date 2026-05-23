@@ -10,7 +10,7 @@ import {
 import { Download, MoreHorizontal, Zap, Trash2 } from "lucide-react"
 import { HOST as MOCK_HOST, SPARKS as MOCK_SPARKS } from "@/lib/mock-data"
 import { nodeApi, pythonApi } from "@/lib/api"
-import { getSocket } from "@/lib/socket"
+import { getSSE } from "@/lib/sse"
 import type { HostInfo, SystemMetrics } from "@/lib/types"
 
 type PyMetrics = {
@@ -164,7 +164,7 @@ export default function StatsPage() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_NODE_API ?? ""}/api/docker/build-cache/clear`,
+        `${process.env.NEXT_PUBLIC_API ?? ""}/api/docker/build-cache/clear`,
         { method: "POST" }
       )
       if (!res.body) throw new Error("No response body")
@@ -236,16 +236,17 @@ export default function StatsPage() {
       })
       .catch(() => {})
 
-    const socket = getSocket()
-    const handler = (m: SystemMetrics) => {
+    const es = getSSE()
+    const listener = (e: Event) => {
+      const m = JSON.parse((e as MessageEvent).data) as SystemMetrics
       setCpuHist(prev       => pushHistory(prev,  m.cpu))
       setRamHist(prev       => pushHistory(prev,  m.ram))
       setDiskHist(prev      => pushHistory(prev,  m.disk))
       setNetHist(prev       => pushHistory(prev,  m.netIn))
       setNetTxHist(prev     => pushHistory(prev,  m.netOut))
     }
-    socket.on("system:metrics", handler)
-    return () => { socket.off("system:metrics", handler) }
+    es.addEventListener("metrics", listener)
+    return () => { es.removeEventListener("metrics", listener) }
   }, [])
 
   useGSAP(() => {

@@ -1,7 +1,6 @@
-const NODE_API   = process.env.NEXT_PUBLIC_NODE_API   ?? ""
-const PYTHON_API = process.env.NEXT_PUBLIC_PYTHON_API ?? ""
+const API = process.env.NEXT_PUBLIC_API ?? ""
 
-export const API_BASE = NODE_API
+export const API_BASE = API
 
 /** Attaches .status so callers can distinguish 422 from 500 without parsing the message. */
 async function throwApiError(res: Response, label: string): Promise<never> {
@@ -27,11 +26,10 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<{ data: T;
 }
 
 export const nodeApi = {
-  /** GET from Node.js server. On network error, throws so caller can fall back to mock. */
-  get: <T>(path: string) => fetchJSON<T>(`${NODE_API}${path}`),
+  get: <T>(path: string) => fetchJSON<T>(`${API}${path}`),
 
   post: async <T>(path: string, body?: unknown): Promise<T> => {
-    const res = await fetch(`${NODE_API}${path}`, {
+    const res = await fetch(`${API}${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: body ? JSON.stringify(body) : undefined,
@@ -41,18 +39,18 @@ export const nodeApi = {
   },
 
   delete: async <T>(path: string): Promise<T> => {
-    const res = await fetch(`${NODE_API}${path}`, { method: "DELETE" })
+    const res = await fetch(`${API}${path}`, { method: "DELETE" })
     if (!res.ok) await throwApiError(res, path)
     return res.json() as Promise<T>
   },
 }
 
+/** pythonApi now routes to the same Go backend — kept for compatibility. */
 export const pythonApi = {
-  /** GET from Python FastAPI. On network error, throws so caller can fall back to mock. */
-  get: <T>(path: string) => fetchJSON<T>(`${PYTHON_API}${path}`),
+  get: <T>(path: string) => fetchJSON<T>(`${API}/api${path}`),
 
   post: async <T>(path: string, body?: unknown): Promise<T> => {
-    const res = await fetch(`${PYTHON_API}${path}`, {
+    const res = await fetch(`${API}/api${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: body ? JSON.stringify(body) : undefined,

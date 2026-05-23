@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { CONTAINERS as MOCK_CONTAINERS, HOST as MOCK_HOST } from "@/lib/mock-data"
 import { nodeApi } from "@/lib/api"
-import { getSocket } from "@/lib/socket"
+import { getSSE } from "@/lib/sse"
 import type { Container, ContainerStats, HostInfo, SystemMetrics } from "@/lib/types"
 import { Pill } from "@/components/dashboard/Pill"
 
@@ -428,10 +428,11 @@ export default function ContainersPage() {
       })
       .catch(() => {})
 
-    const socket = getSocket()
+    const es = getSSE()
 
-    // Live per-container CPU + RAM every 3s
-    const onContainerStats = (stats: ContainerStats[]) => {
+    // Live per-container CPU + RAM every 5s
+    const onContainerStats = (e: Event) => {
+      const stats = JSON.parse((e as MessageEvent).data) as ContainerStats[]
       setContainers(prev => prev.map(c => {
         const s = stats.find(s => s.containerId === c.id)
         return s ? { ...c, cpu: s.cpu, ram: s.ram } : c
@@ -449,8 +450,9 @@ export default function ContainersPage() {
       })
     }
 
-    // Live system metrics every 3s
-    const onSystemMetrics = (m: SystemMetrics) => {
+    // Live system metrics every 2s
+    const onSystemMetrics = (e: Event) => {
+      const m = JSON.parse((e as MessageEvent).data) as SystemMetrics
       setNetHist(prev => pushCapped(prev, m.netIn, 60))
       setCpuHist(prev => pushCapped(prev, m.cpu, 60))
       setRamHist(prev => pushCapped(prev, m.ram, 60))
@@ -464,11 +466,11 @@ export default function ContainersPage() {
       }))
     }
 
-    socket.on("container:stats", onContainerStats)
-    socket.on("system:metrics",  onSystemMetrics)
+    es.addEventListener("container_stats", onContainerStats)
+    es.addEventListener("metrics",         onSystemMetrics)
     return () => {
-      socket.off("container:stats", onContainerStats)
-      socket.off("system:metrics",  onSystemMetrics)
+      es.removeEventListener("container_stats", onContainerStats)
+      es.removeEventListener("metrics",         onSystemMetrics)
     }
   }, [])
 

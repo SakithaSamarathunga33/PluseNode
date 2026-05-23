@@ -5,14 +5,13 @@ services:
       dockerfile: Dockerfile
       target: web
       args:
-        NEXT_PUBLIC_NODE_API: ${NEXT_PUBLIC_NODE_API:-}
-        NEXT_PUBLIC_PYTHON_API: ${NEXT_PUBLIC_PYTHON_API:-}
-        NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-}
+        NEXT_PUBLIC_API: ${NEXT_PUBLIC_API:-}
+        NEXT_PUBLIC_SSE_URL: ${NEXT_PUBLIC_SSE_URL:-}
+        PULSENODE_VERSION: ${PULSENODE_VERSION:-dev}
     ports:
       - "${WEB_PORT:-3000}:3000"
     depends_on:
-      - node-api
-      - python-api
+      - go-api
     restart: unless-stopped
     deploy:
       resources:
@@ -22,21 +21,22 @@ services:
         reservations:
           memory: 40M
 
-  node-api:
+  go-api:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: node-api
+      dockerfile: Dockerfile.go
     environment:
-      NODE_ENV: production
-      NODE_PORT: 4001
-      NODE_API_AUTH: ${NODE_API_AUTH:-false}
-      NODE_API_SECRET: ${NODE_API_SECRET:-change-me}
+      GO_PORT: 4001
+      API_AUTH: ${API_AUTH:-false}
+      API_SECRET: ${API_SECRET:-change-me}
       NEXT_PUBLIC_ORIGIN: ${NEXT_PUBLIC_ORIGIN:-http://localhost:3000}
       COOLIFY_API_URL: ${COOLIFY_API_URL:-}
       COOLIFY_API_TOKEN: ${COOLIFY_API_TOKEN:-}
+      DATABASE_URL: ${DATABASE_URL:-}
+      PULSENODE_VERSION: ${PULSENODE_VERSION:-dev}
+      VPS_REGION: ${VPS_REGION:-}
     ports:
-      - "${NODE_PORT:-4001}:4001"
+      - "${GO_PORT:-4001}:4001"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - pn-data:/app/data
@@ -46,28 +46,9 @@ services:
       resources:
         limits:
           cpus: "0.50"
-          memory: 160M
-        reservations:
-          memory: 48M
-
-  python-api:
-    build:
-      context: .
-      dockerfile: Dockerfile.python
-    environment:
-      NEXT_PUBLIC_ORIGIN: ${NEXT_PUBLIC_ORIGIN:-http://localhost:3000}
-      DATABASE_URL: ${DATABASE_URL:-}
-    ports:
-      - "${PYTHON_PORT:-8001}:8001"
-    pid: "host"
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: "0.50"
           memory: 96M
         reservations:
-          memory: 32M
+          memory: 24M
 
 volumes:
   pn-data:

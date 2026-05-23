@@ -9,7 +9,7 @@ import {
   AlertTriangle, Info, CheckCircle, XCircle, Edit2, Trash2, Copy,
 } from "lucide-react"
 import { ALERTS, ALERT_RULES } from "@/lib/mock-data"
-import { getSocket } from "@/lib/socket"
+import { getSSE } from "@/lib/sse"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
 import { cn } from "@/lib/utils"
@@ -93,8 +93,9 @@ export default function AlertsPage() {
   const resolved = alerts.filter(a => a.state === "resolved").length
 
   useEffect(() => {
-    const socket = getSocket()
-    const handler = (alert: Alert) => {
+    const es = getSSE()
+    const listener = (e: Event) => {
+      const alert = JSON.parse((e as MessageEvent).data) as Alert
       setAlerts(prev => [{ ...alert, time: "just now" }, ...prev])
       requestAnimationFrame(() =>
         gsap.fromTo(".alert-row-new",
@@ -103,8 +104,8 @@ export default function AlertsPage() {
         )
       )
     }
-    socket.on("alert:new", handler)
-    return () => { socket.off("alert:new", handler) }
+    es.addEventListener("alert_new", listener)
+    return () => { es.removeEventListener("alert_new", listener) }
   }, [])
 
   useGSAP(() => {

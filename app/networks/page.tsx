@@ -8,7 +8,7 @@ import {
 } from "recharts"
 import { NETWORKS as MOCK_NETWORKS } from "@/lib/mock-data"
 import { nodeApi } from "@/lib/api"
-import { getSocket } from "@/lib/socket"
+import { getSSE } from "@/lib/sse"
 import type { DockerNetwork, SystemMetrics } from "@/lib/types"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
@@ -120,14 +120,15 @@ export default function NetworksPage() {
       .then(({ data }) => setNetworks(data))
       .catch(() => {})
 
-    const socket = getSocket()
-    const onMetrics = (m: SystemMetrics) => {
+    const es = getSSE()
+    const onMetrics = (e: Event) => {
+      const m = JSON.parse((e as MessageEvent).data) as SystemMetrics
       setRxHist(prev => pushCapped(prev, m.netIn))
       setTxHist(prev => pushCapped(prev, m.netOut))
       setRxRate(Math.round(m.netIn))
     }
-    socket.on("system:metrics", onMetrics)
-    return () => { socket.off("system:metrics", onMetrics) }
+    es.addEventListener("metrics", onMetrics)
+    return () => { es.removeEventListener("metrics", onMetrics) }
   }, [])
 
   useGSAP(() => {

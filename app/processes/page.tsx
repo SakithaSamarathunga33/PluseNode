@@ -359,16 +359,8 @@ export default function ProcessesPage() {
   useEffect(() => {
     function fetchProcesses() {
       pythonApi.get<PyProcess[]>("/metrics/processes")
-        .then(({ data }) => {
-          if (data.length >= 5) setProcesses(data.map(mapPyProcess))
-          else return nodeApi.get<Process[]>("/api/pm2/list")
-            .then(({ data: pm2 }) => { if (pm2.length) setProcesses(pm2) })
-        })
-        .catch(() => {
-          nodeApi.get<Process[]>("/api/pm2/list")
-            .then(({ data }) => { if (data.length) setProcesses(data) })
-            .catch(() => {})
-        })
+        .then(({ data }) => { if (data.length > 0) setProcesses(data.map(mapPyProcess)) })
+        .catch(() => {})
     }
 
     function fetchCores() {
