@@ -1,0 +1,23 @@
+# Traefik overlay — use this when Caddy sits behind an existing Traefik instance.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d
+#
+# Set TRAEFIK_HOST and TRAEFIK_NETWORK in .env.local to match your Traefik setup.
+# Caddy still handles internal routing; Traefik only terminates TLS externally.
+
+services:
+  caddy:
+    networks:
+      - default
+      - traefik
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.pulsenode.rule: "Host(`${TRAEFIK_HOST:-vps.example.com}`)"
+      traefik.http.routers.pulsenode.entrypoints: "websecure"
+      traefik.http.routers.pulsenode.tls.certresolver: "letsencrypt"
+      traefik.http.services.pulsenode.loadbalancer.server.port: "80"
+      traefik.docker.network: "${TRAEFIK_NETWORK:-traefik}"
+
+networks:
+  traefik:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik}

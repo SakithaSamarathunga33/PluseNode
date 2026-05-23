@@ -1,6 +1,6 @@
 # PulseNode
 
-A self-hosted VPS monitoring dashboard — containers, system stats, processes, databases, networks, images, Coolify projects, vulnerability scans, SBOMs, and live alerts. All from one clean interface.
+A self-hosted VPS monitoring dashboard — containers, system stats, processes, databases, networks, images, and live metrics. All from one clean interface.
 
 ![PulseNode dashboard](public/Screenshot%202026-05-20%20065221.png)
 
@@ -16,8 +16,9 @@ The script:
 1. Checks Docker and Docker Compose v2 are installed
 2. Clones the repo into `~/pulsenode` (or `/opt/pulsenode` when run as root)
 3. Detects your server's public IP — one prompt to confirm
-4. Writes the config, builds all Docker images, starts everything behind Nginx on port 80
-5. Polls until services are ready, then prints your clickable dashboard URL
+4. Optionally sets Coolify API URL/token and a PostgreSQL URL
+5. Writes the config, builds all Docker images, starts everything behind Caddy on port 80
+6. Polls until services are ready, then prints your clickable dashboard URL
 
 When it finishes you'll see:
 
@@ -43,9 +44,7 @@ When it finishes you'll see:
 | Docker Compose plugin (v2) | 2.20+ |
 | git | any |
 | Linux VPS | Any distro with Docker |
-| Open port | 80 |
-
-> The Node.js API mounts `/var/run/docker.sock` to read containers, images, and networks from the host Docker daemon.
+| Open port | 80 (or 443 for HTTPS) |
 
 ---
 
@@ -55,82 +54,65 @@ When it finishes you'll see:
 Browser
   │
   ▼
-Nginx :80
-  ├─ /api/*        ──▶  Node.js API  :4001   (Docker, PM2, host info)
-  ├─ /socket.io/*  ──▶  Node.js API  :4001   (live metrics via WebSocket)
-  ├─ /metrics/*    ──▶  Python API   :8001   (psutil — CPU, RAM, disk, net)
-  ├─ /database/*   ──▶  Python API   :8001   (Postgres introspection)
-  ├─ /security/*   ──▶  Python API   :8001   (Trivy scans, SBOMs)
-  └─ /*            ──▶  Next.js web  :3000   (dashboard UI)
+Caddy :80 (or :443 with auto-TLS)
+  ├─ /go/*     ──▶  Go API  :4002   (Docker, processes, metrics, databases)
+  ├─ /events   ──▶  Go API  :4002   (Server-Sent Events — live metrics)
+  ├─ /ws       ──▶  Go API  :4002   (WebSocket — live metrics)
+  ├─ /health   ──▶  Go API  :4002   (health check endpoint)
+  └─ /*        ──▶  Next.js :3000   (dashboard UI)
 ```
 
-All internal services bind to `127.0.0.1` only — Nginx is the sole public entry point.
+The Go API mounts `/var/run/docker.sock` and runs in the host PID namespace (`pid: host`) to read real host CPU, RAM, disk I/O, and network stats from `/proc`.
+
+All internal services bind on the Docker-internal network only — Caddy is the sole public entry point.
 
 ---
 
-## Manual configuration
-
-If you prefer to set things up yourself instead of running `deploy.sh`:
+## Manual deploy
 
 ```bash
-cp .env.example .env.local
-nano .env.local          # fill in your VPS IP or domain
-docker compose -f docker-compose.yml -f docker-compose.standalone.yml up -d --build
-```
-
-### `.env.local` reference
-
-```bash
-# Public URLs — all set to the same host since Nginx routes internally
-NEXT_PUBLIC_ORIGIN=http://YOUR_VPS_IP
-NEXT_PUBLIC_NODE_API=http://YOUR_VPS_IP
-NEXT_PUBLIC_PYTHON_API=http://YOUR_VPS_IP
-NEXT_PUBLIC_WS_URL=ws://YOUR_VPS_IP
-
-# Internal port bindings (localhost only)
-WEB_PORT=127.0.0.1:3000
-NODE_PORT=127.0.0.1:4001
-PYTHON_PORT=127.0.0.1:8001
-
-# API authentication
-NODE_API_AUTH=false
-NODE_API_SECRET=your-random-secret   # openssl rand -hex 32
-
-# Optional — enables the Coolify tab with real project/deployment data
-COOLIFY_API_URL=https://coolify.example.com
-COOLIFY_API_TOKEN=your-coolify-token
-
-# Optional — enables real table sizes and slow-query data in the Databases tab
-DATABASE_URL=postgresql://user:password@host:5432/dbname
-```
-
----
-
-## Updating
-
-```bash
-git pull
+git clone https://github.com/SakithaSamarathunga33/vps.git ~/pulsenode
+cd ~/pulsenode
 ./deploy.sh
 ```
 
-The script re-runs the full build. Docker layer caching keeps it fast after the first run.
+`deploy.sh` prompts for your IP/domain, optional HTTPS, optional Coolify and PostgreSQL credentials, writes `.env.local`, then runs `docker compose up -d --build`.
 
----
-
-## Stopping
+Or configure manually:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.standalone.yml down
+cp .env.example .env.local
+nano .env.local
+docker compose -f docker-compose.yml -f docker-compose.standalone.yml up -d --build
 ```
 
 ---
 
-## Custom port
+## Configuration
 
-To run on a port other than 80 (e.g. 8080):
+All settings live in `.env.local` (created by the installer or `deploy.sh`):
 
 ```bash
-LISTEN_PORT=8080 docker compose -f docker-compose.yml -f docker-compose.standalone.yml up -d --build
+# Required
+NEXT_PUBLIC_ORIGIN=http://YOUR_IP_OR_DOMAIN
+NEXT_PUBLIC_GO_API=http://YOUR_IP_OR_DOMAIN/go
+
+# Caddy site address — :80 for IP, domain.com for HTTPS auto-TLS
+CADDY_SITE_ADDRESS=:80
+
+# Internal ports (usually no need to change)
+WEB_PORT=127.0.0.1:3000
+GO_PORT=127.0.0.1:4002
+
+# Security
+JWT_SECRET=<auto-generated>
+AES_KEY=<auto-generated>
+MASTER_ENCRYPTION_KEY=<auto-generated>
+
+# Optional integrations
+COOLIFY_API_URL=
+COOLIFY_API_TOKEN=
+DATABASE_URL=
 ```
 
 ---
@@ -139,44 +121,39 @@ LISTEN_PORT=8080 docker compose -f docker-compose.yml -f docker-compose.standalo
 
 ### Coolify
 
-Set `COOLIFY_API_URL` and `COOLIFY_API_TOKEN` in `.env.local`. The Coolify tab will show real projects, applications, databases, services, and deployment history from the Coolify REST API. Without these values it falls back to Docker label detection.
+Set `COOLIFY_API_URL` and `COOLIFY_API_TOKEN` in `.env.local`. The Coolify tab shows real projects and deployment history. Without these values the tab returns an empty list.
 
 ### PostgreSQL introspection
 
-Set `DATABASE_URL` to a Postgres connection string. The Databases tab will display real table names, row counts, sizes, and slow queries via `pg_stat_statements`.
-
-### Trivy vulnerability scanning
-
-Install [Trivy](https://aquasecurity.github.io/trivy/) on the host:
-
-```bash
-curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-```
-
-The Python API will detect it automatically. The Scan History tab will run real scans and persist results to `python/scans.json`.
+Set `DATABASE_URL` to a Postgres connection string. The Databases tab displays real table names, row counts, and sizes.
 
 ---
 
-## Deploying with HTTPS
+## HTTPS / custom domain
 
-If you have a domain and want SSL, point your domain at the VPS, install Caddy or Certbot, then run `deploy.sh` and answer **y** to the HTTPS question. Or use the Coolify deploy path below which handles TLS automatically.
+Run `deploy.sh`, answer **y** to the HTTPS question, and enter your domain. Caddy handles TLS automatically via Let's Encrypt — no extra tools required.
+
+Requirements: domain DNS must already point to the VPS, and port 443 must be open.
 
 ---
 
-## Coolify deployment (existing Coolify users)
+## Behind an existing Traefik proxy (e.g. Coolify)
 
-If your VPS already runs Coolify, the repo includes a Traefik overlay at `docker-compose.override.yml`. Coolify picks this up automatically and handles routing and SSL:
+If your VPS already runs Traefik, use the overlay:
 
 ```bash
-# In the Coolify UI: Add a Docker Compose resource, point at this repo.
-# Set build environment variables:
-NEXT_PUBLIC_ORIGIN=https://your-domain.com
-NEXT_PUBLIC_NODE_API=https://your-domain.com
-NEXT_PUBLIC_PYTHON_API=https://your-domain.com
-NEXT_PUBLIC_WS_URL=wss://your-domain.com
+# Add to your .env.local:
+TRAEFIK_HOST=vps.example.com
+TRAEFIK_NETWORK=traefik   # name of the Traefik Docker network
+
+docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.standalone.yml \
+  -f docker-compose.traefik.yml \
+  up -d --build
 ```
 
-Coolify's Traefik will route traffic identically to the standalone Nginx config.
+The overlay attaches Caddy to the Traefik network and adds the correct router labels. Caddy still handles internal routing; Traefik only terminates TLS externally.
 
 ---
 
@@ -184,35 +161,28 @@ Coolify's Traefik will route traffic identically to the standalone Nginx config.
 
 ```
 vps/
-├─ app/               Next.js 14 app router pages
-│   ├─ containers/    Docker container dashboard
-│   ├─ stats/         CPU, RAM, disk, network charts
-│   ├─ processes/     System process list (psutil)
-│   ├─ databases/     Database container introspection
-│   ├─ networks/      Docker network topology
-│   ├─ images/        Docker image list with vuln counts
-│   ├─ coolify/       Coolify projects and deployments
-│   ├─ alerts/        Live alert feed (socket.io)
-│   ├─ scan-history/  Trivy vulnerability scan results
-│   └─ sbom-history/  Software bill of materials
-├─ server/            Node.js / Express
-│   ├─ docker.js      Dockerode — containers, images, networks
-│   ├─ host.js        OS metrics — CPU, RAM, disk, net (/proc/net/dev)
-│   ├─ pm2.js         PM2 process list
-│   └─ coolify.js     Coolify API + Docker label detection
-├─ python/            FastAPI
-│   ├─ metrics.py     psutil — per-core CPU, RAM, disk I/O, net rates
-│   ├─ database.py    asyncpg — Postgres introspection
-│   └─ security.py    Trivy subprocess + SBOM management
-├─ components/        Sidebar, stat cards, charts, UI primitives
-├─ lib/               API clients, socket, types, mock fallbacks
-├─ nginx.conf         Reverse proxy routing rules
-├─ docker-compose.yml Base service definitions
-├─ docker-compose.standalone.yml  Nginx entry point (used by deploy.sh)
-├─ docker-compose.override.yml    Coolify / Traefik labels
-├─ Dockerfile         Multi-stage: Next.js build + Node.js API
-├─ Dockerfile.python  Python FastAPI service
-└─ deploy.sh          One-command deploy script
+├─ app/                   Next.js 14 app router pages
+│   ├─ containers/        Docker container dashboard
+│   ├─ stats/             CPU, RAM, disk I/O, network charts (live)
+│   ├─ processes/         System process list
+│   ├─ databases/         Database container management
+│   ├─ networks/          Docker network topology
+│   ├─ images/            Docker image list
+│   └─ coolify/           Coolify projects and deployments
+├─ backend/               Go API (Chi router, gorilla/websocket)
+│   ├─ internal/api/      HTTP handlers — containers, images, processes, coolify
+│   ├─ internal/proc/     /proc reader — CPU, RAM, disk, network, processes
+│   ├─ internal/docker/   Dockerode-equivalent via Docker SDK for Go
+│   └─ internal/db/       Encrypted credential store (AES-GCM)
+├─ components/            Sidebar, stat cards, charts, UI primitives
+├─ lib/                   API clients, socket, types
+├─ Caddyfile              Reverse proxy routing rules
+├─ docker-compose.yml             Base service definitions
+├─ docker-compose.standalone.yml  Exposes ports 80/443 (used by install/deploy)
+├─ docker-compose.traefik.yml     Traefik labels overlay (optional)
+├─ Dockerfile             Multi-stage: Next.js build only
+├─ install.sh             One-command installer (curl | bash)
+└─ deploy.sh              Interactive deploy script
 ```
 
 ---
@@ -222,10 +192,26 @@ vps/
 | Layer | Technology |
 |-------|-----------|
 | Frontend | Next.js 14, React 18, TypeScript, Tailwind CSS |
-| Animations | GSAP, Framer Motion |
-| Charts | Recharts |
-| Real-time | Socket.IO |
-| Node API | Express, Dockerode, PM2 |
-| Python API | FastAPI, psutil, asyncpg |
-| Proxy | Nginx (standalone) / Traefik (Coolify) |
+| Charts | uPlot |
+| Tables | TanStack Table |
+| UI components | shadcn/ui, Radix UI |
+| Real-time | WebSocket (native) / Server-Sent Events |
+| Backend API | Go, Chi router, gorilla/websocket |
+| System metrics | Go — reads `/proc` directly |
+| Docker API | Go Docker SDK |
+| Proxy | Caddy v2 (auto-TLS) |
 | Containers | Docker, Docker Compose |
+
+---
+
+## Updating
+
+```bash
+# If installed via install.sh — just re-run it:
+curl -fsSL https://raw.githubusercontent.com/SakithaSamarathunga33/vps/main/install.sh | bash
+
+# Or manually:
+cd ~/pulsenode
+git pull
+docker compose -f docker-compose.yml -f docker-compose.standalone.yml up -d --build
+```

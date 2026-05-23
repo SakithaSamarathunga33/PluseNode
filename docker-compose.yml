@@ -13,14 +13,6 @@ services:
     restart: unless-stopped
     networks:
       - default
-      - proxy
-    labels:
-      traefik.enable: "true"
-      traefik.http.routers.vps.rule: "Host(`vps.sakitha.com`)"
-      traefik.http.routers.vps.entrypoints: "websecure"
-      traefik.http.routers.vps.tls.certresolver: "letsencrypt"
-      traefik.http.services.vps.loadbalancer.server.port: "80"
-      traefik.docker.network: "vps-monitor_proxy"
     deploy:
       resources:
         limits:
@@ -33,7 +25,7 @@ services:
       dockerfile: Dockerfile
       target: web
       args:
-        NEXT_PUBLIC_GO_API: ${NEXT_PUBLIC_GO_API:-https://vps.sakitha.com/go}
+        NEXT_PUBLIC_GO_API: ${NEXT_PUBLIC_GO_API:-}
     depends_on:
       - go-api
     restart: unless-stopped
@@ -55,7 +47,7 @@ services:
       GO_PORT: 4002
       GO_API_AUTH: ${GO_API_AUTH:-false}
       JWT_SECRET: ${JWT_SECRET:-change-me}
-      NEXT_PUBLIC_ORIGIN: ${NEXT_PUBLIC_ORIGIN:-https://vps.sakitha.com}
+      NEXT_PUBLIC_ORIGIN: ${NEXT_PUBLIC_ORIGIN:-}
       COOLIFY_API_URL: ${COOLIFY_API_URL:-}
       COOLIFY_API_TOKEN: ${COOLIFY_API_TOKEN:-}
       DATABASE_URL: ${DATABASE_URL:-}
@@ -79,8 +71,3 @@ volumes:
   pn-go-data:
   caddy-data:
   caddy-config:
-
-networks:
-  proxy:
-    external: true
-    name: vps-monitor_proxy

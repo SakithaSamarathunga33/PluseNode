@@ -55,21 +55,16 @@ HOST="${USER_INPUT:-${DETECTED_IP:-localhost}}"
 HOST="${HOST#https://}"; HOST="${HOST#http://}"; HOST="${HOST%%/*}"
 
 # Determine protocol
-if [[ "${PROTO}" == "https" && ! "${HOST}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  PROTO="http"; WS_PROTO="ws"
-else
-  printf "  Use HTTPS? (requires a cert already configured on this server) [y/N]: "
-  read -r USE_HTTPS
-  if [[ "${USE_HTTPS,,}" == "y" ]]; then
-    PROTO="https"; WS_PROTO="wss"
-  else
-    PROTO="http"; WS_PROTO="ws"
-  fi
+PROTO="http"
+printf "  Use HTTPS? (requires a domain with DNS pointing here) [y/N]: "
+read -r USE_HTTPS
+if [[ "${USE_HTTPS,,}" == "y" ]]; then
+  PROTO="https"
 fi
 
 BASE_URL="${PROTO}://${HOST}"
-WS_URL="${WS_PROTO}://${HOST}"
-if [[ "${PROTO}" == "https" && ! "${HOST}" =~ ^[0-9]+.[0-9]+.[0-9]+.[0-9]+$ ]]; then
+# Caddy auto-TLS: use bare domain as site address for HTTPS, else bind to :80
+if [[ "${PROTO}" == "https" && ! "${HOST}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   CADDY_SITE_ADDRESS="${HOST}"
 else
   CADDY_SITE_ADDRESS=":80"
