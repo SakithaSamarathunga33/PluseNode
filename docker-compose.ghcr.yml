@@ -9,8 +9,5 @@ services:
   web:
     image: ghcr.io/sakithasamarathunga33/vps-web:latest
 
-  node-api:
-    image: ghcr.io/sakithasamarathunga33/vps-node-api:latest
-
-  python-api:
-    image: ghcr.io/sakithasamarathunga33/vps-python-api:latest
+  go-api:
+    image: ghcr.io/sakithasamarathunga33/vps-go-api:latest

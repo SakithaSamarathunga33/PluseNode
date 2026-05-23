@@ -77,8 +77,9 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
   useEffect(() => {
     try {
       const socket = getSocket()
-      socket.on("system:metrics", (m: SystemMetrics) => setCpu(m.cpu))
-      return () => { socket.off("system:metrics") }
+      const handler = (m: SystemMetrics) => setCpu(m.cpu)
+      socket.on("system:metrics", handler)
+      return () => { socket.off("system:metrics", handler) }
     } catch { /* socket not available in SSR */ }
   }, [])
 

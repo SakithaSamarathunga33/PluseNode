@@ -1,0 +1,27 @@
+{
+	admin localhost:2019
+}
+
+{$CADDY_SITE_ADDRESS} {
+	encode gzip
+
+	handle_path /go/* {
+		reverse_proxy go-api:4002
+	}
+
+	handle /events {
+		reverse_proxy go-api:4002
+	}
+
+	handle /ws {
+		reverse_proxy go-api:4002
+	}
+
+	handle /health {
+		reverse_proxy go-api:4002
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+}

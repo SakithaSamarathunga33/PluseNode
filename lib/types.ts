@@ -23,9 +23,11 @@ export interface SystemMetrics {
   cpu: number
   ram: number
   disk: number
+  diskRead: number
+  diskWrite: number
   netIn: number
   netOut: number
-  timestamp: number
+  ts: number
 }
 
 export interface HostInfo {

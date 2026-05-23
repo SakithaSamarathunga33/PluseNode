@@ -3,13 +3,9 @@
 import { useState, useRef, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
-import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  BarChart, Bar, LineChart, Line,
-} from "recharts"
 import { Download, MoreHorizontal, Zap, Trash2 } from "lucide-react"
 import { HOST as MOCK_HOST, SPARKS as MOCK_SPARKS } from "@/lib/mock-data"
-import { nodeApi, pythonApi } from "@/lib/api"
+import { nodeApi, pythonApi, API_BASE } from "@/lib/api"
 import { getSocket } from "@/lib/socket"
 import type { HostInfo, SystemMetrics } from "@/lib/types"
 
@@ -25,40 +21,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Terminal, AnimatedSpan } from "@/components/magicui/terminal"
 import { StatCard } from "@/components/dashboard/StatCard"
+import { UPlotChart } from "@/components/dashboard/UPlotChart"
 import { cn } from "@/lib/utils"
 
 // ── Chart helpers ─────────────────────────────────────────────────────────────
-
-type TooltipPayload = {
-  color?: string
-  name?: string
-  value?: number | string
-}
-
-const CustomTooltip = ({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean
-  payload?: TooltipPayload[]
-  label?: string | number
-}) => {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="bg-pulseNode-navy border border-pulseNode-border/30 rounded-lg p-2 text-xs text-helm-fg shadow-card">
-      <p className="text-helm-fg3 mb-0.5">t={label}</p>
-      {payload.map((p, i) => (
-        <p key={i} style={{ color: p.color }}>
-          {p.name}: <span className="font-mono font-bold">{typeof p.value === "number" ? p.value.toFixed(1) : p.value}</span>
-        </p>
-      ))}
-    </div>
-  )
-}
-
-const xStyle = { fill: "var(--pn-muted)", fontSize: 10 }
-const yStyle = { fill: "var(--pn-muted)", fontSize: 10 }
 
 function ChartCard({
   title, value, unit, children, dot = false,
@@ -164,7 +130,7 @@ export default function StatsPage() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_NODE_API ?? ""}/api/docker/build-cache/clear`,
+        `${API_BASE}/api/docker/build-cache/clear`,
         { method: "POST" }
       )
       if (!res.body) throw new Error("No response body")
@@ -238,11 +204,13 @@ export default function StatsPage() {
 
     const socket = getSocket()
     const handler = (m: SystemMetrics) => {
-      setCpuHist(prev       => pushHistory(prev,  m.cpu))
-      setRamHist(prev       => pushHistory(prev,  m.ram))
-      setDiskHist(prev      => pushHistory(prev,  m.disk))
-      setNetHist(prev       => pushHistory(prev,  m.netIn))
-      setNetTxHist(prev     => pushHistory(prev,  m.netOut))
+      setCpuHist(prev        => pushHistory(prev, m.cpu))
+      setRamHist(prev        => pushHistory(prev, m.ram))
+      setDiskHist(prev       => pushHistory(prev, m.disk))
+      setDiskReadHist(prev   => pushHistory(prev, m.diskRead  ?? 0))
+      setDiskWriteHist(prev  => pushHistory(prev, m.diskWrite ?? 0))
+      setNetHist(prev        => pushHistory(prev, m.netIn))
+      setNetTxHist(prev      => pushHistory(prev, m.netOut))
     }
     socket.on("system:metrics", handler)
     return () => { socket.off("system:metrics", handler) }
@@ -260,12 +228,6 @@ export default function StatsPage() {
     })
     return () => cancelAnimationFrame(frame)
   }, { scope: containerRef })
-
-  // Prepare chart data
-  const cpuData  = cpuHist.map((v, i)      => ({ t: i, v }))
-  const memData  = ramHist.map((v, i)      => ({ t: i, v }))
-  const ioData   = diskReadHist.map((v, i) => ({ t: i, read: v, write: diskWriteHist[i] ?? 0 }))
-  const netData  = netHist.map((v, i)      => ({ t: i, v, tx: netTxHist[i] ?? 0 }))
 
   // Memory breakdown
   const memUsed    = host.memory.used
@@ -362,38 +324,18 @@ export default function StatsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* CPU */}
         <ChartCard title="CPU Usage" value={`${host.cpu.usage}%`} dot>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={cpuData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="cpuFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="var(--pn-cyan)" stopOpacity={0.18} />
-                  <stop offset="95%" stopColor="var(--pn-cyan)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="t" tick={xStyle} tickLine={false} axisLine={false} interval={29} />
-              <YAxis tick={yStyle} tickLine={false} axisLine={false} domain={[0, 100]} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="v" name="CPU%" stroke="var(--pn-cyan)" strokeWidth={1.5} fill="url(#cpuFill)" dot={false} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <UPlotChart
+            series={[{ label: "CPU%", values: cpuHist, color: "var(--pn-cyan)", fill: "rgba(47, 211, 242, 0.12)" }]}
+            max={100}
+          />
         </ChartCard>
 
         {/* Memory */}
         <ChartCard title="Memory Usage" value={`${host.memory.pct}%`} dot>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={memData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="memFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="var(--color-warning)" stopOpacity={0.18} />
-                  <stop offset="95%" stopColor="var(--color-warning)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="t" tick={xStyle} tickLine={false} axisLine={false} interval={29} />
-              <YAxis tick={yStyle} tickLine={false} axisLine={false} domain={[0, 100]} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="v" name="MEM%" stroke="var(--color-warning)" strokeWidth={1.5} fill="url(#memFill)" dot={false} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <UPlotChart
+            series={[{ label: "MEM%", values: ramHist, color: "var(--color-warning)", fill: "rgba(251, 191, 36, 0.12)" }]}
+            max={100}
+          />
         </ChartCard>
 
         {/* Disk I/O */}
@@ -402,28 +344,23 @@ export default function StatsPage() {
           value={`R:${(diskReadHist[diskReadHist.length - 1] ?? 0).toFixed(1)} W:${(diskWriteHist[diskWriteHist.length - 1] ?? 0).toFixed(1)}`}
           unit="MB/s"
         >
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={ioData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <XAxis dataKey="t" tick={xStyle} tickLine={false} axisLine={false} interval={14} />
-              <YAxis tick={yStyle} tickLine={false} axisLine={false} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="read"  name="Read"  fill="var(--pn-blue)"   radius={[2, 2, 0, 0]} maxBarSize={6} />
-              <Bar dataKey="write" name="Write" fill="var(--pn-cyan)"   radius={[2, 2, 0, 0]} maxBarSize={6} />
-            </BarChart>
-          </ResponsiveContainer>
+          <UPlotChart
+            mode="bar"
+            series={[
+              { label: "Read", values: diskReadHist, color: "var(--pn-blue)" },
+              { label: "Write", values: diskWriteHist, color: "var(--pn-cyan)" },
+            ]}
+          />
         </ChartCard>
 
         {/* Network */}
         <ChartCard title="Network" value={`↓${host.network.rx} ↑${host.network.tx}`} unit={host.network.unit}>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={netData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <XAxis dataKey="t" tick={xStyle} tickLine={false} axisLine={false} interval={14} />
-              <YAxis tick={yStyle} tickLine={false} axisLine={false} />
-              <Tooltip content={<CustomTooltip />} />
-              <Line type="monotone" dataKey="v"  name="RX" stroke="var(--pn-cyan)" strokeWidth={1.5} dot={false} />
-              <Line type="monotone" dataKey="tx" name="TX" stroke="var(--pn-blue)" strokeWidth={1.5} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          <UPlotChart
+            series={[
+              { label: "RX", values: netHist, color: "var(--pn-cyan)" },
+              { label: "TX", values: netTxHist, color: "var(--pn-blue)" },
+            ]}
+          />
         </ChartCard>
       </div>
 

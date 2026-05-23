@@ -1,20 +1,20 @@
 # Standalone deployment overlay — used by deploy.sh
-# Adds Nginx as the single public entry point on port 80.
+# Adds Caddy as the single public entry point on port 80.
 # Usage: docker compose -f docker-compose.yml -f docker-compose.standalone.yml up -d --build
 
 services:
-  nginx:
-    image: nginx:1.27-alpine
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      CADDY_SITE_ADDRESS: ${CADDY_SITE_ADDRESS:-:80}
     ports:
       - "${LISTEN_PORT:-80}:80"
+      - "${HTTPS_LISTEN_PORT:-443}:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
     depends_on:
       - web
-      - node-api
-      - python-api
+      - go-api
     restart: unless-stopped
-
-  # Override python-api to ensure pid:host is set in standalone mode too
-  python-api:
-    pid: "host"

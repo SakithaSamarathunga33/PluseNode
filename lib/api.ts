@@ -1,9 +1,9 @@
-const NODE_API   = process.env.NEXT_PUBLIC_NODE_API   ?? ""
-const PYTHON_API = process.env.NEXT_PUBLIC_PYTHON_API ?? ""
+const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
 
-export const API_BASE = NODE_API
+export const API_BASE = GO_API
 
-/** Attaches .status so callers can distinguish 422 from 500 without parsing the message. */
+export interface ApiError extends Error { status: number }
+
 async function throwApiError(res: Response, label: string): Promise<never> {
   let msg = `${res.status} ${label}`
   try {
@@ -16,48 +16,31 @@ async function throwApiError(res: Response, label: string): Promise<never> {
   throw err
 }
 
-export interface ApiError extends Error { status: number }
-
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<{ data: T; mock: boolean }> {
   const res = await fetch(url, { cache: "no-store", ...init })
   if (!res.ok) await throwApiError(res, url)
   const data = await res.json() as T
-  const mock  = res.headers.get("X-Data-Source") === "mock"
+  const mock = res.headers.get("X-Data-Source") === "mock"
   return { data, mock }
 }
 
-export const nodeApi = {
-  /** GET from Node.js server. On network error, throws so caller can fall back to mock. */
-  get: <T>(path: string) => fetchJSON<T>(`${NODE_API}${path}`),
-
-  post: async <T>(path: string, body?: unknown): Promise<T> => {
-    const res = await fetch(`${NODE_API}${path}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: body ? JSON.stringify(body) : undefined,
-    })
-    if (!res.ok) await throwApiError(res, path)
-    return res.json() as Promise<T>
-  },
-
-  delete: async <T>(path: string): Promise<T> => {
-    const res = await fetch(`${NODE_API}${path}`, { method: "DELETE" })
-    if (!res.ok) await throwApiError(res, path)
-    return res.json() as Promise<T>
-  },
+async function mutateJSON<T>(path: string, body: unknown, method: "POST" | "DELETE"): Promise<T> {
+  const init: RequestInit = {
+    method,
+    headers: method === "POST" ? { "Content-Type": "application/json" } : undefined,
+    body: method === "POST" && body ? JSON.stringify(body) : undefined,
+  }
+  const res = await fetch(`${GO_API}${path}`, init)
+  if (!res.ok) await throwApiError(res, path)
+  return res.json() as Promise<T>
 }
 
-export const pythonApi = {
-  /** GET from Python FastAPI. On network error, throws so caller can fall back to mock. */
-  get: <T>(path: string) => fetchJSON<T>(`${PYTHON_API}${path}`),
-
-  post: async <T>(path: string, body?: unknown): Promise<T> => {
-    const res = await fetch(`${PYTHON_API}${path}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: body ? JSON.stringify(body) : undefined,
-    })
-    if (!res.ok) await throwApiError(res, path)
-    return res.json() as Promise<T>
-  },
+const goApi = {
+  get: <T>(path: string) => fetchJSON<T>(`${GO_API}${path}`),
+  post: <T>(path: string, body?: unknown): Promise<T> => mutateJSON<T>(path, body, "POST"),
+  delete: <T>(path: string): Promise<T> => mutateJSON<T>(path, undefined, "DELETE"),
 }
+
+// Kept for backward compatibility — both point to Go now
+export const nodeApi = goApi
+export const pythonApi = goApi

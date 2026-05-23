@@ -3,55 +3,23 @@
 import { useRef, useState, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
-import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-} from "recharts"
 import { NETWORKS as MOCK_NETWORKS } from "@/lib/mock-data"
 import { nodeApi } from "@/lib/api"
 import { getSocket } from "@/lib/socket"
 import type { DockerNetwork, SystemMetrics } from "@/lib/types"
 import { StatCard } from "@/components/dashboard/StatCard"
+import { UPlotChart } from "@/components/dashboard/UPlotChart"
 import { Pill } from "@/components/dashboard/Pill"
-
-type ChartPayload = {
-  value?: number
-}
-
-/* ── Chart tooltip ──────────────────────────────────────────────────── */
-function ChartTooltip({ active, payload }: { active?: boolean; payload?: ChartPayload[] }) {
-  if (!active || !payload?.length) return null
-  const value = payload[0]?.value ?? 0
-  return (
-    <div className="bg-pulseNode-navyLight border border-pulseNode-border/15 rounded-lg px-3 py-2 text-xs shadow-card">
-      <span className="text-pn-cyan font-mono">{value.toFixed(1)} KB/s</span>
-    </div>
-  )
-}
 
 /* ── Mini Network Chart ─────────────────────────────────────────────── */
 function NetChart({ data, color, title }: { data: number[]; color: string; title: string }) {
-  const chartData = data.map((v, i) => ({ t: i, v }))
   return (
     <div className="bg-pulseNode-navyLight rounded-xl border border-pulseNode-border/10 shadow-card p-4">
       <div className="text-[10px] uppercase tracking-wider text-helm-fg3 mb-3 font-semibold">{title}</div>
-      <ResponsiveContainer width="100%" height={120}>
-        <LineChart data={chartData} margin={{ top: 2, right: 2, left: -24, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="2 4" stroke="rgba(220,232,245,0.06)" vertical={false} />
-          <XAxis dataKey="t" hide />
-          <YAxis tick={{ fill: "var(--pn-muted)", fontSize: 10 }} />
-          <Tooltip content={<ChartTooltip />} />
-          <Line
-            type="monotone"
-            dataKey="v"
-            stroke={color}
-            strokeWidth={1.5}
-            dot={false}
-            fill={color}
-            fillOpacity={0.1}
-            isAnimationActive
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <UPlotChart
+        height={120}
+        series={[{ label: title, values: data, color, fill: "rgba(47, 211, 242, 0.10)" }]}
+      />
     </div>
   )
 }
