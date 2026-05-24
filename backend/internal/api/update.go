@@ -94,8 +94,9 @@ func runUpdate() {
 	}
 
 	// Step 1: git pull
+	// -c safe.directory bypasses ownership mismatch when the container user differs from the host file owner.
 	updateLog(":: phase :: Pulling latest code from GitHub…")
-	if err := streamCmd("git", "-C", workspace, "pull", "--ff-only"); err != nil {
+	if err := streamCmd("git", "-C", workspace, "-c", "safe.directory="+workspace, "pull", "--ff-only"); err != nil {
 		updateFail("git pull failed: " + err.Error())
 		return
 	}
