@@ -84,8 +84,14 @@ func (s *Server) Routes() http.Handler {
 
 	r.Get("/api/github/callback", s.githubCallback)
 
+	r.Get("/api/auth/status", s.authStatus)
+	r.Post("/api/auth/login", s.authLogin)
+	r.Post("/api/auth/logout", s.authLogout)
+	r.Post("/api/auth/setup", s.authSetup)
+	r.Delete("/api/auth/setup", s.authSetupDelete)
+
 	r.Route("/api", func(r chi.Router) {
-		r.Use(s.auth.Require)
+		r.Use(s.requireAuth)
 		r.Get("/docker/containers", s.dockerContainers)
 		r.Get("/docker/images", s.dockerImages)
 		r.Get("/docker/networks", s.dockerNetworks)

@@ -53,3 +53,29 @@ func (r *statusRecorder) Flush() {
 
 // Unwrap lets chi and other middleware reach the underlying writer.
 func (r *statusRecorder) Unwrap() http.ResponseWriter { return r.ResponseWriter }
+
+// requireAuth replaces s.auth.Require. It checks whether a user account exists in the
+// DB (auth enabled) and, if so, validates either the pn_session cookie or a Bearer token.
+// When no user exists, all requests pass through (auth disabled).
+func (s *Server) requireAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user, _ := s.db.GetUser()
+		if user == nil {
+			// No admin account configured — auth is off.
+			next.ServeHTTP(w, r)
+			return
+		}
+		// Cookie path (browser sessions).
+		if c, err := r.Cookie("pn_session"); err == nil && s.auth.ValidateToken(c.Value) {
+			next.ServeHTTP(w, r)
+			return
+		}
+		// Bearer token path (API / scripts).
+		if h := r.Header.Get("Authorization"); strings.HasPrefix(h, "Bearer ") &&
+			s.auth.ValidateToken(strings.TrimPrefix(h, "Bearer ")) {
+			next.ServeHTTP(w, r)
+			return
+		}
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+	})
+}
