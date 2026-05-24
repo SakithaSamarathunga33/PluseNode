@@ -1,0 +1,19 @@
+# Custom-port overlay — used when port 80 is already taken on the host.
+# Publishes only the HTTP port (no 443) and disables Caddy auto-HTTPS.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.nossl.yml up -d
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      CADDY_SITE_ADDRESS: ${CADDY_SITE_ADDRESS}
+    ports:
+      - "${LISTEN_PORT}:${LISTEN_PORT}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - web
+      - go-api
+    restart: unless-stopped

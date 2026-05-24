@@ -105,9 +105,13 @@ func runUpdate() {
 	updateLog(":: phase :: Rebuilding and restarting containers…")
 	updateLog("⚠ The dashboard will go offline for ~60-90s during the rebuild.")
 
+	overlay := os.Getenv("PULSENODE_OVERLAY")
+	if overlay == "" {
+		overlay = "docker-compose.standalone.yml"
+	}
 	composeFiles := []string{
 		workspace + "/docker-compose.yml",
-		workspace + "/docker-compose.standalone.yml",
+		workspace + "/" + overlay,
 	}
 	args := []string{"compose", "--env-file", workspace + "/.env.local"}
 	for _, f := range composeFiles {

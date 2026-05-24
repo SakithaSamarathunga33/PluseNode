@@ -141,6 +141,7 @@ COOLIFY_API_TOKEN=${COOLIFY_TOKEN}
 # Update tracking
 PULSENODE_VERSION=${CURRENT_VERSION}
 PULSENODE_INSTALL_DIR=${INSTALL_DIR}
+PULSENODE_OVERLAY=${OVERLAY}
 EOF
 echo -e "  ${G}✓ .env.local written${N}"
 echo ""
@@ -148,7 +149,12 @@ echo ""
 # ── Pull pre-built images or build from source ─────────────────────────────────
 echo -e "${C}━━━  Starting containers  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${N}"
 
-COMPOSE_CMD="docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.standalone.yml"
+if [[ "$LISTEN" == "80" ]]; then
+  OVERLAY="docker-compose.standalone.yml"
+else
+  OVERLAY="docker-compose.nossl.yml"
+fi
+COMPOSE_CMD="docker compose --env-file .env.local -f docker-compose.yml -f $OVERLAY"
 
 if $COMPOSE_CMD -f docker-compose.ghcr.yml pull --quiet 2>/dev/null; then
   echo -e "  ${G}✓ Using pre-built images from GitHub Container Registry${N}"

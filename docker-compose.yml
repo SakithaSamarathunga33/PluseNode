@@ -59,6 +59,7 @@ services:
       PULSENODE_DATA_DIR: /var/lib/pulsenode
       PULSENODE_VERSION: ${PULSENODE_VERSION:-dev}
       PULSENODE_WORKSPACE: /workspace
+      PULSENODE_OVERLAY: ${PULSENODE_OVERLAY:-docker-compose.standalone.yml}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - pn-go-data:/var/lib/pulsenode
