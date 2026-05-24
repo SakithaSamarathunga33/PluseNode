@@ -7,7 +7,7 @@ import {
   Container, BarChart3, Activity, Layers, Network,
   Database, Shield, FileCode2, BellRing,
   ChevronDown, Cpu, PanelLeftClose, PanelLeftOpen, Settings,
-  FolderGit2,
+  FolderGit2, Box,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { GitHubDark, Docker } from "developer-icons"
@@ -40,6 +40,7 @@ const BASE_NAV_SECTIONS: NavSection[] = [
     label: "Workspace",
     items: [
       { label: "Containers",   href: "/containers",   icon: Container, devIcon: Docker  },
+      { label: "Runtime",      href: "/runtime",      icon: Box        },
       { label: "Stats",        href: "/stats",        icon: BarChart3  },
       { label: "Processes",    href: "/processes",    icon: Activity   },
     ],

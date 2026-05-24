@@ -7,6 +7,7 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
 
 const PAGE_TITLES: Record<string, string> = {
   "/containers":   "Containers",
+  "/runtime":      "Runtime Monitor",
   "/stats":        "System Stats",
   "/processes":    "Processes",
   "/coolify":      "Coolify",
@@ -36,6 +37,13 @@ const SEARCH_ITEMS: SearchItem[] = [
     href: "/containers",
     icon: <LayoutDashboard size={14} />,
     keywords: ["container", "docker", "running", "logs", "shell", "exec", "restart", "stop"],
+  },
+  {
+    label: "Runtime Monitor",
+    description: "Live CPU and RAM usage for all running containers",
+    href: "/runtime",
+    icon: <HardDrive size={14} />,
+    keywords: ["runtime", "live", "cpu", "ram", "memory", "container", "resource", "usage", "monitor"],
   },
   {
     label: "System Stats",
