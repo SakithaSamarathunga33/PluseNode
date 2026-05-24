@@ -27,8 +27,8 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog"
 import { nodeApi, pythonApi, API_BASE } from "@/lib/api"
-import type { CustomConnection, Database, DbMetrics, DbSchemaResult } from "@/lib/types"
-import { DatabaseQueryEditor } from "@/components/dashboard/DatabaseQueryEditor"
+import type { CustomConnection, Database, DbMetrics, DbQueryResult, DbSchemaResult } from "@/lib/types"
+import { DatabaseQueryEditor, ResultTable } from "@/components/dashboard/DatabaseQueryEditor"
 import { DatabaseMetricsPanel } from "@/components/dashboard/DatabaseMetricsPanel"
 import { CreateDatabaseModal } from "@/components/dashboard/CreateDatabaseModal"
 import { ConnectDatabaseModal } from "@/components/dashboard/ConnectDatabaseModal"
@@ -188,11 +188,15 @@ function ConnectionStringPanel({ dbName }: { dbName: string }) {
   )
 }
 
-function DbDetails({ db, onTableClick }: { db: Database; onTableClick?: (name: string) => void }) {
-  const [dbs,        setDbs]        = useState<string[]>([])
-  const [selectedDb, setSelectedDb] = useState("")
-  const [tables,     setTables]     = useState<Array<{ name: string; rows: number }>>([])
-  const [loading,    setLoading]    = useState(true)
+function DbDetails({ db }: { db: Database }) {
+  const [dbs,          setDbs]          = useState<string[]>([])
+  const [selectedDb,   setSelectedDb]   = useState("")
+  const [tables,       setTables]       = useState<Array<{ name: string; rows: number }>>([])
+  const [loading,      setLoading]      = useState(true)
+  const [inlineResult, setInlineResult] = useState<DbQueryResult | null>(null)
+  const [inlineLoading, setInlineLoading] = useState(false)
+  const [inlineError,  setInlineError]  = useState<string | null>(null)
+  const [activeTable,  setActiveTable]  = useState<string | null>(null)
 
   // Fetch databases list on mount
   useEffect(() => {
@@ -201,7 +205,6 @@ function DbDetails({ db, onTableClick }: { db: Database; onTableClick?: (name: s
         setDbs(data.databases)
         const first = data.databases[0] || ""
         setSelectedDb(first)
-        // schema without ?database returns tables too for redis/non-relational
         if (data.tables.length) { setTables(data.tables); setLoading(false) }
       })
       .catch(() => setLoading(false))
@@ -217,6 +220,28 @@ function DbDetails({ db, onTableClick }: { db: Database; onTableClick?: (name: s
       .finally(() => setLoading(false))
   }, [db.name, selectedDb])
 
+  async function handleTableClick(tableName: string) {
+    const q = db.engine === "redis"   ? "KEYS *"
+             : db.engine === "mongodb" ? `${tableName} {}`
+             : `SELECT * FROM ${tableName} LIMIT 100;`
+    setActiveTable(tableName)
+    setInlineResult(null)
+    setInlineError(null)
+    setInlineLoading(true)
+    try {
+      const res = await nodeApi.post<DbQueryResult>(`/api/database/${db.name}/query`, {
+        query: q,
+        database: selectedDb || undefined,
+        force: false,
+      })
+      setInlineResult(res)
+    } catch (err: unknown) {
+      setInlineError((err as { message?: string })?.message || "Query failed")
+    } finally {
+      setInlineLoading(false)
+    }
+  }
+
   // Merge size info from Python if available (Python has totalSize/indexSize, schema API has rows)
   const displayTables = tables.map(t => {
     const pyRow = db.tables?.find(p => p.name === t.name)
@@ -227,60 +252,91 @@ function DbDetails({ db, onTableClick }: { db: Database; onTableClick?: (name: s
 
   return (
     <div className="grid gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)]">
-      <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/40">
-        {/* Header with optional DB selector */}
-        <div className="flex items-center justify-between gap-2 border-b border-pulseNode-border/10 px-3 py-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">Tables</span>
-          <div className="flex items-center gap-2">
-            {dbs.length > 1 && (
-              <select
-                value={selectedDb}
-                onChange={e => setSelectedDb(e.target.value)}
-                className="bg-pulseNode-navy border border-pulseNode-border/20 text-helm-fg text-[10px] rounded px-1.5 py-0.5 cursor-pointer"
-              >
-                {dbs.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
-            )}
-            <span className="font-mono text-[10px] text-helm-fg3">{displayTables.length} objects</span>
+      <div className="space-y-3">
+        <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/40">
+          {/* Header with optional DB selector */}
+          <div className="flex items-center justify-between gap-2 border-b border-pulseNode-border/10 px-3 py-2">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">Tables</span>
+            <div className="flex items-center gap-2">
+              {dbs.length > 1 && (
+                <select
+                  value={selectedDb}
+                  onChange={e => setSelectedDb(e.target.value)}
+                  className="bg-pulseNode-navy border border-pulseNode-border/20 text-helm-fg text-[10px] rounded px-1.5 py-0.5 cursor-pointer"
+                >
+                  {dbs.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              )}
+              <span className="font-mono text-[10px] text-helm-fg3">{displayTables.length} objects</span>
+            </div>
           </div>
+
+          {loading && <p className="px-3 py-4 text-xs text-helm-fg3">Loading tables…</p>}
+
+          {!loading && displayTables.length > 0 && (
+            <div className="relative max-h-48 overflow-y-auto">
+              <table className="pn-table w-full">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th className="right">Rows</th>
+                    {hasSize && <th className="right">Total</th>}
+                    {hasSize && <th className="right">Index</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayTables.map(t => (
+                    <tr
+                      key={t.name}
+                      onClick={() => handleTableClick(t.name)}
+                      className={`cursor-pointer hover:bg-pn-electric/5 ${activeTable === t.name ? "bg-pn-electric/10" : ""}`}
+                      title={`Query: SELECT * FROM ${t.name} LIMIT 100`}
+                    >
+                      <td className="mono-cell">{t.name}</td>
+                      <td className="right dim">{t.rows.toLocaleString()}</td>
+                      {hasSize && <td className="right dim">{t.totalSize ?? "—"}</td>}
+                      {hasSize && <td className="right dim">{t.indexSize ?? "—"}</td>}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {!loading && displayTables.length === 0 && (
+            <p className="px-3 py-4 text-xs text-helm-fg3">
+              {db.engine === "redis" ? "Redis has no tables." : "No tables found in this database."}
+            </p>
+          )}
         </div>
 
-        {loading && <p className="px-3 py-4 text-xs text-helm-fg3">Loading tables…</p>}
-
-        {!loading && displayTables.length > 0 && (
-          <div className="relative max-h-48 overflow-y-auto">
-            <table className="pn-table w-full">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th className="right">Rows</th>
-                  {hasSize && <th className="right">Total</th>}
-                  {hasSize && <th className="right">Index</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {displayTables.map(t => (
-                  <tr
-                    key={t.name}
-                    onClick={() => onTableClick?.(t.name)}
-                    className={onTableClick ? "cursor-pointer hover:bg-pn-electric/5" : ""}
-                    title={onTableClick ? `Query: SELECT * FROM ${t.name} LIMIT 100` : undefined}
-                  >
-                    <td className="mono-cell">{t.name}</td>
-                    <td className="right dim">{t.rows.toLocaleString()}</td>
-                    {hasSize && <td className="right dim">{t.totalSize ?? "—"}</td>}
-                    {hasSize && <td className="right dim">{t.indexSize ?? "—"}</td>}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Inline query results */}
+        {inlineLoading && (
+          <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/40 px-3 py-4 text-xs text-helm-fg3">
+            Running query…
           </div>
         )}
-
-        {!loading && displayTables.length === 0 && (
-          <p className="px-3 py-4 text-xs text-helm-fg3">
-            {db.engine === "redis" ? "Redis has no tables." : "No tables found in this database."}
-          </p>
+        {inlineError && !inlineLoading && (
+          <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-3 flex items-start gap-2">
+            <span className="text-red-400 flex-shrink-0">✕</span>
+            <p className="text-xs font-mono text-red-400 break-all">{inlineError}</p>
+          </div>
+        )}
+        {inlineResult && !inlineLoading && (
+          <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/40 overflow-hidden">
+            <div className="flex items-center gap-2 px-3 py-1.5 border-b border-pulseNode-border/10 bg-pulseNode-navy/60">
+              <span className="text-[10px] font-semibold text-helm-fg3 uppercase tracking-wider">{activeTable}</span>
+              <span className="text-pulseNode-border/30">·</span>
+              <span className="text-[10px] text-green-400">{inlineResult.rowCount} row{inlineResult.rowCount !== 1 ? "s" : ""}</span>
+              <span className="text-pulseNode-border/30">·</span>
+              <span className="text-[10px] text-helm-fg3">{inlineResult.durationMs}ms</span>
+              <button
+                onClick={() => { setInlineResult(null); setActiveTable(null) }}
+                className="ml-auto text-[10px] text-helm-fg3 hover:text-helm-fg"
+              >✕</button>
+            </div>
+            <ResultTable result={inlineResult} />
+          </div>
         )}
       </div>
 
@@ -330,18 +386,6 @@ function DbExpand({ db, tab, onTabChange }: {
   tab: TabId
   onTabChange: (t: TabId) => void
 }) {
-  const [queryKey,     setQueryKey]     = useState(0)
-  const [pendingQuery, setPendingQuery] = useState("")
-
-  function handleTableClick(tableName: string) {
-    const q = db.engine === "redis"   ? "KEYS *"
-             : db.engine === "mongodb" ? `${tableName} {}`
-             : `SELECT * FROM ${tableName} LIMIT 100;`
-    setPendingQuery(q)
-    setQueryKey(k => k + 1)
-    onTabChange("query")
-  }
-
   return (
     <div>
       {/* Tab bar */}
@@ -354,13 +398,12 @@ function DbExpand({ db, tab, onTabChange }: {
       {/* Tab content */}
       <div className="p-3">
         {tab === "overview" && (
-          <DbDetails db={db} onTableClick={handleTableClick} />
+          <DbDetails db={db} />
         )}
         {tab === "query" && (
           <DatabaseQueryEditor
-            key={queryKey}
             db={db}
-            initialQuery={pendingQuery}
+            initialQuery=""
             onClose={() => onTabChange("overview")}
           />
         )}

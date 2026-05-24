@@ -103,7 +103,7 @@ function SchemaSidebar({
 
 // ── ResultTable ───────────────────────────────────────────────────────────────
 
-function ResultTable({ result, fullscreen = false }: { result: DbQueryResult; fullscreen?: boolean }) {
+export function ResultTable({ result, fullscreen = false }: { result: DbQueryResult; fullscreen?: boolean }) {
   return (
     <div className={`overflow-auto ${fullscreen ? "max-h-[calc(100vh-120px)]" : "max-h-64"}`}>
       <table className="text-[11px] border-collapse" style={{ tableLayout: "auto", whiteSpace: "nowrap" }}>
@@ -383,7 +383,7 @@ export function DatabaseQueryEditor({
 
   return (
     <>
-      <div className="bg-pulseNode-navyLight rounded-xl border border-pn-electric/20 overflow-hidden">
+      <div className="bg-pulseNode-navyLight rounded-xl border border-pn-electric/20 [overflow:clip]">
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-2.5 bg-pulseNode-navy border-b border-pulseNode-border/10">
           <span className="font-semibold text-sm text-helm-fg">{db.name}</span>
