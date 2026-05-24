@@ -57,10 +57,13 @@ services:
       TRAEFIK_NETWORK: ${TRAEFIK_NETWORK:-}
       DATABASE_PATH: /data/pulsenode.db
       PULSENODE_DATA_DIR: /var/lib/pulsenode
+      PULSENODE_VERSION: ${PULSENODE_VERSION:-dev}
+      PULSENODE_WORKSPACE: /workspace
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - pn-go-data:/var/lib/pulsenode
       - pn-sqlite-data:/data
+      - ${PULSENODE_INSTALL_DIR:-.}:/workspace
     pid: "host"
     restart: unless-stopped
     networks:

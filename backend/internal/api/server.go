@@ -116,7 +116,7 @@ func (s *Server) Routes() http.Handler {
 
 		r.Get("/system/version", s.version)
 		r.Get("/system/update/status", s.updateStatus)
-		r.Post("/system/update", notImplemented)
+		r.Post("/system/update", s.systemUpdate)
 
 		r.Get("/coolify/projects", s.coolifyProjects)
 		r.Get("/coolify/deployments", s.coolifyDeployments)
@@ -260,9 +260,6 @@ func (s *Server) version(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *Server) updateStatus(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]any{"running": false, "log": []string{}, "error": nil, "startedAt": nil})
-}
 
 func notImplemented(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusNotImplemented, map[string]string{"error": "not implemented in Go backend yet"})
