@@ -72,17 +72,34 @@ fi
 HOST="${DETECTED_IP#https://}"; HOST="${HOST#http://}"; HOST="${HOST%%/*}"
 
 # ── Port selection ─────────────────────────────────────────────────────────────
+port_in_use() { ss -tlnp 2>/dev/null | grep -q ":$1 " || netstat -tlnp 2>/dev/null | grep -q ":$1 "; }
+
 LISTEN=80
-if ss -tlnp 2>/dev/null | grep -q ':80 ' || netstat -tlnp 2>/dev/null | grep -q ':80 '; then
+if port_in_use 80; then
   echo -e "  ${Y}⚠ Port 80 is already in use on this machine.${N}"
-  printf "  Enter a port for PulseNode to listen on [default: 8080]: "
-  read -r ALT_PORT </dev/tty || ALT_PORT=""
-  LISTEN="${ALT_PORT:-8080}"
+  while true; do
+    printf "  Enter a free port for PulseNode to listen on [default: 8080]: "
+    read -r ALT_PORT </dev/tty || ALT_PORT=""
+    LISTEN="${ALT_PORT:-8080}"
+    if port_in_use "$LISTEN"; then
+      echo -e "  ${R}✗ Port ${LISTEN} is also in use. Try another.${N}"
+    else
+      break
+    fi
+  done
 fi
+
 if [[ "$LISTEN" == "80" ]]; then
   BASE_URL="http://${HOST}"
-  CADDY_SITE_ADDRESS=":80"
-  OVERLAY="docker-compose.standalone.yml"
+  if port_in_use 443; then
+    # 443 occupied — disable auto-HTTPS so Caddy doesn't try to bind it
+    CADDY_SITE_ADDRESS="http://:80"
+    OVERLAY="docker-compose.nossl.yml"
+    echo -e "  ${Y}⚠ Port 443 is in use — running HTTP-only on port 80${N}"
+  else
+    CADDY_SITE_ADDRESS=":80"
+    OVERLAY="docker-compose.standalone.yml"
+  fi
 else
   BASE_URL="http://${HOST}:${LISTEN}"
   # http:// prefix disables Caddy's automatic HTTPS (which would try to bind 443)
@@ -167,7 +184,7 @@ fi
 echo ""
 echo -e "${C}━━━  Waiting for services to be ready  ━━━━━━━━━━━━━━━━━━━━━${N}"
 WAIT=0
-until curl -fsSL --max-time 2 "http://localhost/health" &>/dev/null; do
+until curl -fsSL --max-time 2 "http://localhost:${LISTEN}/health" &>/dev/null; do
   if (( WAIT >= 90 )); then
     echo -e "\n  ${Y}⚠ Taking longer than expected. Check logs: docker compose logs${N}"
     break
