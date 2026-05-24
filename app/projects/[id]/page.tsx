@@ -78,14 +78,14 @@ export default function ProjectDetailPage() {
     Promise.all([fetchProject(), fetchDeployments()]).finally(() => setLoading(false))
   }, [fetchProject, fetchDeployments])
 
-  // Keep ref in sync so the WebSocket handler always sees the current dep
+  // Keep ref in sync so the realtime handler always sees the current dep
   useEffect(() => { activeDepRef.current = activeDep }, [activeDep])
 
   useEffect(() => {
     if (activeDep) loadLogs(activeDep)
   }, [activeDep, loadLogs])
 
-  // Listen on the existing WebSocket for live deploy:log events
+  // Listen on the realtime stream for live deploy:log events
   useEffect(() => {
     const socket = getSocket()
     const handler = (payload: unknown) => {

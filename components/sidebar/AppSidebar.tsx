@@ -15,16 +15,19 @@ import { BorderBeam } from "@/components/magicui/border-beam"
 import { NumberTicker } from "@/components/magicui/number-ticker"
 import { cn } from "@/lib/utils"
 import { getSocket } from "@/lib/socket"
-import type { SystemMetrics } from "@/lib/types"
-import { HOST } from "@/lib/mock-data"
+import { nodeApi } from "@/lib/api"
+import { ALERTS, HOST } from "@/lib/mock-data"
+import type { Alert, SystemMetrics } from "@/lib/types"
+
+type NavBadge = "images" | "networks" | "databases" | "alerts" | "projects"
+type BadgeCounts = Partial<Record<NavBadge, number>>
 
 type NavItem = {
   label: string
   href: string
   icon: LucideIcon
   devIcon?: React.ComponentType<React.SVGProps<SVGSVGElement> & { size?: number }>
-  badge?: number
-  alertBadge?: boolean
+  badge?: NavBadge
 }
 
 type NavSection = {
@@ -44,9 +47,9 @@ const BASE_NAV_SECTIONS: NavSection[] = [
   {
     label: "Resources",
     items: [
-      { label: "Images",       href: "/images",       icon: Layers,    badge: 18 },
-      { label: "Networks",     href: "/networks",     icon: Network,   badge: 3  },
-      { label: "Databases",    href: "/databases",    icon: Database,  badge: 4  },
+      { label: "Images",       href: "/images",       icon: Layers,    badge: "images" },
+      { label: "Networks",     href: "/networks",     icon: Network,   badge: "networks"  },
+      { label: "Databases",    href: "/databases",    icon: Database,  badge: "databases"  },
     ],
   },
   {
@@ -54,7 +57,7 @@ const BASE_NAV_SECTIONS: NavSection[] = [
     items: [
       { label: "Scan History", href: "/scan-history", icon: Shield     },
       { label: "SBOMs",        href: "/sbom-history", icon: FileCode2  },
-      { label: "Alerts",       href: "/alerts",       icon: BellRing, alertBadge: true },
+      { label: "Alerts",       href: "/alerts",       icon: BellRing, badge: "alerts" },
     ],
   },
 ]
@@ -65,17 +68,18 @@ const DEPLOY_SECTION: NavSection = {
   label: "Deploy",
   items: [
     { label: "GitHub",   href: "/github",   icon: FolderGit2, devIcon: GitHubDark },
-    { label: "Projects", href: "/projects", icon: FolderGit2  },
+    { label: "Projects", href: "/projects", icon: FolderGit2, badge: "projects" },
   ],
 }
 
-interface AppSidebarProps { alertCount?: number }
-
-export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
+export function AppSidebar() {
   const [collapsed,       setCollapsed]       = useState(false)
   const [openSections,    setOpenSections]    = useState<Record<string, boolean>>({ Workspace: true, Resources: true, Security: true, Deploy: true })
   const [cpu,             setCpu]             = useState(HOST.cpu.usage)
   const [hasUpdate,       setHasUpdate]       = useState(false)
+  const [badgeCounts,     setBadgeCounts]     = useState<BadgeCounts>({
+    alerts: ALERTS.filter(alert => alert.state === "firing").length,
+  })
   const [coolifyEnabled,  setCoolifyEnabled]  = useState(false)
   const pathname = usePathname()
 
@@ -98,6 +102,31 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
   }, [])
 
   useEffect(() => {
+    let cancelled = false
+
+    async function loadBadgeCounts() {
+      const results = await Promise.allSettled([
+        nodeApi.get<unknown[]>("/api/docker/images"),
+        nodeApi.get<unknown[]>("/api/docker/networks"),
+        nodeApi.get<unknown[]>("/api/docker/databases"),
+        nodeApi.get<unknown[]>("/api/projects"),
+      ])
+      if (cancelled) return
+
+      setBadgeCounts(prev => ({
+        ...prev,
+        ...(results[0].status === "fulfilled" ? { images: results[0].value.data.length } : {}),
+        ...(results[1].status === "fulfilled" ? { networks: results[1].value.data.length } : {}),
+        ...(results[2].status === "fulfilled" ? { databases: results[2].value.data.length } : {}),
+        ...(results[3].status === "fulfilled" ? { projects: results[3].value.data.length } : {}),
+      }))
+    }
+
+    loadBadgeCounts()
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
     try {
       const socket = getSocket()
       const handler = (m: SystemMetrics) => setCpu(m.cpu)
@@ -106,16 +135,29 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
     } catch { /* socket not available in SSR */ }
   }, [])
 
+  useEffect(() => {
+    try {
+      const socket = getSocket()
+      const handler = (alert: Alert) => {
+        if (alert.state !== "firing") return
+        setBadgeCounts(prev => ({ ...prev, alerts: (prev.alerts ?? 0) + 1 }))
+      }
+      socket.on("alert:new", handler)
+      return () => { socket.off("alert:new", handler) }
+    } catch { /* socket not available in SSR */ }
+  }, [])
+
   const toggleSection = (label: string) =>
     setOpenSections(prev => ({ ...prev, [label]: !prev[label] }))
 
   const navSections: NavSection[] = [
-    ...BASE_NAV_SECTIONS.map(section =>
+    ...BASE_NAV_SECTIONS.filter(section => section.label !== "Security").map(section =>
     section.label === "Workspace" && coolifyEnabled
       ? { ...section, items: [...section.items, COOLIFY_ITEM] }
       : section
     ),
     DEPLOY_SECTION,
+    BASE_NAV_SECTIONS.find(section => section.label === "Security")!,
   ]
 
   return (
@@ -202,6 +244,7 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
                 const isActive = pathname === item.href
                 const Icon = item.icon
                 const DevIcon = item.devIcon
+                const badgeCount = item.badge ? badgeCounts[item.badge] : undefined
                 return (
                   <Link key={item.href} href={item.href}>
                     <div
@@ -229,7 +272,7 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
                         />
                       )}
                       {DevIcon ? (
-                        <DevIcon size={14} className="flex-shrink-0" />
+                        <DevIcon size={14} className={cn("flex-shrink-0", item.label === "GitHub" && "theme-dark-surface-icon")} />
                       ) : (
                         <Icon
                           size={14}
@@ -245,20 +288,12 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
                           >
                             {item.label}
                           </span>
-                          {item.badge && (
+                          {badgeCount !== undefined && (
                             <span
                               className="text-[10px] font-mono px-1.5 py-0.5 rounded-full min-w-[20px] text-center leading-none"
                               style={{ background: "var(--bg-3)", color: "var(--fg-3)" }}
                             >
-                              {item.badge}
-                            </span>
-                          )}
-                          {item.alertBadge && alertCount > 0 && (
-                            <span
-                              className="text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center leading-none"
-                              style={{ background: "var(--acc)", color: "#fff" }}
-                            >
-                              {alertCount}
+                              {badgeCount}
                             </span>
                           )}
                         </>

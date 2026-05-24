@@ -181,3 +181,55 @@ func shortID(id string) string { if len(id)<=12 { return id }; return id[:12] }
 func cleanDockerStream(buf []byte) string { var out bytes.Buffer; for len(buf)>8 && (buf[0]==1 || buf[0]==2) { size := int(buf[4])<<24|int(buf[5])<<16|int(buf[6])<<8|int(buf[7]); if len(buf)<8+size { break }; out.Write(buf[8:8+size]); buf=buf[8+size:] }; if out.Len()==0 { out.Write(buf) }; return strings.Map(func(r rune) rune { if r<32 && r!=10 && r!=9 && r!=13 { return -1 }; return r }, out.String()) }
 func dbMeta(image string) (string,int,int) { lower := strings.ToLower(image); switch { case strings.Contains(lower,"mysql"), strings.Contains(lower,"mariadb"): return "mysql",3306,100; case strings.Contains(lower,"redis"): return "redis",6379,200; case strings.Contains(lower,"mongo"): return "mongodb",27017,100; case strings.Contains(lower,"clickhouse"): return "clickhouse",8123,50; case strings.Contains(lower,"cassandra"): return "cassandra",9042,100; case strings.Contains(lower,"elasticsearch"): return "elasticsearch",9200,100; default: return "postgres",5432,100 } }
 func imageVersion(image string) string { parts := strings.Split(image, ":"); if len(parts)<2 || parts[1]=="" { return "latest" }; return strings.Split(parts[1], "-")[0] }
+
+// ── Database provisioning ─────────────────────────────────────────────────────
+
+func (c *Client) CreateVolume(ctx context.Context, name string) error {
+	return c.do(ctx, http.MethodPost, "/volumes/create", map[string]any{"Name": name}, nil)
+}
+
+func (c *Client) PullImage(ctx context.Context, image string) error {
+	tag := "latest"
+	parts := strings.SplitN(image, ":", 2)
+	ref := parts[0]
+	if len(parts) == 2 {
+		tag = parts[1]
+	}
+	path := fmt.Sprintf("/images/create?fromImage=%s&tag=%s", ref, tag)
+	var buf bytes.Buffer
+	return c.doRaw(ctx, http.MethodPost, path, nil, &buf)
+}
+
+func (c *Client) CreateDBContainer(ctx context.Context, image, name, volumeName, dataPath string, hostPort, containerPort int, envVars map[string]string) (string, error) {
+	env := []string{}
+	for k, v := range envVars {
+		env = append(env, k+"="+v)
+	}
+	body := map[string]any{
+		"Image":   image,
+		"Env":     env,
+		"Labels":  map[string]string{"pulsenode.managed": "true", "pulsenode.type": "database"},
+		"Volumes": map[string]any{dataPath: map[string]any{}},
+		"HostConfig": map[string]any{
+			"Binds":         []string{volumeName + ":" + dataPath},
+			"RestartPolicy": map[string]string{"Name": "unless-stopped"},
+			"PortBindings": map[string]any{
+				fmt.Sprintf("%d/tcp", containerPort): []map[string]string{
+					{"HostIp": "127.0.0.1", "HostPort": fmt.Sprintf("%d", hostPort)},
+				},
+			},
+		},
+		"ExposedPorts": map[string]any{fmt.Sprintf("%d/tcp", containerPort): map[string]any{}},
+	}
+	var created struct {
+		ID string `json:"Id"`
+	}
+	if err := c.do(ctx, http.MethodPost, "/containers/create?name="+name, body, &created); err != nil {
+		return "", err
+	}
+	return created.ID, nil
+}
+
+func (c *Client) StartContainer(ctx context.Context, id string) error {
+	return c.do(ctx, http.MethodPost, "/containers/"+id+"/start", nil, nil)
+}

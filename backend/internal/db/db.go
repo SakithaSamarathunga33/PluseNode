@@ -32,6 +32,9 @@ func Open(path string) (*DB, error) {
 
 func (d *DB) migrate() error {
 	_, err := d.Exec(`
+PRAGMA busy_timeout = 5000;
+PRAGMA synchronous  = NORMAL;
+
 CREATE TABLE IF NOT EXISTS github_accounts (
   id           INTEGER PRIMARY KEY,
   login        TEXT NOT NULL,
@@ -75,6 +78,87 @@ CREATE TABLE IF NOT EXISTS deployment_logs (
   stream        TEXT NOT NULL DEFAULT 'stdout',
   line          TEXT NOT NULL,
   ts            DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS managed_databases (
+  id                 TEXT PRIMARY KEY,
+  name               TEXT NOT NULL UNIQUE,
+  engine             TEXT NOT NULL,
+  container_id       TEXT,
+  volume_name        TEXT,
+  host_port          INTEGER,
+  username           TEXT NOT NULL,
+  encrypted_password TEXT NOT NULL,
+  db_name            TEXT NOT NULL,
+  status             TEXT NOT NULL DEFAULT 'creating',
+  created_at         DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS connected_databases (
+  id                 TEXT PRIMARY KEY,
+  name               TEXT NOT NULL,
+  engine             TEXT NOT NULL,
+  host               TEXT NOT NULL,
+  port               INTEGER NOT NULL,
+  username           TEXT NOT NULL,
+  encrypted_password TEXT NOT NULL,
+  db_name            TEXT NOT NULL,
+  created_at         DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS alert_rules (
+  id         TEXT PRIMARY KEY,
+  name       TEXT NOT NULL,
+  metric     TEXT NOT NULL,
+  operator   TEXT NOT NULL,
+  threshold  REAL NOT NULL,
+  duration   INTEGER NOT NULL DEFAULT 0,
+  severity   TEXT NOT NULL DEFAULT 'warning',
+  enabled    INTEGER NOT NULL DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS alert_history (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  rule_id    TEXT NOT NULL,
+  rule_name  TEXT NOT NULL,
+  metric     TEXT NOT NULL,
+  value      REAL NOT NULL,
+  severity   TEXT NOT NULL,
+  state      TEXT NOT NULL DEFAULT 'firing',
+  fired_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+  resolved_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS notification_channels (
+  id         TEXT PRIMARY KEY,
+  name       TEXT NOT NULL,
+  type       TEXT NOT NULL,
+  config     TEXT NOT NULL DEFAULT '{}',
+  enabled    INTEGER NOT NULL DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS audit_log (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  actor      TEXT NOT NULL DEFAULT 'system',
+  action     TEXT NOT NULL,
+  resource   TEXT,
+  ip         TEXT,
+  status     INTEGER NOT NULL DEFAULT 200,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS settings (
+  key        TEXT PRIMARY KEY,
+  value      TEXT NOT NULL,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS oauth_settings (
+  id            INTEGER PRIMARY KEY,
+  client_id     TEXT NOT NULL DEFAULT '',
+  client_secret TEXT NOT NULL DEFAULT ''
 );
 `)
 	return err
@@ -387,4 +471,252 @@ func (d *DB) GetLogs(deploymentID string) ([]map[string]string, error) {
 		out = append(out, map[string]string{"stream": stream, "line": line, "ts": ts.Format(time.RFC3339)})
 	}
 	return out, rows.Err()
+}
+
+// ── Managed Databases ─────────────────────────────────────────────────────────
+
+type ManagedDatabase struct {
+	ID                string
+	Name              string
+	Engine            string
+	ContainerID       string
+	VolumeName        string
+	HostPort          int
+	Username          string
+	Password          string // decrypted
+	DBName            string
+	Status            string
+	CreatedAt         time.Time
+}
+
+func (d *DB) CreateManagedDatabase(m *ManagedDatabase) error {
+	enc, _ := Encrypt(m.Password)
+	_, err := d.Exec(`INSERT INTO managed_databases (id,name,engine,container_id,volume_name,host_port,username,encrypted_password,db_name,status) VALUES (?,?,?,?,?,?,?,?,?,?)`,
+		m.ID, m.Name, m.Engine, m.ContainerID, m.VolumeName, m.HostPort, m.Username, enc, m.DBName, m.Status)
+	return err
+}
+
+func (d *DB) UpdateManagedDatabaseStatus(id, status, containerID string) error {
+	_, err := d.Exec(`UPDATE managed_databases SET status=?, container_id=? WHERE id=?`, status, containerID, id)
+	return err
+}
+
+func (d *DB) ListManagedDatabases() ([]ManagedDatabase, error) {
+	rows, err := d.Query(`SELECT id,name,engine,COALESCE(container_id,''),COALESCE(volume_name,''),COALESCE(host_port,0),username,encrypted_password,db_name,status,created_at FROM managed_databases ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []ManagedDatabase
+	for rows.Next() {
+		var m ManagedDatabase
+		var enc string
+		if err := rows.Scan(&m.ID, &m.Name, &m.Engine, &m.ContainerID, &m.VolumeName, &m.HostPort, &m.Username, &enc, &m.DBName, &m.Status, &m.CreatedAt); err != nil {
+			return nil, err
+		}
+		// Don't expose password in list
+		out = append(out, m)
+	}
+	return out, rows.Err()
+}
+
+func (d *DB) GetManagedDatabase(id string) (*ManagedDatabase, error) {
+	row := d.QueryRow(`SELECT id,name,engine,COALESCE(container_id,''),COALESCE(volume_name,''),COALESCE(host_port,0),username,encrypted_password,db_name,status,created_at FROM managed_databases WHERE id=?`, id)
+	var m ManagedDatabase
+	var enc string
+	if err := row.Scan(&m.ID, &m.Name, &m.Engine, &m.ContainerID, &m.VolumeName, &m.HostPort, &m.Username, &enc, &m.DBName, &m.Status, &m.CreatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	plain, _ := Decrypt(enc)
+	m.Password = plain
+	return &m, nil
+}
+
+func (d *DB) DeleteManagedDatabase(id string) error {
+	_, err := d.Exec(`DELETE FROM managed_databases WHERE id=?`, id)
+	return err
+}
+
+// ── Connected Databases ───────────────────────────────────────────────────────
+
+type ConnectedDatabase struct {
+	ID        string
+	Name      string
+	Engine    string
+	Host      string
+	Port      int
+	Username  string
+	Password  string
+	DBName    string
+	CreatedAt time.Time
+}
+
+func (d *DB) CreateConnectedDatabase(c *ConnectedDatabase) error {
+	enc, _ := Encrypt(c.Password)
+	_, err := d.Exec(`INSERT INTO connected_databases (id,name,engine,host,port,username,encrypted_password,db_name) VALUES (?,?,?,?,?,?,?,?)`,
+		c.ID, c.Name, c.Engine, c.Host, c.Port, c.Username, enc, c.DBName)
+	return err
+}
+
+func (d *DB) ListConnectedDatabases() ([]ConnectedDatabase, error) {
+	rows, err := d.Query(`SELECT id,name,engine,host,port,username,db_name,created_at FROM connected_databases ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []ConnectedDatabase
+	for rows.Next() {
+		var c ConnectedDatabase
+		if err := rows.Scan(&c.ID, &c.Name, &c.Engine, &c.Host, &c.Port, &c.Username, &c.DBName, &c.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, c)
+	}
+	return out, rows.Err()
+}
+
+func (d *DB) DeleteConnectedDatabase(id string) error {
+	_, err := d.Exec(`DELETE FROM connected_databases WHERE id=?`, id)
+	return err
+}
+
+// ── Alert Rules ───────────────────────────────────────────────────────────────
+
+type AlertRule struct {
+	ID        string
+	Name      string
+	Metric    string
+	Operator  string
+	Threshold float64
+	Duration  int
+	Severity  string
+	Enabled   bool
+	CreatedAt time.Time
+}
+
+func (d *DB) CreateAlertRule(r *AlertRule) error {
+	_, err := d.Exec(`INSERT INTO alert_rules (id,name,metric,operator,threshold,duration,severity,enabled) VALUES (?,?,?,?,?,?,?,?)`,
+		r.ID, r.Name, r.Metric, r.Operator, r.Threshold, r.Duration, r.Severity, r.Enabled)
+	return err
+}
+
+func (d *DB) ListAlertRules() ([]AlertRule, error) {
+	rows, err := d.Query(`SELECT id,name,metric,operator,threshold,duration,severity,enabled,created_at FROM alert_rules ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []AlertRule
+	for rows.Next() {
+		var r AlertRule
+		var enabled int
+		if err := rows.Scan(&r.ID, &r.Name, &r.Metric, &r.Operator, &r.Threshold, &r.Duration, &r.Severity, &enabled, &r.CreatedAt); err != nil {
+			return nil, err
+		}
+		r.Enabled = enabled == 1
+		out = append(out, r)
+	}
+	return out, rows.Err()
+}
+
+func (d *DB) UpdateAlertRule(id string, enabled bool) error {
+	v := 0
+	if enabled {
+		v = 1
+	}
+	_, err := d.Exec(`UPDATE alert_rules SET enabled=? WHERE id=?`, v, id)
+	return err
+}
+
+func (d *DB) DeleteAlertRule(id string) error {
+	_, err := d.Exec(`DELETE FROM alert_rules WHERE id=?`, id)
+	return err
+}
+
+// ── Alert History ─────────────────────────────────────────────────────────────
+
+type AlertEvent struct {
+	ID         int64
+	RuleID     string
+	RuleName   string
+	Metric     string
+	Value      float64
+	Severity   string
+	State      string
+	FiredAt    time.Time
+	ResolvedAt *time.Time
+}
+
+func (d *DB) InsertAlertEvent(e *AlertEvent) error {
+	_, err := d.Exec(`INSERT INTO alert_history (rule_id,rule_name,metric,value,severity,state) VALUES (?,?,?,?,?,?)`,
+		e.RuleID, e.RuleName, e.Metric, e.Value, e.Severity, e.State)
+	return err
+}
+
+func (d *DB) ListAlertHistory(limit int) ([]AlertEvent, error) {
+	rows, err := d.Query(`SELECT id,rule_id,rule_name,metric,value,severity,state,fired_at,resolved_at FROM alert_history ORDER BY fired_at DESC LIMIT ?`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []AlertEvent
+	for rows.Next() {
+		var e AlertEvent
+		if err := rows.Scan(&e.ID, &e.RuleID, &e.RuleName, &e.Metric, &e.Value, &e.Severity, &e.State, &e.FiredAt, &e.ResolvedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, e)
+	}
+	return out, rows.Err()
+}
+
+// ── Notification Channels ─────────────────────────────────────────────────────
+
+type NotificationChannel struct {
+	ID        string
+	Name      string
+	Type      string
+	Config    string
+	Enabled   bool
+	CreatedAt time.Time
+}
+
+func (d *DB) CreateNotificationChannel(c *NotificationChannel) error {
+	_, err := d.Exec(`INSERT INTO notification_channels (id,name,type,config,enabled) VALUES (?,?,?,?,?)`,
+		c.ID, c.Name, c.Type, c.Config, c.Enabled)
+	return err
+}
+
+func (d *DB) ListNotificationChannels() ([]NotificationChannel, error) {
+	rows, err := d.Query(`SELECT id,name,type,config,enabled,created_at FROM notification_channels ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []NotificationChannel
+	for rows.Next() {
+		var c NotificationChannel
+		var enabled int
+		if err := rows.Scan(&c.ID, &c.Name, &c.Type, &c.Config, &enabled, &c.CreatedAt); err != nil {
+			return nil, err
+		}
+		c.Enabled = enabled == 1
+		out = append(out, c)
+	}
+	return out, rows.Err()
+}
+
+func (d *DB) DeleteNotificationChannel(id string) error {
+	_, err := d.Exec(`DELETE FROM notification_channels WHERE id=?`, id)
+	return err
+}
+
+// ── Audit Log ─────────────────────────────────────────────────────────────────
+
+func (d *DB) InsertAuditLog(actor, action, resource, ip string, status int) {
+	_, _ = d.Exec(`INSERT INTO audit_log (actor,action,resource,ip,status) VALUES (?,?,?,?,?)`,
+		actor, action, resource, ip, status)
 }

@@ -62,11 +62,13 @@ func (s *Server) Routes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   s.origins,
-		AllowedMethods:   []string{"GET", "POST", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
+	r.Use(RateLimit(300, time.Minute)) // 300 req/min per IP
+	r.Use(s.AuditLog)
 
 	r.Get("/health", s.health)
 	r.Get("/config", s.clientConfig)
@@ -123,6 +125,34 @@ func (s *Server) Routes() http.Handler {
 		r.Get("/projects/{id}/deployments", s.listDeployments)
 		r.Get("/projects/{id}/deployments/{depID}/logs", s.getDeploymentLogs)
 
+		// Managed databases (PulseNode-provisioned)
+		r.Get("/databases/managed", s.listManagedDatabases)
+		r.Post("/databases/managed", s.provisionDatabase)
+		r.Get("/databases/managed/{id}", s.getManagedDatabase)
+		r.Get("/databases/managed/{id}/credentials", s.getManagedDBCredentials)
+		r.Delete("/databases/managed/{id}", s.deleteManagedDatabase)
+
+		// Connected databases (user-provided)
+		r.Get("/databases/connected", s.listConnectedDatabases)
+		r.Post("/databases/connected", s.connectDatabase)
+		r.Delete("/databases/connected/{id}", s.deleteConnectedDatabase)
+
+		// Alert rules + history
+		r.Get("/alerts/rules", s.listAlertRules)
+		r.Post("/alerts/rules", s.createAlertRule)
+		r.Patch("/alerts/rules/{id}", s.updateAlertRule)
+		r.Delete("/alerts/rules/{id}", s.deleteAlertRule)
+		r.Get("/alerts/history", s.listAlertHistory)
+
+		// Notification channels
+		r.Get("/alerts/channels", s.listNotificationChannels)
+		r.Post("/alerts/channels", s.createNotificationChannel)
+		r.Delete("/alerts/channels/{id}", s.deleteNotificationChannel)
+
+		// Audit log
+		r.Get("/audit", s.listAuditLog)
+
+		// Legacy stubs kept for backward compat
 		r.Get("/database/custom", emptyList)
 		r.Post("/database/custom/test", notImplemented)
 		r.Post("/database/custom/save", notImplemented)

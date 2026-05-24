@@ -302,6 +302,9 @@ html[data-magicui-theme-vt="active"]::view-transition-new(root) {
 :root[data-theme="light"] .theme-logo-dark { display: none; }
 :root[data-theme="light"] .theme-logo-light { display: block; }
 
+.theme-dark-surface-icon { filter: brightness(0) invert(1); }
+:root[data-theme="light"] .theme-dark-surface-icon { filter: none; }
+
 /* ============================================================================
    Table (pn-table class)
    ============================================================================ */

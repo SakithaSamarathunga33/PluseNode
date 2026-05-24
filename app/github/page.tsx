@@ -170,7 +170,7 @@ export default function GitHubPage() {
               {oauthSettings?.configured && (
                 <div className="rounded-xl p-5 space-y-3" style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
                   <div className="flex items-center gap-2">
-                    <GitHubDark size={16} />
+                    <GitHubDark size={16} className="theme-dark-surface-icon" />
                     <p className="font-medium text-sm" style={{ color: "var(--fg)" }}>Connect with GitHub OAuth</p>
                   </div>
                   <p className="text-xs" style={{ color: "var(--fg-3)" }}>

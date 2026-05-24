@@ -2,8 +2,19 @@
 
 type Handler = (payload: unknown) => void
 
-class NativeRealtime {
-  private ws: WebSocket | null = null
+const CHANNEL_NAME = "pulsenode:realtime"
+const REALTIME_EVENTS = [
+  "system:metrics",
+  "container:stats",
+  "deploy:log",
+  "alert:new",
+  "alert:count",
+]
+
+class BrowserRealtime {
+  private source: EventSource | null = null
+  private worker: SharedWorker | null = null
+  private channel: BroadcastChannel | null = null
   private listeners = new Map<string, Set<Handler>>()
   private reconnects = 0
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
@@ -29,23 +40,55 @@ class NativeRealtime {
 
   private connect() {
     if (!this.url || typeof window === "undefined") return
-    this.ws = new WebSocket(this.url)
-    this.ws.addEventListener("open", () => {
-      this.reconnects = 0
-      console.log("[ws] connected")
+
+    if ("SharedWorker" in window && "BroadcastChannel" in window) {
+      this.connectSharedWorker()
+      return
+    }
+
+    this.connectEventSource()
+  }
+
+  private connectSharedWorker() {
+    this.channel = new BroadcastChannel(CHANNEL_NAME)
+    this.channel.addEventListener("message", event => {
+      const msg = event.data
+      if (msg?.type === "realtime:status") {
+        if (msg.data === "connected") console.log("[sse] shared worker connected")
+        if (msg.data === "disconnected") console.log("[sse] shared worker disconnected")
+        return
+      }
+      if (msg?.type) this.emit(msg.type, msg.data)
     })
-    this.ws.addEventListener("close", () => {
-      console.log("[ws] disconnected")
+
+    this.worker = new SharedWorker("/realtime-shared-worker.js")
+    this.worker.port.start()
+    this.worker.port.postMessage({ type: "connect", url: this.url })
+  }
+
+  private connectEventSource() {
+    this.source = new EventSource(this.url)
+    this.source.addEventListener("open", () => {
+      this.reconnects = 0
+      console.log("[sse] connected")
+    })
+
+    this.source.addEventListener("error", () => {
+      console.log("[sse] disconnected")
+      this.source?.close()
+      this.source = null
       this.scheduleReconnect()
     })
-    this.ws.addEventListener("message", event => {
-      try {
-        const msg = JSON.parse(event.data)
-        if (msg?.type) this.emit(msg.type, msg.data)
-      } catch {
-        // Ignore malformed frames.
-      }
-    })
+
+    for (const event of REALTIME_EVENTS) {
+      this.source.addEventListener(event, message => {
+        try {
+          this.emit(event, JSON.parse(message.data))
+        } catch {
+          this.emit(event, message.data)
+        }
+      })
+    }
   }
 
   private scheduleReconnect() {
@@ -58,25 +101,24 @@ class NativeRealtime {
   }
 }
 
-let socket: NativeRealtime | null = null
+let socket: BrowserRealtime | null = null
 
 function realtimeUrl() {
-  const explicit = process.env.NEXT_PUBLIC_GO_WS
+  const explicit = process.env.NEXT_PUBLIC_GO_SSE
   if (explicit) return explicit
 
   const goApi = process.env.NEXT_PUBLIC_GO_API
   if (goApi) {
     const url = new URL(goApi, window.location.origin)
     if (url.pathname.endsWith("/go")) url.pathname = url.pathname.slice(0, -3) || "/"
-    url.pathname = "/ws"
-    url.protocol = url.protocol === "https:" ? "wss:" : "ws:"
+    url.pathname = "/events"
     return url.toString()
   }
 
-  return `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws`
+  return `${window.location.origin}/events`
 }
 
-export function getSocket(): NativeRealtime {
-  if (!socket) socket = new NativeRealtime(realtimeUrl())
+export function getSocket(): BrowserRealtime {
+  if (!socket) socket = new BrowserRealtime(realtimeUrl())
   return socket
 }

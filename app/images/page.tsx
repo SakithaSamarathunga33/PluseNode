@@ -48,7 +48,7 @@ const IMAGE_ICON_MAP: Array<[RegExp, DeveloperIcon]> = [
 
 function RegistryIcon({ repo }: { repo: string }) {
   for (const [re, Icon] of IMAGE_ICON_MAP) {
-    if (re.test(repo)) return <Icon size={22} className="flex-shrink-0" />
+    if (re.test(repo)) return <Icon size={22} className={Icon === GitHubDark ? "flex-shrink-0 theme-dark-surface-icon" : "flex-shrink-0"} />
   }
   // Default: Docker Hub or unknown
   return <Docker size={22} className="flex-shrink-0" />
