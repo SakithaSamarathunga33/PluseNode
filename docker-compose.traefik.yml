@@ -1,23 +1,26 @@
-# Traefik overlay — use this when Caddy sits behind an existing Traefik instance.
-# Usage: docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d
+# Traefik overlay — use this when an existing Traefik instance handles port 80/443.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d --build
 #
-# Set TRAEFIK_HOST and TRAEFIK_NETWORK in .env.local to match your Traefik setup.
-# Caddy still handles internal routing; Traefik only terminates TLS externally.
+# Required .env.local vars:
+#   TRAEFIK_HOST=vps.sakitha.com       # domain Traefik should route
+#   TRAEFIK_NETWORK=vps-monitor_proxy  # external Docker network Traefik is on
+#
+# Caddy handles internal routing; Traefik only terminates TLS externally.
 
 services:
   caddy:
     networks:
       - default
-      - traefik
+      - traefik-net
     labels:
       traefik.enable: "true"
-      traefik.http.routers.pulsenode.rule: "Host(`${TRAEFIK_HOST:-vps.example.com}`)"
+      traefik.http.routers.pulsenode.rule: "Host(`${TRAEFIK_HOST:-vps.sakitha.com}`)"
       traefik.http.routers.pulsenode.entrypoints: "websecure"
       traefik.http.routers.pulsenode.tls.certresolver: "letsencrypt"
       traefik.http.services.pulsenode.loadbalancer.server.port: "80"
-      traefik.docker.network: "${TRAEFIK_NETWORK:-traefik}"
+      traefik.docker.network: "${TRAEFIK_NETWORK:-vps-monitor_proxy}"
 
 networks:
-  traefik:
+  traefik-net:
     external: true
-    name: ${TRAEFIK_NETWORK:-traefik}
+    name: ${TRAEFIK_NETWORK:-vps-monitor_proxy}
