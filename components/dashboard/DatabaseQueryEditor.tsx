@@ -89,7 +89,7 @@ function SchemaSidebar({
               >
                 <span className="truncate">{t.name}</span>
                 <span className="text-[10px] text-helm-fg3 flex-shrink-0 tabular-nums">
-                  {t.rows > 0 ? t.rows.toLocaleString() : "—"}
+                  {t.rows.toLocaleString()}
                 </span>
               </button>
             ))}
@@ -150,12 +150,15 @@ function QueryResult({ result }: { result: DbQueryResult }) {
           Export CSV
         </button>
       </div>
-      <div className="overflow-auto max-h-48">
-        <table className="w-full text-[11px] border-collapse">
+      <div className="overflow-auto max-h-64">
+        <table className="text-[11px] border-collapse" style={{ minWidth: "100%", tableLayout: "auto" }}>
           <thead>
-            <tr className="bg-pulseNode-navyLight sticky top-0">
+            <tr className="bg-pulseNode-navyLight sticky top-0 z-10">
               {result.columns.map(c => (
-                <th key={c} className="px-3 py-1.5 text-left text-helm-fg3 font-normal border-b border-pulseNode-border/10 whitespace-nowrap">
+                <th
+                  key={c}
+                  className="px-3 py-1.5 text-left text-helm-fg3 font-semibold border-b border-r border-pulseNode-border/10 whitespace-nowrap last:border-r-0 bg-pulseNode-navyLight"
+                >
                   {c}
                 </th>
               ))}
@@ -163,14 +166,17 @@ function QueryResult({ result }: { result: DbQueryResult }) {
           </thead>
           <tbody>
             {result.rows.map((row, i) => (
-              <tr key={i} className="border-b border-pulseNode-border/5 hover:bg-pulseNode-border/5">
+              <tr key={i} className={`border-b border-pulseNode-border/5 ${i % 2 === 0 ? "" : "bg-pulseNode-border/[0.03]"} hover:bg-pn-electric/5`}>
                 {row.map((cell, j) => (
                   <td
                     key={j}
-                    className="px-3 py-1 font-mono text-helm-fg whitespace-nowrap max-w-[200px] truncate"
+                    className="px-3 py-1.5 font-mono text-helm-fg whitespace-nowrap border-r border-pulseNode-border/5 last:border-r-0 max-w-[260px]"
                     title={cell == null ? "null" : String(cell)}
                   >
-                    {cell == null ? <span className="text-helm-fg3 italic">null</span> : String(cell)}
+                    {cell == null
+                      ? <span className="text-helm-fg3/50 italic text-[10px]">null</span>
+                      : <span className="block truncate">{String(cell)}</span>
+                    }
                   </td>
                 ))}
               </tr>

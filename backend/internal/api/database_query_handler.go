@@ -102,13 +102,21 @@ func (s *Server) databaseSchema(w http.ResponseWriter, r *http.Request) {
 				result.Databases = dbs
 			}
 		}
+		// Fetch table names + estimated row counts in one query via pg_stat_user_tables.
+		// n_live_tup is a planner estimate (updated by autovacuum) — fast and accurate enough for display.
 		if out, err := s.docker.ExecSlice(ctx, containerName, []string{
-			"psql", "-U", mdb.Username, "-d", dbParam, "-At", "-c",
-			"SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename;",
+			"psql", "-U", mdb.Username, "-d", dbParam, "-At", "-F", "|", "-c",
+			"SELECT t.tablename, COALESCE(s.n_live_tup, 0) FROM pg_tables t LEFT JOIN pg_stat_user_tables s ON s.relname=t.tablename WHERE t.schemaname='public' ORDER BY t.tablename;",
 		}); err == nil {
 			for _, line := range strings.Split(strings.TrimSpace(out), "\n") {
 				if line = strings.TrimSpace(line); line != "" {
-					result.Tables = append(result.Tables, dbTableInfo{Name: line})
+					parts := strings.SplitN(line, "|", 2)
+					name := parts[0]
+					rows := 0
+					if len(parts) == 2 {
+						fmt.Sscanf(parts[1], "%d", &rows)
+					}
+					result.Tables = append(result.Tables, dbTableInfo{Name: name, Rows: rows})
 				}
 			}
 		}
@@ -233,7 +241,7 @@ func isDestructiveQuery(query string) bool {
 
 func (s *Server) runPostgresQuery(ctx context.Context, container string, mdb *dbpkg.ManagedDatabase, dbName, query string) (*dbQueryResult, error) {
 	out, err := s.docker.ExecSlice(ctx, container, []string{
-		"psql", "-U", mdb.Username, "-d", dbName, "--csv", "-A", "-c", query,
+		"psql", "-U", mdb.Username, "-d", dbName, "--csv", "-c", query,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("exec: %w", err)
