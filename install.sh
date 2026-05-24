@@ -70,8 +70,21 @@ if [[ "${CONFIRM,,}" == "n" ]]; then
   read -r DETECTED_IP </dev/tty
 fi
 HOST="${DETECTED_IP#https://}"; HOST="${HOST#http://}"; HOST="${HOST%%/*}"
-BASE_URL="http://${HOST}"
-CADDY_SITE_ADDRESS=":80"
+
+# ── Port selection ─────────────────────────────────────────────────────────────
+LISTEN=80
+if ss -tlnp 2>/dev/null | grep -q ':80 ' || netstat -tlnp 2>/dev/null | grep -q ':80 '; then
+  echo -e "  ${Y}⚠ Port 80 is already in use on this machine.${N}"
+  printf "  Enter a port for PulseNode to listen on [default: 8080]: "
+  read -r ALT_PORT </dev/tty || ALT_PORT=""
+  LISTEN="${ALT_PORT:-8080}"
+fi
+if [[ "$LISTEN" == "80" ]]; then
+  BASE_URL="http://${HOST}"
+else
+  BASE_URL="http://${HOST}:${LISTEN}"
+fi
+CADDY_SITE_ADDRESS=":${LISTEN}"
 echo ""
 
 # ── Optional integrations ──────────────────────────────────────────────────────
@@ -113,7 +126,7 @@ CADDY_SITE_ADDRESS=${CADDY_SITE_ADDRESS}
 
 WEB_PORT=127.0.0.1:3000
 GO_PORT=127.0.0.1:4002
-LISTEN_PORT=80
+LISTEN_PORT=${LISTEN}
 
 GO_API_AUTH=false
 JWT_SECRET=${JWT_SECRET}
