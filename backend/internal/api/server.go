@@ -175,10 +175,10 @@ func (s *Server) Routes() http.Handler {
 		r.Delete("/database/custom/{id}", notImplemented)
 		r.Post("/database/provision", notImplemented)
 		r.Get("/database/{name}/connection-string", notImplemented)
-		r.Get("/database/{name}/schema", notImplemented)
+		r.Get("/database/{name}/schema", s.databaseSchema)
 		r.Get("/database/{name}/metrics", notImplemented)
 		r.Get("/database/{name}/backup", notImplemented)
-		r.Post("/database/{name}/query", notImplemented)
+		r.Post("/database/{name}/query", s.databaseQuery)
 	})
 
 	r.Get("/metrics/live", s.metricsLive)
