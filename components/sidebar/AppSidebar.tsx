@@ -29,14 +29,13 @@ type NavSection = {
   items: NavItem[]
 }
 
-const NAV_SECTIONS: NavSection[] = [
+const BASE_NAV_SECTIONS: NavSection[] = [
   {
     label: "Workspace",
     items: [
       { label: "Containers",   href: "/containers",   icon: Container  },
       { label: "Stats",        href: "/stats",        icon: BarChart3  },
       { label: "Processes",    href: "/processes",    icon: Activity   },
-      { label: "Coolify",      href: "/coolify",      icon: Layers     },
     ],
   },
   {
@@ -57,18 +56,31 @@ const NAV_SECTIONS: NavSection[] = [
   },
 ]
 
+const COOLIFY_ITEM: NavItem = { label: "Coolify", href: "/coolify", icon: Layers }
+
 interface AppSidebarProps { alertCount?: number }
 
 export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
-  const [collapsed,     setCollapsed]     = useState(false)
-  const [openSections,  setOpenSections]  = useState<Record<string, boolean>>({ Workspace: true, Resources: true, Security: true })
-  const [cpu,           setCpu]           = useState(HOST.cpu.usage)
-  const [hasUpdate,     setHasUpdate]     = useState(false)
+  const [collapsed,       setCollapsed]       = useState(false)
+  const [openSections,    setOpenSections]    = useState<Record<string, boolean>>({ Workspace: true, Resources: true, Security: true })
+  const [cpu,             setCpu]             = useState(HOST.cpu.usage)
+  const [hasUpdate,       setHasUpdate]       = useState(false)
+  const [coolifyEnabled,  setCoolifyEnabled]  = useState(false)
   const pathname = usePathname()
+
+  // Fetch server config once on mount (non-blocking)
+  useEffect(() => {
+    const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
+    fetch(`${GO_API}/config`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.coolifyEnabled) setCoolifyEnabled(true) })
+      .catch(() => {})
+  }, [])
 
   // Check for updates once on mount (non-blocking)
   useEffect(() => {
-    fetch("/api/system/version")
+    const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
+    fetch(`${GO_API}/api/system/version`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.hasUpdate) setHasUpdate(true) })
       .catch(() => {})
@@ -85,6 +97,12 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
 
   const toggleSection = (label: string) =>
     setOpenSections(prev => ({ ...prev, [label]: !prev[label] }))
+
+  const navSections: NavSection[] = BASE_NAV_SECTIONS.map(section =>
+    section.label === "Workspace" && coolifyEnabled
+      ? { ...section, items: [...section.items, COOLIFY_ITEM] }
+      : section
+  )
 
   return (
     <aside
@@ -136,7 +154,7 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
 
       {/* ── Nav ── */}
       <nav className="flex-1 overflow-y-auto py-2 px-1.5 space-y-0.5">
-        {NAV_SECTIONS.map(section => (
+        {navSections.map(section => (
           <div key={section.label} className="mb-1">
             {!collapsed && (
               <button

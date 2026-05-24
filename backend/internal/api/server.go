@@ -1,6 +1,8 @@
 package api
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -59,6 +61,7 @@ func (s *Server) Routes() http.Handler {
 	}))
 
 	r.Get("/health", s.health)
+	r.Get("/config", s.clientConfig)
 	r.Get("/events", s.hub.ServeSSE)
 	r.Get("/ws", s.hub.ServeWebSocket)
 
@@ -121,9 +124,57 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "service": "pulsenode-go", "ts": time.Now().UnixMilli()})
 }
 
+func (s *Server) clientConfig(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]any{
+		"coolifyEnabled": os.Getenv("COOLIFY_API_URL") != "" && os.Getenv("COOLIFY_API_TOKEN") != "",
+	})
+}
+
 func (s *Server) version(w http.ResponseWriter, r *http.Request) {
 	current := firstNonEmpty(os.Getenv("PULSENODE_VERSION"), "dev")
-	writeJSON(w, http.StatusOK, map[string]any{"current": current, "latest": nil, "hasUpdate": false, "releaseUrl": nil, "changelog": nil})
+
+	type ghRelease struct {
+		TagName string `json:"tag_name"`
+		HTMLURL string `json:"html_url"`
+		Body    string `json:"body"`
+	}
+
+	fetchLatest := func() (tag, url, body string, err error) {
+		client := &http.Client{Timeout: 5 * time.Second}
+		req, _ := http.NewRequest(http.MethodGet, "https://api.github.com/repos/SakithaSamarathunga33/vps/releases/latest", nil)
+		req.Header.Set("Accept", "application/vnd.github+json")
+		req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+		resp, err := client.Do(req)
+		if err != nil {
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			err = fmt.Errorf("github api %d", resp.StatusCode)
+			return
+		}
+		var rel ghRelease
+		if err = json.NewDecoder(resp.Body).Decode(&rel); err != nil {
+			return
+		}
+		tag = strings.TrimPrefix(rel.TagName, "v")
+		url = rel.HTMLURL
+		body = rel.Body
+		return
+	}
+
+	latest, releaseURL, changelog, err := fetchLatest()
+	if err != nil {
+		writeJSON(w, http.StatusOK, map[string]any{
+			"current": current, "latest": nil, "hasUpdate": false, "releaseUrl": nil, "changelog": nil,
+		})
+		return
+	}
+
+	hasUpdate := latest != "" && latest != current && current != "dev"
+	writeJSON(w, http.StatusOK, map[string]any{
+		"current": current, "latest": latest, "hasUpdate": hasUpdate, "releaseUrl": releaseURL, "changelog": changelog,
+	})
 }
 
 func (s *Server) updateStatus(w http.ResponseWriter, r *http.Request) {

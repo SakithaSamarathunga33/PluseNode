@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react"
 import { AlertTriangle, CheckCircle2, Download, RefreshCw, Settings, Zap } from "lucide-react"
 
+const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
+
 interface VersionInfo {
   current: string
   latest: string | null
@@ -40,7 +42,7 @@ export default function SettingsPage() {
   const fetchVersion = useCallback(async () => {
     setChecking(true)
     try {
-      const res = await fetch("/api/system/version")
+      const res = await fetch(`${GO_API}/api/system/version`)
       if (res.ok) setVersion(await res.json())
     } catch { /* ignore */ }
     finally { setChecking(false) }
@@ -48,9 +50,9 @@ export default function SettingsPage() {
 
   const fetchStatus = useCallback(async () => {
     try {
-      const res = await fetch("/api/system/update/status")
+      const res = await fetch(`${GO_API}/api/system/update/status`)
       if (res.ok) setStatus(await res.json())
-    } catch { /* node-api temporarily offline during update */ }
+    } catch { /* go-api temporarily offline during update */ }
   }, [])
 
   useEffect(() => { fetchVersion() }, [fetchVersion])
@@ -84,7 +86,7 @@ export default function SettingsPage() {
     if (!reconnecting) return
     const tryReconnect = async () => {
       try {
-        const res = await fetch("/api/health")
+        const res = await fetch(`${GO_API.replace(/\/go$/, "")}/health`)
         if (res.ok) { window.location.reload(); return }
       } catch { /* still offline */ }
       setTimeout(tryReconnect, 3000)
@@ -96,7 +98,7 @@ export default function SettingsPage() {
     setUpdating(true)
     setStatus({ running: true, log: ["Sending update command..."], error: null, startedAt: new Date().toISOString() })
     try {
-      const res = await fetch("/api/system/update", { method: "POST" })
+      const res = await fetch(`${GO_API}/api/system/update`, { method: "POST" })
       if (!res.ok) {
         const b = await res.json().catch(() => ({}))
         setStatus(s => ({ ...s!, error: b.error || "Failed to start update", running: false }))
