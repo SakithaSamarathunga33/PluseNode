@@ -167,6 +167,11 @@ func (c *Client) ContainerStatsNamed(ctx context.Context) ([]ContainerStat, erro
 	return out, nil
 }
 
+// FetchOneStat returns CPU% and RAM% for a single container by name or ID.
+func (c *Client) FetchOneStat(ctx context.Context, id string) (Stat, error) {
+	return c.fetchOneStat(ctx, id)
+}
+
 func (c *Client) fetchOneStat(ctx context.Context, id string) (Stat, error) {
 	var raw struct {
 		ID     string `json:"id"`

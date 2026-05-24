@@ -183,7 +183,7 @@ func (s *Server) Routes() http.Handler {
 		r.Post("/database/provision", notImplemented)
 		r.Get("/database/{name}/connection-string", s.databaseConnectionString)
 		r.Get("/database/{name}/schema", s.databaseSchema)
-		r.Get("/database/{name}/metrics", notImplemented)
+		r.Get("/database/{name}/metrics", s.databaseMetrics)
 		r.Get("/database/{name}/backup", notImplemented)
 		r.Post("/database/{name}/query", s.databaseQuery)
 	})
