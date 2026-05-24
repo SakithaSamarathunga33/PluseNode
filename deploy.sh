@@ -117,7 +117,7 @@ echo -e "${C}━━━  Building and starting containers  ━━━━━━━�
 echo -e "  ${Y}This takes a few minutes on first run — grab a coffee ☕${N}"
 echo ""
 
-docker compose \
+docker compose --env-file .env.local \
   -f docker-compose.yml \
   -f docker-compose.standalone.yml \
   up -d --build

@@ -117,7 +117,7 @@ echo ""
 # ── Pull pre-built images or build from source ─────────────────────────────────
 echo -e "${C}━━━  Starting containers  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${N}"
 
-COMPOSE_CMD="docker compose -f docker-compose.yml -f docker-compose.standalone.yml"
+COMPOSE_CMD="docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.standalone.yml"
 
 if $COMPOSE_CMD -f docker-compose.ghcr.yml pull --quiet 2>/dev/null; then
   echo -e "  ${G}✓ Using pre-built images from GitHub Container Registry${N}"
