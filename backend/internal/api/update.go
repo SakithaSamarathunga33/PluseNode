@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"time"
 )
@@ -63,9 +64,33 @@ func updateFail(msg string) {
 	globalUpdate.mu.Unlock()
 }
 
+// loadDotEnv reads KEY=VALUE pairs from a file and returns them as a slice
+// suitable for appending to exec.Cmd.Env. Comments and blank lines are ignored.
+func loadDotEnv(path string) []string {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil
+	}
+	var vars []string
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		if strings.ContainsRune(line, '=') {
+			vars = append(vars, line)
+		}
+	}
+	return vars
+}
+
 func streamCmd(name string, args ...string) error {
+	return streamCmdEnv(nil, name, args...)
+}
+
+func streamCmdEnv(extra []string, name string, args ...string) error {
 	cmd := exec.Command(name, args...)
-	cmd.Env = os.Environ()
+	cmd.Env = append(os.Environ(), extra...)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
@@ -111,7 +136,11 @@ func runUpdate() {
 		overlay = "docker-compose.standalone.yml"
 	}
 
-	baseArgs := []string{"compose", "--env-file", workspace + "/.env.local"}
+	// Load .env.local and inject as env vars — avoids relying on --env-file
+	// which is not available in older Docker CLI versions.
+	envVars := loadDotEnv(workspace + "/.env.local")
+
+	baseArgs := []string{"compose"}
 	for _, f := range []string{workspace + "/docker-compose.yml", workspace + "/" + overlay} {
 		if _, err := os.Stat(f); err == nil {
 			baseArgs = append(baseArgs, "-f", f)
@@ -122,9 +151,9 @@ func runUpdate() {
 	if _, err := os.Stat(ghcrFile); err == nil {
 		pullArgs := append(append([]string{}, baseArgs...), "-f", ghcrFile, "pull", "--quiet")
 		updateLog("Pulling pre-built images from GitHub Container Registry…")
-		if err := streamCmd("docker", pullArgs...); err == nil {
+		if err := streamCmdEnv(envVars, "docker", pullArgs...); err == nil {
 			upArgs := append(append([]string{}, baseArgs...), "-f", ghcrFile, "up", "-d")
-			if err := streamCmd("docker", upArgs...); err != nil {
+			if err := streamCmdEnv(envVars, "docker", upArgs...); err != nil {
 				updateFail("docker compose up failed: " + err.Error())
 				return
 			}
@@ -139,7 +168,7 @@ func runUpdate() {
 
 	updateLog("Building from source (this takes ~2-3 min)…")
 	buildArgs := append(append([]string{}, baseArgs...), "up", "-d", "--build")
-	if err := streamCmd("docker", buildArgs...); err != nil {
+	if err := streamCmdEnv(envVars, "docker", buildArgs...); err != nil {
 		updateFail("docker compose build failed: " + err.Error())
 		return
 	}
