@@ -153,22 +153,34 @@ func runUpdate() {
 	composeBin, composePrefix := detectCompose()
 	updateLog("Using compose: " + composeBin)
 
-	// baseArgs always starts with the compose prefix (either ["compose"] for
-	// "docker compose" or [] for "docker-compose"), then -f flags for each file.
-	baseArgs := append([]string{}, composePrefix...)
+	// Build base file list: docker-compose.yml + overlay
+	var baseFiles []string
 	for _, f := range []string{workspace + "/docker-compose.yml", workspace + "/" + overlay} {
 		if _, err := os.Stat(f); err == nil {
-			baseArgs = append(baseArgs, "-f", f)
+			baseFiles = append(baseFiles, f)
 		}
 	}
 
+	// Use COMPOSE_FILE env var instead of -f flags — supported by both
+	// docker-compose v1 and docker compose v2, avoids flag-parsing issues
+	// on older Docker CLI versions.
+	baseEnv := append(append([]string{}, envVars...),
+		"COMPOSE_FILE="+strings.Join(baseFiles, ":"),
+		"COMPOSE_PROJECT_DIR="+workspace,
+	)
+
 	ghcrFile := workspace + "/docker-compose.ghcr.yml"
 	if _, err := os.Stat(ghcrFile); err == nil {
-		pullArgs := append(append([]string{}, baseArgs...), "-f", ghcrFile, "pull", "--quiet")
+		ghcrFiles := append(append([]string{}, baseFiles...), ghcrFile)
+		ghcrEnv := append(append([]string{}, envVars...),
+			"COMPOSE_FILE="+strings.Join(ghcrFiles, ":"),
+			"COMPOSE_PROJECT_DIR="+workspace,
+		)
+		pullArgs := append(append([]string{}, composePrefix...), "pull", "--quiet")
 		updateLog("Pulling pre-built images from GitHub Container Registry…")
-		if err := streamCmdEnv(envVars, composeBin, pullArgs...); err == nil {
-			upArgs := append(append([]string{}, baseArgs...), "-f", ghcrFile, "up", "-d")
-			if err := streamCmdEnv(envVars, composeBin, upArgs...); err != nil {
+		if err := streamCmdEnv(ghcrEnv, composeBin, pullArgs...); err == nil {
+			upArgs := append(append([]string{}, composePrefix...), "up", "-d")
+			if err := streamCmdEnv(ghcrEnv, composeBin, upArgs...); err != nil {
 				updateFail("docker compose up failed: " + err.Error())
 				return
 			}
@@ -182,8 +194,8 @@ func runUpdate() {
 	}
 
 	updateLog("Building from source (this takes ~2-3 min)…")
-	buildArgs := append(append([]string{}, baseArgs...), "up", "-d", "--build")
-	if err := streamCmdEnv(envVars, composeBin, buildArgs...); err != nil {
+	buildArgs := append(append([]string{}, composePrefix...), "up", "-d", "--build")
+	if err := streamCmdEnv(baseEnv, composeBin, buildArgs...); err != nil {
 		updateFail("docker compose build failed: " + err.Error())
 		return
 	}
