@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import { Maximize2, X } from "lucide-react"
 import { nodeApi } from "@/lib/api"
 import type { ApiError } from "@/lib/api"
 import type { Database, DbSchemaResult, DbQueryResult } from "@/lib/types"
@@ -100,9 +101,51 @@ function SchemaSidebar({
   )
 }
 
+// ── ResultTable ───────────────────────────────────────────────────────────────
+
+function ResultTable({ result, fullscreen = false }: { result: DbQueryResult; fullscreen?: boolean }) {
+  return (
+    <div className={`overflow-auto ${fullscreen ? "max-h-[calc(100vh-120px)]" : "max-h-64"}`}>
+      <table className="text-[11px] border-collapse" style={{ tableLayout: "auto", whiteSpace: "nowrap" }}>
+        <thead>
+          <tr className="bg-pulseNode-navyLight sticky top-0 z-10">
+            {result.columns.map(c => (
+              <th
+                key={c}
+                className="px-3 py-1.5 text-left text-helm-fg3 font-semibold border-b border-r border-pulseNode-border/10 last:border-r-0 bg-pulseNode-navyLight"
+              >
+                {c}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {result.rows.map((row, i) => (
+            <tr key={i} className={`border-b border-pulseNode-border/5 ${i % 2 === 0 ? "" : "bg-pulseNode-border/[0.03]"} hover:bg-pn-electric/5`}>
+              {row.map((cell, j) => (
+                <td
+                  key={j}
+                  className={`px-3 py-1.5 font-mono text-helm-fg border-r border-pulseNode-border/5 last:border-r-0 ${fullscreen ? "max-w-[480px]" : "max-w-[200px]"}`}
+                  title={cell == null ? "null" : String(cell)}
+                >
+                  {cell == null
+                    ? <span className="text-helm-fg3/50 italic text-[10px]">null</span>
+                    : <span className="block truncate">{String(cell)}</span>
+                  }
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // ── QueryResult ───────────────────────────────────────────────────────────────
 
 function QueryResult({ result }: { result: DbQueryResult }) {
+  const [expanded, setExpanded] = useState(false)
   const isSelect = result.columns.length > 0
   const isDml    = !isSelect && result.rowCount > 0
   const isDdl    = !isSelect && result.rowCount === 0
@@ -137,54 +180,77 @@ function QueryResult({ result }: { result: DbQueryResult }) {
     </div>
   )
 
-  // SELECT result table
-  return (
-    <div className="border-t border-pulseNode-border/10">
-      <div className="px-3 py-1.5 bg-pulseNode-navy/50 flex items-center gap-2 border-b border-pulseNode-border/10">
-        <span className="text-[10px] text-green-400">
-          {result.rowCount} row{result.rowCount !== 1 ? "s" : ""}
-        </span>
-        <span className="text-pulseNode-border/30">·</span>
-        <span className="text-[10px] text-helm-fg3">{result.durationMs}ms</span>
-        <button onClick={exportCsv} className="ml-auto text-[10px] text-helm-fg3 hover:text-helm-fg transition-colors">
+  const toolbar = (fullscreen: boolean) => (
+    <div className={`flex items-center gap-2 px-3 py-1.5 border-b border-pulseNode-border/10 ${fullscreen ? "bg-pulseNode-navy" : "bg-pulseNode-navy/50"}`}>
+      <span className="text-[10px] text-green-400">
+        {result.rowCount} row{result.rowCount !== 1 ? "s" : ""}
+      </span>
+      <span className="text-pulseNode-border/30">·</span>
+      <span className="text-[10px] text-helm-fg3">{result.durationMs}ms</span>
+      <span className="text-pulseNode-border/30">·</span>
+      <span className="text-[10px] text-helm-fg3">{result.columns.length} col{result.columns.length !== 1 ? "s" : ""}</span>
+      <div className="ml-auto flex items-center gap-2">
+        <button onClick={exportCsv} className="text-[10px] text-helm-fg3 hover:text-helm-fg transition-colors">
           Export CSV
         </button>
-      </div>
-      <div className="overflow-auto max-h-64">
-        <table className="text-[11px] border-collapse" style={{ minWidth: "100%", tableLayout: "auto" }}>
-          <thead>
-            <tr className="bg-pulseNode-navyLight sticky top-0 z-10">
-              {result.columns.map(c => (
-                <th
-                  key={c}
-                  className="px-3 py-1.5 text-left text-helm-fg3 font-semibold border-b border-r border-pulseNode-border/10 whitespace-nowrap last:border-r-0 bg-pulseNode-navyLight"
-                >
-                  {c}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {result.rows.map((row, i) => (
-              <tr key={i} className={`border-b border-pulseNode-border/5 ${i % 2 === 0 ? "" : "bg-pulseNode-border/[0.03]"} hover:bg-pn-electric/5`}>
-                {row.map((cell, j) => (
-                  <td
-                    key={j}
-                    className="px-3 py-1.5 font-mono text-helm-fg whitespace-nowrap border-r border-pulseNode-border/5 last:border-r-0 max-w-[260px]"
-                    title={cell == null ? "null" : String(cell)}
-                  >
-                    {cell == null
-                      ? <span className="text-helm-fg3/50 italic text-[10px]">null</span>
-                      : <span className="block truncate">{String(cell)}</span>
-                    }
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {!fullscreen && (
+          <button
+            onClick={() => setExpanded(true)}
+            title="Expand to full screen"
+            className="flex items-center gap-1 text-[10px] text-helm-fg3 hover:text-pn-electric transition-colors"
+          >
+            <Maximize2 size={11} />
+            <span>Expand</span>
+          </button>
+        )}
       </div>
     </div>
+  )
+
+  return (
+    <>
+      {/* Inline result (compact) */}
+      <div className="border-t border-pulseNode-border/10">
+        {toolbar(false)}
+        <ResultTable result={result} />
+      </div>
+
+      {/* Fullscreen modal */}
+      {expanded && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col bg-pulseNode-navy/95 backdrop-blur-sm"
+          onKeyDown={e => e.key === "Escape" && setExpanded(false)}
+          tabIndex={-1}
+        >
+          {/* Modal header */}
+          <div className="flex items-center gap-3 px-5 py-3 border-b border-pulseNode-border/20 bg-pulseNode-navyLight flex-shrink-0">
+            <span className="text-sm font-semibold text-helm-fg">Query Results</span>
+            <span className="text-[10px] text-helm-fg3 bg-pulseNode-border/20 rounded px-1.5 py-0.5">
+              {result.rowCount} rows · {result.columns.length} columns · {result.durationMs}ms
+            </span>
+            <div className="ml-auto flex items-center gap-3">
+              <button onClick={exportCsv} className="text-xs text-helm-fg3 hover:text-helm-fg transition-colors">
+                Export CSV
+              </button>
+              <button
+                onClick={() => setExpanded(false)}
+                className="flex items-center gap-1.5 text-xs text-helm-fg3 hover:text-helm-fg transition-colors"
+              >
+                <X size={14} />
+                Close
+              </button>
+            </div>
+          </div>
+
+          {/* Full table */}
+          <div className="flex-1 overflow-auto p-4">
+            <div className="rounded-lg border border-pulseNode-border/20 overflow-hidden">
+              <ResultTable result={result} fullscreen />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
