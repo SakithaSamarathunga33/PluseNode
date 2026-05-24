@@ -8,7 +8,7 @@ RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/pulsenode ./cmd/pulsenode
 
 FROM alpine:3.20
-RUN apk add --no-cache ca-certificates git docker-cli && mkdir -p /data /var/lib/pulsenode
+RUN apk add --no-cache ca-certificates git docker-cli docker-cli-compose && mkdir -p /data /var/lib/pulsenode
 WORKDIR /app
 ENV GO_PORT=4002
 ENV PULSENODE_DATA_DIR=/var/lib/pulsenode

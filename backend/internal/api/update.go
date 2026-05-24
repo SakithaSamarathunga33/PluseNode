@@ -191,7 +191,7 @@ func runUpdate() {
 			"COMPOSE_FILE="+strings.Join(ghcrFiles, ":"),
 			"COMPOSE_PROJECT_DIR="+workspace,
 		)
-		pullArgs := append(append([]string{}, composePrefix...), "pull", "--quiet")
+		pullArgs := append(append([]string{}, composePrefix...), "pull")
 		updateLog("Pulling pre-built images from GitHub Container Registry…")
 		if err := streamCmdEnv(ghcrEnv, composeBin, pullArgs...); err == nil {
 			upArgs := append(append([]string{}, composePrefix...), "up", "-d")
