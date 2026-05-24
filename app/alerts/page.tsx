@@ -161,10 +161,17 @@ export default function AlertsPage() {
               Simulate Alert
             </button>
           )}
-          <button className="flex items-center gap-1 border border-pn-border/10 text-helm-fg3 hover:text-helm-fg px-3 py-1.5 rounded-lg text-xs transition-colors">
+          <button
+            onClick={() => setAlerts(prev => prev.map(a => a.state === "firing" ? { ...a, state: "ack" } : a))}
+            className="flex items-center gap-1 border border-pn-border/10 text-helm-fg3 hover:text-helm-fg px-3 py-1.5 rounded-lg text-xs transition-colors"
+          >
             <BellOff size={12} /> Mute all
           </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-medium transition-colors" style={{ background: "var(--pn-cyan)" }}>
+          <button
+            onClick={() => setActiveTab("rules")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-medium transition-colors"
+            style={{ background: "var(--pn-cyan)" }}
+          >
             <Plus size={12} /> New rule
           </button>
         </div>

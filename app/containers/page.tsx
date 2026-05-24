@@ -4,9 +4,9 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import {
-  RefreshCw, SlidersHorizontal, Plus, Square, RotateCcw,
-  FileText, Terminal, BarChart2, Trash2, LayoutGrid, Settings2,
-  Calendar, ChevronDown, X, Send, Loader2, Play, AlertTriangle,
+  RefreshCw, Square, RotateCcw,
+  FileText, Terminal, BarChart2, Trash2,
+  X, Send, Loader2, Play, AlertTriangle,
 } from "lucide-react"
 import {
   AlertDialog, AlertDialogContent, AlertDialogHeader,
@@ -311,23 +311,6 @@ function TerminalPanel({ container, onClose }: { container: Container; onClose: 
   )
 }
 
-// ── Filter chip ────────────────────────────────────────────────────────────────
-
-function FilterChip({ label, value }: { label: string; value: string }) {
-  return (
-    <button
-      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs transition-all"
-      style={{ background: "var(--bg-2)", border: "1px solid var(--border)", color: "var(--fg-2)" }}
-      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border-2)" }}
-      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)" }}
-    >
-      <span style={{ color: "var(--fg-3)" }}>{label}</span>
-      <span style={{ color: "var(--fg)" }}>{value}</span>
-      <ChevronDown size={10} style={{ color: "var(--fg-3)" }} />
-    </button>
-  )
-}
-
 // ── Remove confirmation dialog ─────────────────────────────────────────────────
 
 function RemoveDialog({ container, onConfirm, onClose }: {
@@ -423,15 +406,12 @@ function StateBadge({ state }: { state: string }) {
   }
 }
 
-const TIME_RANGES = ["1h", "12h", "24h", "7d"]
-
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default function ContainersPage() {
   const [tab, setTab]             = useState("running")
   const [search, setSearch]       = useState("")
   const [selected, setSelected]   = useState<Set<string>>(new Set())
-  const [timeRange, setTimeRange] = useState("1h")
   const [containers, setContainers] = useState<Container[]>(MOCK_CONTAINERS)
   const [host, setHost]             = useState<HostInfo>(MOCK_HOST)
   const [, setContainerHist] = useState<ContainerHistory>({})
@@ -596,46 +576,23 @@ export default function ContainersPage() {
             {containers.length} containers · {running} running · {stopped + exited} stopped
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all"
-            style={{ background: "var(--bg-2)", border: "1px solid var(--border)", color: "var(--fg-2)" }}
-            onMouseEnter={e => {
-              const el = e.currentTarget as HTMLButtonElement
-              el.style.background = "var(--bg-3)"; el.style.color = "var(--fg)"
-              el.style.borderColor = "var(--border-2)"
-            }}
-            onMouseLeave={e => {
-              const el = e.currentTarget as HTMLButtonElement
-              el.style.background = "var(--bg-2)"; el.style.color = "var(--fg-2)"
-              el.style.borderColor = "var(--border)"
-            }}
-          >
-            <RefreshCw size={12} /> Refresh
-          </button>
-          <button
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all"
-            style={{ background: "var(--bg-2)", border: "1px solid var(--border)", color: "var(--fg-2)" }}
-            onMouseEnter={e => {
-              const el = e.currentTarget as HTMLButtonElement
-              el.style.background = "var(--bg-3)"; el.style.color = "var(--fg)"
-              el.style.borderColor = "var(--border-2)"
-            }}
-            onMouseLeave={e => {
-              const el = e.currentTarget as HTMLButtonElement
-              el.style.background = "var(--bg-2)"; el.style.color = "var(--fg-2)"
-              el.style.borderColor = "var(--border)"
-            }}
-          >
-            <SlidersHorizontal size={12} /> Filters
-          </button>
-          <button
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90"
-            style={{ background: "var(--acc)" }}
-          >
-            <Plus size={12} /> New container
-          </button>
-        </div>
+        <button
+          onClick={refreshContainers}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all"
+          style={{ background: "var(--bg-2)", border: "1px solid var(--border)", color: "var(--fg-2)" }}
+          onMouseEnter={e => {
+            const el = e.currentTarget as HTMLButtonElement
+            el.style.background = "var(--bg-3)"; el.style.color = "var(--fg)"
+            el.style.borderColor = "var(--border-2)"
+          }}
+          onMouseLeave={e => {
+            const el = e.currentTarget as HTMLButtonElement
+            el.style.background = "var(--bg-2)"; el.style.color = "var(--fg-2)"
+            el.style.borderColor = "var(--border)"
+          }}
+        >
+          <RefreshCw size={12} /> Refresh
+        </button>
       </div>
 
       {/* ── Stat cards — 4 across ── */}
@@ -786,49 +743,6 @@ export default function ContainersPage() {
           onFocus={e => { (e.target as HTMLInputElement).style.borderColor = "var(--acc-border)" }}
           onBlur={e =>  { (e.target as HTMLInputElement).style.borderColor = "var(--border)" }}
         />
-        <FilterChip label="Host:" value="All hosts" />
-        <FilterChip label="Sort:" value="Created" />
-        <FilterChip label="Group:" value="None" />
-
-        {/* Time range */}
-        <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-          {TIME_RANGES.map(r => (
-            <button
-              key={r}
-              onClick={() => setTimeRange(r)}
-              className="px-2.5 py-1.5 text-xs transition-colors"
-              style={{
-                background: timeRange === r ? "var(--bg-3)" : "transparent",
-                color: timeRange === r ? "var(--fg)" : "var(--fg-3)",
-              }}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
-
-        <button
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all"
-          style={{ background: "var(--bg-2)", border: "1px solid var(--border)", color: "var(--fg-3)" }}
-        >
-          <Calendar size={11} /> Date range
-        </button>
-
-        <div className="ml-auto flex items-center gap-1.5">
-          {[LayoutGrid, Settings2].map((Icon, i) => (
-            <button
-              key={i}
-              className="p-1.5 rounded-lg transition-colors"
-              style={{
-                background: "var(--bg-2)",
-                border: "1px solid var(--border)",
-                color: "var(--fg-3)",
-              }}
-            >
-              <Icon size={14} />
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* ── Container table ── */}

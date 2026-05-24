@@ -4,7 +4,7 @@ import { useState, useRef, useMemo, useEffect, useCallback } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import {
-  ChevronDown, ChevronUp, Users, Layers, Activity,
+  ChevronDown, ChevronUp,
   XCircle, PauseCircle, PlayCircle, Ban,
   ShieldAlert, ShieldCheck, AlertTriangle, CheckCircle2,
 } from "lucide-react"
@@ -526,17 +526,6 @@ export default function ProcessesPage() {
             {processes.length} processes
             {blocked.length > 0 && <span className="text-amber-400"> · {blocked.length} suspended</span>}
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pulseNode-navyLight border border-pulseNode-border/15 text-xs text-helm-fg3 hover:text-helm-fg transition-colors">
-            <Layers size={12} /> Threads
-          </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pulseNode-navyLight border border-pulseNode-border/15 text-xs text-helm-fg3 hover:text-helm-fg transition-colors">
-            <Users size={12} /> All users
-          </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pulseNode-electric text-xs text-white font-medium hover:opacity-90 transition-opacity">
-            <Activity size={12} /> Live
-          </button>
         </div>
       </div>
 

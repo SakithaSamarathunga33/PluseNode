@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState, useEffect, useCallback } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import { IMAGES as MOCK_IMAGES } from "@/lib/mock-data"
@@ -14,6 +14,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
   AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Loader2, X } from "lucide-react"
 import {
   Docker, GitHubDark, PostgreSQL, MySQL, MariaDB, Redis,
   MongoDB, ClickHouse, Elastic,
@@ -67,12 +68,55 @@ export default function ImagesPage() {
   const [search,   setSearch]   = useState("")
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [images,   setImages]   = useState<DockerImage[]>(MOCK_IMAGES)
+  const [pruning,  setPruning]  = useState(false)
+  const [pruneMsg, setPruneMsg] = useState<string | null>(null)
+  const [pullOpen, setPullOpen] = useState(false)
+  const [pullImage, setPullImage] = useState("")
+  const [pulling,  setPulling]  = useState(false)
+  const [pullMsg,  setPullMsg]  = useState<{ ok: boolean; text: string } | null>(null)
 
-  useEffect(() => {
+  const fetchImages = useCallback(() => {
     nodeApi.get<DockerImage[]>("/api/docker/images")
       .then(({ data }) => setImages(data))
       .catch(() => {})
   }, [])
+
+  useEffect(() => { fetchImages() }, [fetchImages])
+
+  const handlePrune = useCallback(async () => {
+    setPruning(true)
+    setPruneMsg(null)
+    try {
+      const data = await nodeApi.post<{ reclaimedMB: string }>("/api/docker/images/prune")
+      setPruneMsg(`Pruned unused images · ${data.reclaimedMB} MB reclaimed`)
+      fetchImages()
+    } catch (e: unknown) {
+      setPruneMsg(`Error: ${e instanceof Error ? e.message : "prune failed"}`)
+    } finally {
+      setPruning(false)
+      setTimeout(() => setPruneMsg(null), 5000)
+    }
+  }, [fetchImages])
+
+  const handlePull = useCallback(async () => {
+    if (!pullImage.trim()) return
+    setPulling(true)
+    setPullMsg(null)
+    try {
+      await nodeApi.post("/api/docker/pull", { image: pullImage.trim() })
+      setPullMsg({ ok: true, text: `Pulled ${pullImage.trim()} successfully` })
+      fetchImages()
+      setTimeout(() => { setPullOpen(false); setPullImage(""); setPullMsg(null) }, 2000)
+    } catch (e: unknown) {
+      setPullMsg({ ok: false, text: e instanceof Error ? e.message : "pull failed" })
+    } finally {
+      setPulling(false)
+    }
+  }, [pullImage, fetchImages])
+
+  useEffect(() => {
+    if (!pullOpen) { setPullImage(""); setPullMsg(null); setPulling(false) }
+  }, [pullOpen])
 
   useGSAP(() => {
     gsap.from(".gsap-enter", {
@@ -114,14 +158,24 @@ export default function ImagesPage() {
             {images.length} images · {Math.round(totalMb)} MB · {unused} unused
           </p>
         </div>
-        <div className="flex gap-2">
-          <button className="border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-3 py-1.5 rounded-lg text-sm transition-colors">
+        <div className="flex gap-2 items-center">
+          {pruneMsg && (
+            <span className="text-xs px-3 py-1.5 rounded-lg" style={{ background: "var(--bg-3)", color: "var(--fg-2)" }}>
+              {pruneMsg}
+            </span>
+          )}
+          <button
+            onClick={handlePrune}
+            disabled={pruning}
+            className="flex items-center gap-1.5 border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-3 py-1.5 rounded-lg text-sm transition-colors disabled:opacity-50"
+          >
+            {pruning && <Loader2 size={12} className="animate-spin" />}
             Prune unused
           </button>
-          <button className="border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-3 py-1.5 rounded-lg text-sm transition-colors">
-            Re-scan all
-          </button>
-          <button className="bg-pn-cyan text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-pn-cyan/90 transition-colors">
+          <button
+            onClick={() => setPullOpen(true)}
+            className="bg-pn-cyan text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-pn-cyan/90 transition-colors"
+          >
             Pull image
           </button>
         </div>
@@ -265,6 +319,56 @@ export default function ImagesPage() {
           </table>
         </div>
       </div>
+
+      {/* Pull image modal */}
+      {pullOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-xl p-6 space-y-4"
+            style={{ background: "var(--card-elev)", border: "1px solid var(--border-2)" }}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold" style={{ color: "var(--fg)" }}>Pull image</h2>
+              <button onClick={() => setPullOpen(false)} style={{ color: "var(--fg-3)" }}>
+                <X size={16} />
+              </button>
+            </div>
+            <p className="text-xs" style={{ color: "var(--fg-3)" }}>
+              Enter a full image reference. Examples: <code className="text-pn-cyan">nginx:latest</code>, <code className="text-pn-cyan">postgres:16-alpine</code>
+            </p>
+            <input
+              autoFocus
+              value={pullImage}
+              onChange={e => setPullImage(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") handlePull() }}
+              placeholder="image:tag"
+              className="w-full px-3 py-2 rounded-lg text-sm font-mono focus:outline-none"
+              style={{ background: "var(--bg-2)", border: "1px solid var(--border)", color: "var(--fg)" }}
+            />
+            {pullMsg && (
+              <p className="text-xs" style={{ color: pullMsg.ok ? "var(--ok)" : "var(--bad)" }}>
+                {pullMsg.text}
+              </p>
+            )}
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setPullOpen(false)}
+                className="px-3 py-1.5 rounded-lg text-xs"
+                style={{ background: "var(--bg-3)", color: "var(--fg-2)", border: "1px solid var(--border-2)" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePull}
+                disabled={pulling || !pullImage.trim()}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-medium text-white disabled:opacity-50"
+                style={{ background: "var(--pn-cyan)" }}
+              >
+                {pulling && <Loader2 size={12} className="animate-spin" />}
+                Pull
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

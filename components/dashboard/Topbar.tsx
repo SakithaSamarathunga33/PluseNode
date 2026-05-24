@@ -1,6 +1,6 @@
 "use client"
 
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { RefreshCw, Bell, Settings, Search } from "lucide-react"
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
 
@@ -19,6 +19,7 @@ const PAGE_TITLES: Record<string, string> = {
 
 export function Topbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const title = PAGE_TITLES[pathname] ?? "PulseNode"
 
   return (
@@ -61,31 +62,55 @@ export function Topbar() {
       {/* Actions */}
       <div className="ml-auto flex items-center gap-0.5">
         <AnimatedThemeToggler className="pn-icon-btn" variant="circle" duration={520} />
-        {[
-          { Icon: RefreshCw, label: "Refresh" },
-          { Icon: Bell, label: "Notifications", badge: true },
-          { Icon: Settings, label: "Settings" },
-        ].map(({ Icon, label, badge }) => (
-          <button
-            key={label}
-            className="relative p-2 rounded-lg transition-colors"
-            style={{ color: "var(--fg-3)" }}
-            title={label}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-2)"
-              ;(e.currentTarget as HTMLButtonElement).style.color = "var(--fg)"
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = "transparent"
-              ;(e.currentTarget as HTMLButtonElement).style.color = "var(--fg-3)"
-            }}
-          >
-            <Icon size={14} />
-            {badge && (
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500" />
-            )}
-          </button>
-        ))}
+        <button
+          className="relative p-2 rounded-lg transition-colors"
+          style={{ color: "var(--fg-3)" }}
+          title="Refresh"
+          onClick={() => window.location.reload()}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-2)"
+            ;(e.currentTarget as HTMLButtonElement).style.color = "var(--fg)"
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = "transparent"
+            ;(e.currentTarget as HTMLButtonElement).style.color = "var(--fg-3)"
+          }}
+        >
+          <RefreshCw size={14} />
+        </button>
+        <button
+          className="relative p-2 rounded-lg transition-colors"
+          style={{ color: pathname === "/alerts" ? "var(--fg)" : "var(--fg-3)" }}
+          title="Alerts"
+          onClick={() => router.push("/alerts")}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-2)"
+            ;(e.currentTarget as HTMLButtonElement).style.color = "var(--fg)"
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = "transparent"
+            ;(e.currentTarget as HTMLButtonElement).style.color = pathname === "/alerts" ? "var(--fg)" : "var(--fg-3)"
+          }}
+        >
+          <Bell size={14} />
+          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500" />
+        </button>
+        <button
+          className="relative p-2 rounded-lg transition-colors"
+          style={{ color: pathname === "/settings" ? "var(--fg)" : "var(--fg-3)" }}
+          title="Settings"
+          onClick={() => router.push("/settings")}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-2)"
+            ;(e.currentTarget as HTMLButtonElement).style.color = "var(--fg)"
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = "transparent"
+            ;(e.currentTarget as HTMLButtonElement).style.color = pathname === "/settings" ? "var(--fg)" : "var(--fg-3)"
+          }}
+        >
+          <Settings size={14} />
+        </button>
         <div
           className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white ml-1 flex-shrink-0"
           style={{ background: "var(--acc)" }}

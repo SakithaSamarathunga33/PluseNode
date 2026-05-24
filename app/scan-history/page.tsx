@@ -5,10 +5,10 @@ import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import {
   Shield, Package, ChevronDown, Search, Play,
-  Eye, Download, RotateCcw, CheckCircle, XCircle, Loader2,
+  Eye, Download, RotateCcw, CheckCircle, XCircle, Loader2, X,
 } from "lucide-react"
 import { SCANS as MOCK_SCANS } from "@/lib/mock-data"
-import { pythonApi } from "@/lib/api"
+import { nodeApi, pythonApi } from "@/lib/api"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { Pill } from "@/components/dashboard/Pill"
 import { VulnBar } from "@/components/dashboard/VulnBar"
@@ -79,12 +79,31 @@ export default function ScanHistoryPage() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [search, setSearch] = useState("")
   const [scans, setScans] = useState<Scan[]>(MOCK_SCANS)
+  const [scanModalOpen, setScanModalOpen] = useState(false)
+  const [scanTarget, setScanTarget]       = useState("")
+  const [scanning, setScanning]           = useState(false)
+  const [scanMsg, setScanMsg]             = useState<{ ok: boolean; text: string } | null>(null)
 
   useEffect(() => {
     pythonApi.get<Scan[]>("/security/scans")
       .then(({ data }) => { if (data.length > 0) setScans(data) })
       .catch(() => {})
   }, [])
+
+  async function runScan() {
+    if (!scanTarget.trim()) return
+    setScanning(true)
+    setScanMsg(null)
+    try {
+      await nodeApi.post("/security/scan", { target: scanTarget.trim() })
+      setScanMsg({ ok: true, text: `Scan queued for ${scanTarget.trim()}` })
+      setTimeout(() => { setScanModalOpen(false); setScanTarget(""); setScanMsg(null) }, 2000)
+    } catch (e: unknown) {
+      setScanMsg({ ok: false, text: e instanceof Error ? e.message : "scan failed" })
+    } finally {
+      setScanning(false)
+    }
+  }
 
   const succeeded = scans.filter(s => s.status === "done").length
   const failed    = scans.filter(s => s.status === "failed").length
@@ -130,13 +149,13 @@ export default function ScanHistoryPage() {
             <span className="text-red-400 font-medium">{failed} failed</span>
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <FilterChip label="Scanner" value="All" />
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pulseNode-electric text-white text-xs font-medium hover:bg-pulseNode-electric/90 transition-colors">
-            <Play size={11} />
-            Scan now
-          </button>
-        </div>
+        <button
+          onClick={() => setScanModalOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pulseNode-electric text-white text-xs font-medium hover:bg-pulseNode-electric/90 transition-colors"
+        >
+          <Play size={11} />
+          Scan now
+        </button>
       </div>
 
       {/* ── Stat Cards ── */}
@@ -331,6 +350,55 @@ export default function ScanHistoryPage() {
           </SheetContent>
         </Sheet>
       </div>
+
+      {/* Scan now modal */}
+      {scanModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-xl p-6 space-y-4"
+            style={{ background: "var(--card-elev)", border: "1px solid var(--border-2)" }}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold" style={{ color: "var(--fg)" }}>Scan image</h2>
+              <button onClick={() => { setScanModalOpen(false); setScanTarget(""); setScanMsg(null) }} style={{ color: "var(--fg-3)" }}>
+                <X size={16} />
+              </button>
+            </div>
+            <p className="text-xs" style={{ color: "var(--fg-3)" }}>
+              Enter a container image to scan for vulnerabilities. Example: <code className="text-pn-cyan">nginx:latest</code>
+            </p>
+            <input
+              autoFocus
+              value={scanTarget}
+              onChange={e => setScanTarget(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") runScan() }}
+              placeholder="image:tag"
+              className="w-full px-3 py-2 rounded-lg text-sm font-mono focus:outline-none"
+              style={{ background: "var(--bg-2)", border: "1px solid var(--border)", color: "var(--fg)" }}
+            />
+            {scanMsg && (
+              <p className="text-xs" style={{ color: scanMsg.ok ? "var(--ok)" : "var(--bad)" }}>
+                {scanMsg.text}
+              </p>
+            )}
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => { setScanModalOpen(false); setScanTarget(""); setScanMsg(null) }}
+                className="px-3 py-1.5 rounded-lg text-xs"
+                style={{ background: "var(--bg-3)", color: "var(--fg-2)", border: "1px solid var(--border-2)" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={runScan}
+                disabled={scanning || !scanTarget.trim()}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-medium text-white disabled:opacity-50 bg-pulseNode-electric"
+              >
+                {scanning && <Loader2 size={12} className="animate-spin" />}
+                Scan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

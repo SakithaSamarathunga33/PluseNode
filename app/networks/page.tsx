@@ -83,10 +83,14 @@ export default function NetworksPage() {
   const [txHist,    setTxHist]    = useState<number[]>([0, 0])
   const [rxRate,    setRxRate]    = useState(0)
 
-  useEffect(() => {
+  function fetchNetworks() {
     nodeApi.get<DockerNetwork[]>("/api/docker/networks")
       .then(({ data }) => setNetworks(data))
       .catch(() => {})
+  }
+
+  useEffect(() => {
+    fetchNetworks()
 
     const socket = getSocket()
     const onMetrics = (m: SystemMetrics) => {
@@ -116,14 +120,9 @@ export default function NetworksPage() {
             {networks.length} networks · {totalContainers} container attachments
           </p>
         </div>
-        <div className="flex gap-2">
-          <button className="border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-3 py-1.5 rounded-lg text-sm transition-colors">
-            Refresh
-          </button>
-          <button className="bg-pn-electric text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-pn-electric/90 transition-colors">
-            + Create network
-          </button>
-        </div>
+        <button onClick={fetchNetworks} className="border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-3 py-1.5 rounded-lg text-sm transition-colors">
+          Refresh
+        </button>
       </div>
 
       {/* Stat cards */}

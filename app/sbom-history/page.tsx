@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import {
-  FileCode2, Download, Plus, ChevronDown,
+  FileCode2, ChevronDown, Download,
   ExternalLink, Package,
 } from "lucide-react"
 import { SBOMS as MOCK_SBOMS } from "@/lib/mock-data"
@@ -131,16 +131,6 @@ export default function SBOMHistoryPage() {
             {" · "}
             <span className="text-helm-fg font-medium">{totalPackages.toLocaleString()} packages tracked</span>
           </p>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <button className="border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg px-2 py-1 rounded-lg text-xs transition-colors flex items-center gap-1">
-            <Download size={12} />
-            Export all
-          </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pulseNode-electric text-white text-xs font-medium hover:bg-pulseNode-electric/90 transition-colors">
-            <Plus size={12} />
-            Generate new
-          </button>
         </div>
       </div>
 

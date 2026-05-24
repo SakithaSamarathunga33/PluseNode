@@ -112,6 +112,36 @@ func (s *Server) dockerExec(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"output": output})
 }
 
+func (s *Server) dockerPullImage(w http.ResponseWriter, r *http.Request) {
+	if !s.requireDocker(w) {
+		return
+	}
+	var body struct {
+		Image string `json:"image"`
+	}
+	if err := decodeJSON(r, &body); err != nil || body.Image == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "image is required"})
+		return
+	}
+	if err := s.docker.PullImage(r.Context(), body.Image); err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "image": body.Image})
+}
+
+func (s *Server) dockerPruneImages(w http.ResponseWriter, r *http.Request) {
+	if !s.requireDocker(w) {
+		return
+	}
+	reclaimed, err := s.docker.PruneImages(r.Context())
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "reclaimedBytes": reclaimed, "reclaimedMB": fmt.Sprintf("%.1f", float64(reclaimed)/1024/1024)})
+}
+
 func (s *Server) clearBuildCache(w http.ResponseWriter, r *http.Request) {
 	if !s.requireDocker(w) {
 		return

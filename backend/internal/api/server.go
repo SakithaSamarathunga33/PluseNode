@@ -97,6 +97,8 @@ func (s *Server) Routes() http.Handler {
 		r.Delete("/docker/remove/{id}", s.dockerAction("remove"))
 		r.Post("/docker/exec/{id}", s.dockerExec)
 		r.Post("/docker/build-cache/clear", s.clearBuildCache)
+		r.Post("/docker/pull", s.dockerPullImage)
+		r.Post("/docker/images/prune", s.dockerPruneImages)
 
 		r.Get("/host", s.host)
 		r.Get("/pm2/list", s.processes)
