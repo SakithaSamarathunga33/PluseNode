@@ -4,7 +4,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 FROM deps AS web-builder
-ARG NEXT_PUBLIC_GO_API=http://localhost:4002
+ARG NEXT_PUBLIC_GO_API=/go
 ENV NEXT_PUBLIC_GO_API=$NEXT_PUBLIC_GO_API
 COPY . .
 RUN npm run build

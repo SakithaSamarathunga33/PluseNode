@@ -26,6 +26,8 @@ services:
       target: web
       args:
         NEXT_PUBLIC_GO_API: ${NEXT_PUBLIC_GO_API:-}
+    environment:
+      GO_API_INTERNAL: http://go-api:4002
     depends_on:
       - go-api
     restart: unless-stopped

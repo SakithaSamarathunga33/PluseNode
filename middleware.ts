@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
+// GO_API_INTERNAL is set at runtime via docker-compose and is always an absolute URL
+// reachable from the Next.js container (http://go-api:4002). NEXT_PUBLIC_GO_API is
+// baked into the client bundle at image-build time and may be relative (/go).
+const GO_API_INTERNAL = process.env.GO_API_INTERNAL ?? process.env.NEXT_PUBLIC_GO_API ?? ""
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -14,7 +17,7 @@ export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get("pn_session")
 
   try {
-    const res = await fetch(`${GO_API}/api/auth/status`, {
+    const res = await fetch(`${GO_API_INTERNAL}/api/auth/status`, {
       headers: sessionCookie
         ? { Cookie: `pn_session=${sessionCookie.value}` }
         : {},
