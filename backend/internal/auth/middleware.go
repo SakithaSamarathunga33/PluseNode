@@ -70,6 +70,23 @@ func nowUnix() int64 {
 	return time.Now().Unix()
 }
 
+// ValidateToken reports whether the given JWT string is valid and unexpired.
+func (m *Middleware) ValidateToken(token string) bool {
+	return m.validJWT(token)
+}
+
+// MakeJWT creates a signed JWT for the given username, expiring in ttlSecs seconds.
+func (m *Middleware) MakeJWT(username string, ttlSecs int64) string {
+	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"HS256","typ":"JWT"}`))
+	exp := time.Now().Unix() + ttlSecs
+	payload, _ := json.Marshal(map[string]any{"sub": username, "exp": exp})
+	enc := base64.RawURLEncoding.EncodeToString(payload)
+	mac := hmac.New(sha256.New, m.secret)
+	mac.Write([]byte(header + "." + enc))
+	sig := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+	return header + "." + enc + "." + sig
+}
+
 func writeAuthError(w http.ResponseWriter, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnauthorized)
