@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -82,6 +83,17 @@ func loadDotEnv(path string) []string {
 		}
 	}
 	return vars
+}
+
+// envVarVal finds the value of key in a slice of "KEY=VALUE" strings.
+func envVarVal(vars []string, key string) string {
+	prefix := key + "="
+	for _, kv := range vars {
+		if strings.HasPrefix(kv, prefix) {
+			return strings.TrimPrefix(kv, prefix)
+		}
+	}
+	return ""
 }
 
 func streamCmd(name string, args ...string) error {
@@ -168,7 +180,19 @@ func runUpdate() {
 	composeBin, composePrefix := resolveCompose(envVars)
 	updateLog("Using compose: " + composeBin)
 
-	// Build base file list: docker-compose.yml + overlay
+	// HOST install directory — used so that relative bind-mount paths in the
+	// compose files (e.g. ./Caddyfile) resolve to real host paths rather than
+	// container-internal /workspace/... paths. COMPOSE_PROJECT_NAME ensures we
+	// update the existing containers instead of creating a parallel project.
+	installDir := envVarVal(envVars, "PULSENODE_INSTALL_DIR")
+	if installDir == "" {
+		installDir = workspace
+	}
+	projectName := filepath.Base(installDir)
+
+	// COMPOSE_FILE uses container-readable paths (/workspace/...) so compose
+	// can parse the files, while COMPOSE_PROJECT_DIR uses the host path so that
+	// relative volume binds resolve correctly on the host.
 	var baseFiles []string
 	for _, f := range []string{workspace + "/docker-compose.yml", workspace + "/" + overlay} {
 		if _, err := os.Stat(f); err == nil {
@@ -176,12 +200,10 @@ func runUpdate() {
 		}
 	}
 
-	// Use COMPOSE_FILE env var instead of -f flags — supported by both
-	// docker-compose v1 and docker compose v2, avoids flag-parsing issues
-	// on older Docker CLI versions.
 	baseEnv := append(append([]string{}, envVars...),
 		"COMPOSE_FILE="+strings.Join(baseFiles, ":"),
-		"COMPOSE_PROJECT_DIR="+workspace,
+		"COMPOSE_PROJECT_DIR="+installDir,
+		"COMPOSE_PROJECT_NAME="+projectName,
 	)
 
 	ghcrFile := workspace + "/docker-compose.ghcr.yml"
@@ -189,7 +211,8 @@ func runUpdate() {
 		ghcrFiles := append(append([]string{}, baseFiles...), ghcrFile)
 		ghcrEnv := append(append([]string{}, envVars...),
 			"COMPOSE_FILE="+strings.Join(ghcrFiles, ":"),
-			"COMPOSE_PROJECT_DIR="+workspace,
+			"COMPOSE_PROJECT_DIR="+installDir,
+			"COMPOSE_PROJECT_NAME="+projectName,
 		)
 		pullArgs := append(append([]string{}, composePrefix...), "pull")
 		updateLog("Pulling pre-built images from GitHub Container Registry…")
