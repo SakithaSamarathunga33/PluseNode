@@ -106,10 +106,25 @@ func streamCmdEnv(extra []string, name string, args ...string) error {
 	return cmd.Wait()
 }
 
-// detectCompose returns the binary and any prefix args needed to invoke
-// docker compose. Returns ("docker", ["compose"]) for Docker Compose v2
-// plugin, or ("docker-compose", []) for the legacy standalone binary.
-func detectCompose() (bin string, prefix []string) {
+// resolveCompose returns the binary and prefix args for running compose commands.
+// It first checks PULSENODE_COMPOSE_BIN from the loaded env vars (set by install.sh
+// to match the host's compose command), then falls back to auto-detection.
+// "docker compose" → ("docker", ["compose"])
+// "docker-compose"  → ("docker-compose", [])
+func resolveCompose(envVars []string) (bin string, prefix []string) {
+	for _, kv := range envVars {
+		if strings.HasPrefix(kv, "PULSENODE_COMPOSE_BIN=") {
+			val := strings.TrimPrefix(kv, "PULSENODE_COMPOSE_BIN=")
+			parts := strings.Fields(val)
+			if len(parts) >= 2 {
+				return parts[0], parts[1:]
+			}
+			if len(parts) == 1 {
+				return parts[0], nil
+			}
+		}
+	}
+	// Fallback: probe at runtime
 	if err := exec.Command("docker", "compose", "version").Run(); err == nil {
 		return "docker", []string{"compose"}
 	}
@@ -150,7 +165,7 @@ func runUpdate() {
 	// which is not available in older Docker CLI versions.
 	envVars := loadDotEnv(workspace + "/.env.local")
 
-	composeBin, composePrefix := detectCompose()
+	composeBin, composePrefix := resolveCompose(envVars)
 	updateLog("Using compose: " + composeBin)
 
 	// Build base file list: docker-compose.yml + overlay
