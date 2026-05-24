@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   AlertTriangle, CheckCircle2, Download, LogOut,
   RefreshCw, Settings, Shield, ShieldOff, Zap,
@@ -26,13 +26,16 @@ interface UpdateStatus {
 interface AuthStatus { enabled: boolean; loggedIn: boolean; username?: string }
 
 function LogLine({ line }: { line: string }) {
-  const isPhase = line.startsWith("::")
-  if (isPhase) {
+  if (line.startsWith("::")) {
     const msg = line.replace(/^::[^:]+:: /, "")
-    return <p className="text-xs text-pn-electric font-medium">{msg}</p>
+    return <p className="text-xs text-pn-electric font-semibold pt-1">{msg}</p>
   }
-  if (line.startsWith("⚠")) return <p className="text-xs text-amber-400">{line}</p>
-  if (line.startsWith("✕")) return <p className="text-xs text-red-400">{line}</p>
+  if (line.startsWith("✓"))  return <p className="text-xs text-emerald-400 font-mono">{line}</p>
+  if (line.startsWith("⚠"))  return <p className="text-xs text-amber-400 font-mono">{line}</p>
+  if (line.startsWith("✕"))  return <p className="text-xs text-red-400 font-mono">{line}</p>
+  if (/^\[.*\]/.test(line))  return <p className="text-[10px] text-helm-fg3/70 font-mono leading-tight">{line}</p>
+  if (/^(web|go-api|caddy)\s+(Pull|Push|Build|Pulling|Pushing|Building)/.test(line))
+    return <p className="text-xs text-indigo-300 font-mono">{line}</p>
   return <p className="text-xs text-helm-fg3 font-mono">{line}</p>
 }
 
@@ -43,6 +46,7 @@ export default function SettingsPage() {
   const [updating,     setUpdating]     = useState(false)
   const [countdown,    setCountdown]    = useState(0)
   const [reconnecting, setReconnecting] = useState(false)
+  const logEndRef = useRef<HTMLDivElement>(null)
 
   // ── Security state ─────────────────────────────────────────────────────────
   const [authStatus,  setAuthStatus]  = useState<AuthStatus | null>(null)
@@ -90,9 +94,15 @@ export default function SettingsPage() {
     return () => clearInterval(timer)
   }, [updating, fetchStatus])
 
+  // Auto-scroll log to bottom whenever new lines arrive
+  useEffect(() => {
+    logEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [status?.log.length])
+
   useEffect(() => {
     if (!updating) return
-    setCountdown(90)
+    // Source builds take 2-3 min; give 3 min before switching to reconnect mode
+    setCountdown(180)
     const tick = setInterval(() => {
       setCountdown(c => {
         if (c <= 1) { clearInterval(tick); setReconnecting(true); return 0 }
@@ -276,8 +286,9 @@ export default function SettingsPage() {
               </div>
               <div className="p-4 space-y-3">
                 {status && status.log.length > 0 && (
-                  <div className="rounded-lg bg-pulseNode-navy p-3 space-y-1 max-h-48 overflow-y-auto">
+                  <div className="rounded-lg bg-pulseNode-navy p-3 space-y-0.5 max-h-96 overflow-y-auto">
                     {status.log.map((l, i) => <LogLine key={i} line={l} />)}
+                    <div ref={logEndRef} />
                   </div>
                 )}
                 {status?.error && (
