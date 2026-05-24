@@ -60,6 +60,19 @@ func (c *Client) Logs(ctx context.Context, id string, tail int) (string, error) 
 func (c *Client) Action(ctx context.Context, id string, action string) error { switch action { case "restart": return c.do(ctx, http.MethodPost, "/containers/"+id+"/restart", nil, nil); case "start": return c.do(ctx, http.MethodPost, "/containers/"+id+"/start", nil, nil); case "stop": return c.do(ctx, http.MethodPost, "/containers/"+id+"/stop", nil, nil); case "remove": return c.do(ctx, http.MethodDelete, "/containers/"+id+"?force=true", nil, nil); default: return fmt.Errorf("unknown docker action %q", action) } }
 func (c *Client) Exec(ctx context.Context, id string, cmd string) (string, error) { var created struct{ ID string `json:"Id"` }; if err := c.do(ctx, http.MethodPost, "/containers/"+id+"/exec", map[string]any{"Cmd":[]string{"sh","-c",cmd},"AttachStdout":true,"AttachStderr":true}, &created); err != nil { return "", err }; var buf bytes.Buffer; err := c.doRaw(ctx, http.MethodPost, "/exec/"+created.ID+"/start", map[string]any{"Detach":false,"Tty":false}, &buf); return cleanDockerStream(buf.Bytes()), err }
 func (c *Client) PruneBuildCache(ctx context.Context) (uint64, error) { var raw struct{ SpaceReclaimed uint64 `json:"SpaceReclaimed"` }; err := c.do(ctx, http.MethodPost, "/build/prune", map[string]any{}, &raw); return raw.SpaceReclaimed, err }
+
+// ExecSlice runs cmd inside a container by name or ID and returns combined stdout+stderr.
+func (c *Client) ExecSlice(ctx context.Context, containerNameOrID string, cmd []string) (string, error) {
+	var created struct{ ID string `json:"Id"` }
+	if err := c.do(ctx, http.MethodPost, "/containers/"+containerNameOrID+"/exec", map[string]any{
+		"Cmd": cmd, "AttachStdout": true, "AttachStderr": true,
+	}, &created); err != nil {
+		return "", err
+	}
+	var buf bytes.Buffer
+	err := c.doRaw(ctx, http.MethodPost, "/exec/"+created.ID+"/start", map[string]any{"Detach": false, "Tty": false}, &buf)
+	return cleanDockerStream(buf.Bytes()), err
+}
 func (c *Client) PruneImages(ctx context.Context) (uint64, error) { var raw struct{ SpaceReclaimed uint64 `json:"SpaceReclaimed"` }; err := c.do(ctx, http.MethodPost, "/images/prune?filters=%7B%22dangling%22%3A%5B%22false%22%5D%7D", map[string]any{}, &raw); return raw.SpaceReclaimed, err }
 func (c *Client) ContainerStats(ctx context.Context) ([]Stat, error) {
 	containers, err := c.Containers(ctx)

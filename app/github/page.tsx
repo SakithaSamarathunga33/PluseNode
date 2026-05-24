@@ -11,21 +11,18 @@ type Account = { login: string; avatarUrl: string; tokenType: "oauth" | "pat" }
 type OAuthSettings = { clientId: string; hasSecret: boolean; configured: boolean }
 
 export default function GitHubPage() {
-  const [account, setAccount]           = useState<Account | null>(null)
+  const [account, setAccount]             = useState<Account | null>(null)
   const [oauthSettings, setOAuthSettings] = useState<OAuthSettings | null>(null)
-  const [loading, setLoading]           = useState(true)
-  const [tab, setTab]                   = useState<"connect" | "oauth-settings">("connect")
+  const [loading, setLoading]             = useState(true)
 
-  // Connect tab state
-  const [patValue, setPatValue]         = useState("")
-  const [patLoading, setPatLoading]     = useState(false)
-  const [patError, setPatError]         = useState("")
+  const [patValue, setPatValue]           = useState("")
+  const [patLoading, setPatLoading]       = useState(false)
+  const [patError, setPatError]           = useState("")
 
-  // OAuth settings tab state
-  const [clientId, setClientId]         = useState("")
-  const [clientSecret, setClientSecret] = useState("")
-  const [oauthSaving, setOauthSaving]   = useState(false)
-  const [oauthSaved, setOauthSaved]     = useState(false)
+  const [clientId, setClientId]           = useState("")
+  const [clientSecret, setClientSecret]   = useState("")
+  const [oauthSaving, setOauthSaving]     = useState(false)
+  const [oauthSaved, setOauthSaved]       = useState(false)
 
   const fetchAccount = useCallback(async () => {
     try {
@@ -100,7 +97,7 @@ export default function GitHubPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
+    <div className="p-6 space-y-6">
       <div>
         <h1 className="text-xl font-semibold" style={{ color: "var(--fg)" }}>GitHub</h1>
         <p className="text-sm mt-1" style={{ color: "var(--fg-3)" }}>
@@ -108,26 +105,13 @@ export default function GitHubPage() {
         </p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-lg" style={{ background: "var(--bg-2)" }}>
-        {(["connect", "oauth-settings"] as const).map(t => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className="flex-1 py-1.5 text-xs font-medium rounded-md transition-colors"
-            style={{
-              background: tab === t ? "var(--bg-3)" : "transparent",
-              color: tab === t ? "var(--fg)" : "var(--fg-3)",
-            }}
-          >
-            {t === "connect" ? "Connect Account" : "OAuth App Settings"}
-          </button>
-        ))}
-      </div>
-
-      {/* Connect tab */}
-      {tab === "connect" && (
+      <div className="grid gap-6 lg:grid-cols-[1fr_420px] items-start">
+        {/* Left — Account connection */}
         <div className="space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--fg-3)" }}>
+            Account
+          </h2>
+
           {account ? (
             <div className="rounded-xl p-5 space-y-4" style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
               <div className="flex items-center gap-3">
@@ -166,7 +150,6 @@ export default function GitHubPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {/* OAuth button — only if credentials are configured */}
               {oauthSettings?.configured && (
                 <div className="rounded-xl p-5 space-y-3" style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
                   <div className="flex items-center gap-2">
@@ -187,7 +170,6 @@ export default function GitHubPage() {
                 </div>
               )}
 
-              {/* PAT */}
               <div className="rounded-xl p-5 space-y-3" style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
                 <div className="flex items-center gap-2">
                   <Key size={16} style={{ color: "var(--fg)" }} />
@@ -223,62 +205,76 @@ export default function GitHubPage() {
             </div>
           )}
         </div>
-      )}
 
-      {/* OAuth App Settings tab */}
-      {tab === "oauth-settings" && (
-        <div className="rounded-xl p-5 space-y-4" style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
-          <div className="flex items-center gap-2">
-            <Shield size={16} style={{ color: "var(--fg)" }} />
-            <p className="font-medium text-sm" style={{ color: "var(--fg)" }}>GitHub OAuth App</p>
-          </div>
-          <p className="text-xs" style={{ color: "var(--fg-3)" }}>
-            Create an OAuth App at{" "}
-            <a href="https://github.com/settings/developers" target="_blank" rel="noopener noreferrer"
-              className="underline" style={{ color: "var(--acc)" }}>
-              github.com/settings/developers
-            </a>.
-            {" "}Set the callback URL to{" "}
-            <code className="text-xs px-1 rounded" style={{ background: "var(--bg-3)" }}>
-              {typeof window !== "undefined" ? window.location.origin : ""}/go/api/github/callback
-            </code>
-          </p>
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>Client ID</label>
-              <input
-                type="text"
-                placeholder="Iv1.xxxxxxxxxxxx"
-                value={clientId}
-                onChange={e => setClientId(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-                style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
-              />
+        {/* Right — OAuth App Settings */}
+        <div className="space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--fg-3)" }}>
+            OAuth App Settings
+          </h2>
+
+          <div className="rounded-xl p-5 space-y-4" style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
+            <div className="flex items-center gap-2">
+              <Shield size={16} style={{ color: "var(--fg)" }} />
+              <p className="font-medium text-sm" style={{ color: "var(--fg)" }}>GitHub OAuth App</p>
             </div>
-            <div>
-              <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>
-                Client Secret{oauthSettings?.hasSecret && <span className="ml-2" style={{ color: "var(--ok)" }}>(already set)</span>}
-              </label>
-              <input
-                type="password"
-                placeholder={oauthSettings?.hasSecret ? "Leave blank to keep existing" : "xxxxxxxxxxxxxxxxxxxx"}
-                value={clientSecret}
-                onChange={e => setClientSecret(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-                style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
-              />
+            <p className="text-xs" style={{ color: "var(--fg-3)" }}>
+              Create an OAuth App at{" "}
+              <a href="https://github.com/settings/developers" target="_blank" rel="noopener noreferrer"
+                className="underline" style={{ color: "var(--acc)" }}>
+                github.com/settings/developers
+              </a>.
+              {" "}Set the callback URL to{" "}
+              <code className="text-xs px-1 rounded" style={{ background: "var(--bg-3)" }}>
+                {typeof window !== "undefined" ? window.location.origin : ""}/go/api/github/callback
+              </code>
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>Client ID</label>
+                <input
+                  type="text"
+                  placeholder="Iv1.xxxxxxxxxxxx"
+                  value={clientId}
+                  onChange={e => setClientId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                  style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
+                />
+              </div>
+              <div>
+                <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>
+                  Client Secret{oauthSettings?.hasSecret && <span className="ml-2" style={{ color: "var(--ok)" }}>(already set)</span>}
+                </label>
+                <input
+                  type="password"
+                  placeholder={oauthSettings?.hasSecret ? "Leave blank to keep existing" : "xxxxxxxxxxxxxxxxxxxx"}
+                  value={clientSecret}
+                  onChange={e => setClientSecret(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                  style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
+                />
+              </div>
             </div>
+            <button
+              onClick={saveOAuthSettings}
+              disabled={oauthSaving}
+              className="w-full py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
+              style={{ background: "var(--acc)", color: "#fff" }}
+            >
+              {oauthSaved ? "Saved!" : oauthSaving ? "Saving…" : "Save OAuth Settings"}
+            </button>
           </div>
-          <button
-            onClick={saveOAuthSettings}
-            disabled={oauthSaving}
-            className="w-full py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
-            style={{ background: "var(--acc)", color: "#fff" }}
-          >
-            {oauthSaved ? "Saved!" : oauthSaving ? "Saving…" : "Save OAuth Settings"}
-          </button>
+
+          <div className="rounded-xl p-4 space-y-2" style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
+            <p className="text-xs font-medium" style={{ color: "var(--fg-3)" }}>How OAuth works</p>
+            <ul className="text-xs space-y-1" style={{ color: "var(--fg-3)" }}>
+              <li>1. Save your Client ID &amp; Secret above</li>
+              <li>2. Click &quot;Connect with GitHub OAuth&quot; on the left</li>
+              <li>3. Authorize PulseNode in the GitHub popup</li>
+              <li>4. You&apos;re redirected back and connected</li>
+            </ul>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
