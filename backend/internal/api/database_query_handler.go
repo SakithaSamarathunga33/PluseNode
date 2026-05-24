@@ -13,8 +13,7 @@ import (
 	dbpkg "pulsenode/backend/internal/db"
 )
 
-// resolveManagedDB resolves a container name like "pn-db-postgres-mydb" to its managed DB record.
-// Container names follow the pattern pn-db-{engine}-{name} set during provisioning.
+// resolveManagedDB resolves a PulseNode-provisioned container (pn-db-{engine}-{name}) to its DB record.
 func (s *Server) resolveManagedDB(containerName string) (*dbpkg.ManagedDatabase, error) {
 	stripped := strings.TrimPrefix(containerName, "pn-db-")
 	var engine, name string
@@ -38,6 +37,81 @@ func (s *Server) resolveManagedDB(containerName string) (*dbpkg.ManagedDatabase,
 	return m, nil
 }
 
+// resolveAnyDB resolves credentials for any database container — PulseNode-managed or external
+// (Coolify-provisioned, manually installed, etc.). For external containers it reads standard
+// engine env vars (POSTGRES_USER, MYSQL_ROOT_PASSWORD, etc.) via Docker inspect.
+func (s *Server) resolveAnyDB(ctx context.Context, containerName string) (*dbpkg.ManagedDatabase, error) {
+	if m, err := s.resolveManagedDB(containerName); err == nil {
+		return m, nil
+	}
+	if s.docker == nil {
+		return nil, fmt.Errorf("docker not available")
+	}
+	image, env, err := s.docker.ContainerInfo(ctx, containerName)
+	if err != nil {
+		return nil, fmt.Errorf("container %q not found", containerName)
+	}
+	engine := engineFromImage(image)
+	m := &dbpkg.ManagedDatabase{Name: containerName, Engine: engine}
+	switch engine {
+	case "postgres":
+		m.Username = firstEnv(env, "POSTGRES_USER", "POSTGRESQL_USERNAME", "DB_USER", "DB_USERNAME")
+		if m.Username == "" {
+			m.Username = "postgres"
+		}
+		m.Password = firstEnv(env, "POSTGRES_PASSWORD", "POSTGRESQL_PASSWORD", "DB_PASSWORD")
+		m.DBName = firstEnv(env, "POSTGRES_DB", "POSTGRESQL_DATABASE", "DB_DATABASE", "DB_NAME")
+		if m.DBName == "" {
+			m.DBName = m.Username
+		}
+	case "mysql":
+		m.Username = firstEnv(env, "MYSQL_USER", "DB_USER", "DB_USERNAME")
+		if m.Username == "" {
+			m.Username = "root"
+		}
+		if m.Username == "root" {
+			m.Password = firstEnv(env, "MYSQL_ROOT_PASSWORD", "MYSQL_PASSWORD", "DB_PASSWORD")
+		} else {
+			m.Password = firstEnv(env, "MYSQL_PASSWORD", "MYSQL_ROOT_PASSWORD", "DB_PASSWORD")
+		}
+		m.DBName = firstEnv(env, "MYSQL_DATABASE", "DB_DATABASE", "DB_NAME")
+	case "mongodb":
+		m.Username = firstEnv(env, "MONGO_INITDB_ROOT_USERNAME", "MONGODB_USERNAME", "DB_USER")
+		m.Password = firstEnv(env, "MONGO_INITDB_ROOT_PASSWORD", "MONGODB_PASSWORD", "DB_PASSWORD")
+		m.DBName = firstEnv(env, "MONGO_INITDB_DATABASE", "MONGODB_DATABASE", "DB_NAME")
+		if m.DBName == "" {
+			m.DBName = "admin"
+		}
+	case "redis":
+		m.Password = firstEnv(env, "REDIS_PASSWORD", "REDIS_PASS", "REQUIREPASS")
+		m.DBName = "0"
+	}
+	return m, nil
+}
+
+func engineFromImage(image string) string {
+	lower := strings.ToLower(image)
+	switch {
+	case strings.Contains(lower, "mysql"), strings.Contains(lower, "mariadb"):
+		return "mysql"
+	case strings.Contains(lower, "redis"):
+		return "redis"
+	case strings.Contains(lower, "mongo"):
+		return "mongodb"
+	default:
+		return "postgres"
+	}
+}
+
+func firstEnv(env map[string]string, keys ...string) string {
+	for _, k := range keys {
+		if v := env[k]; v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
 type dbSchemaResult struct {
 	Databases []string      `json:"databases"`
 	Tables    []dbTableInfo `json:"tables"`
@@ -57,7 +131,7 @@ type dbQueryResult struct {
 
 func (s *Server) databaseConnectionString(w http.ResponseWriter, r *http.Request) {
 	containerName := chi.URLParam(r, "name")
-	mdb, err := s.resolveManagedDB(containerName)
+	mdb, err := s.resolveAnyDB(r.Context(), containerName)
 	if err != nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
 		return
@@ -70,7 +144,7 @@ func (s *Server) databaseSchema(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	containerName := chi.URLParam(r, "name")
-	mdb, err := s.resolveManagedDB(containerName)
+	mdb, err := s.resolveAnyDB(r.Context(), containerName)
 	if err != nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
 		return
@@ -84,9 +158,11 @@ func (s *Server) databaseSchema(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	result := dbSchemaResult{Databases: []string{mdb.DBName}, Tables: []dbTableInfo{}}
 
+	pgEnv := []string{"PGPASSWORD=" + mdb.Password}
+
 	switch mdb.Engine {
 	case "postgres":
-		if out, err := s.docker.ExecSlice(ctx, containerName, []string{
+		if out, err := s.docker.ExecSliceEnv(ctx, containerName, pgEnv, []string{
 			"psql", "-U", mdb.Username, "-d", mdb.DBName, "-At", "-c",
 			"SELECT datname FROM pg_database WHERE datistemplate=false ORDER BY datname;",
 		}); err == nil {
@@ -104,7 +180,7 @@ func (s *Server) databaseSchema(w http.ResponseWriter, r *http.Request) {
 		}
 		// Fetch table names + estimated row counts in one query via pg_stat_user_tables.
 		// n_live_tup is a planner estimate (updated by autovacuum) — fast and accurate enough for display.
-		if out, err := s.docker.ExecSlice(ctx, containerName, []string{
+		if out, err := s.docker.ExecSliceEnv(ctx, containerName, pgEnv, []string{
 			"psql", "-U", mdb.Username, "-d", dbParam, "-At", "-F", "|", "-c",
 			"SELECT t.tablename, COALESCE(s.n_live_tup, 0) FROM pg_tables t LEFT JOIN pg_stat_user_tables s ON s.relname=t.tablename WHERE t.schemaname='public' ORDER BY t.tablename;",
 		}); err == nil {
@@ -175,7 +251,7 @@ func (s *Server) databaseQuery(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	containerName := chi.URLParam(r, "name")
-	mdb, err := s.resolveManagedDB(containerName)
+	mdb, err := s.resolveAnyDB(r.Context(), containerName)
 	if err != nil {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
 		return
@@ -213,7 +289,7 @@ func (s *Server) databaseQuery(w http.ResponseWriter, r *http.Request) {
 	case "mysql":
 		qResult, qErr = s.runMysqlQuery(ctx, containerName, mdb, dbParam, body.Query)
 	case "redis":
-		qResult, qErr = s.runRedisCommand(ctx, containerName, body.Query)
+		qResult, qErr = s.runRedisCommand(ctx, containerName, mdb, body.Query)
 	case "mongodb":
 		qResult, qErr = s.runMongoQuery(ctx, containerName, dbParam, body.Query)
 	default:
@@ -240,7 +316,7 @@ func isDestructiveQuery(query string) bool {
 }
 
 func (s *Server) runPostgresQuery(ctx context.Context, container string, mdb *dbpkg.ManagedDatabase, dbName, query string) (*dbQueryResult, error) {
-	out, err := s.docker.ExecSlice(ctx, container, []string{
+	out, err := s.docker.ExecSliceEnv(ctx, container, []string{"PGPASSWORD=" + mdb.Password}, []string{
 		"psql", "-U", mdb.Username, "-d", dbName, "--csv", "-c", query,
 	})
 	if err != nil {
@@ -274,12 +350,16 @@ func (s *Server) runMysqlQuery(ctx context.Context, container string, mdb *dbpkg
 	return parseTSVResult(trimmed)
 }
 
-func (s *Server) runRedisCommand(ctx context.Context, container, command string) (*dbQueryResult, error) {
+func (s *Server) runRedisCommand(ctx context.Context, container string, mdb *dbpkg.ManagedDatabase, command string) (*dbQueryResult, error) {
 	parts := strings.Fields(strings.TrimSpace(command))
 	if len(parts) == 0 {
 		return nil, fmt.Errorf("empty command")
 	}
-	cmd := append([]string{"redis-cli"}, parts...)
+	cmd := []string{"redis-cli"}
+	if mdb.Password != "" {
+		cmd = append(cmd, "-a", mdb.Password, "--no-auth-warning")
+	}
+	cmd = append(cmd, parts...)
 	out, err := s.docker.ExecSlice(ctx, container, cmd)
 	if err != nil {
 		return nil, fmt.Errorf("exec: %w", err)

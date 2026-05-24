@@ -64,10 +64,17 @@ func (c *Client) PruneBuildCache(ctx context.Context) (uint64, error) { var raw 
 
 // ExecSlice runs cmd inside a container by name or ID and returns combined stdout+stderr.
 func (c *Client) ExecSlice(ctx context.Context, containerNameOrID string, cmd []string) (string, error) {
+	return c.ExecSliceEnv(ctx, containerNameOrID, nil, cmd)
+}
+
+// ExecSliceEnv is like ExecSlice but injects additional env vars into the exec (e.g. PGPASSWORD).
+func (c *Client) ExecSliceEnv(ctx context.Context, containerNameOrID string, env []string, cmd []string) (string, error) {
+	body := map[string]any{"Cmd": cmd, "AttachStdout": true, "AttachStderr": true}
+	if len(env) > 0 {
+		body["Env"] = env
+	}
 	var created struct{ ID string `json:"Id"` }
-	if err := c.do(ctx, http.MethodPost, "/containers/"+containerNameOrID+"/exec", map[string]any{
-		"Cmd": cmd, "AttachStdout": true, "AttachStderr": true,
-	}, &created); err != nil {
+	if err := c.do(ctx, http.MethodPost, "/containers/"+containerNameOrID+"/exec", body, &created); err != nil {
 		return "", err
 	}
 	var buf bytes.Buffer
@@ -270,6 +277,27 @@ func (c *Client) fetchDetailedStat(ctx context.Context, id string) (detailedStat
 		ramMb:      float64(used) / 1024 / 1024,
 		ramLimitMb: float64(raw.MemSt.Limit) / 1024 / 1024,
 	}, nil
+}
+
+// ContainerInfo returns the image name and a flat env-var map for any container.
+func (c *Client) ContainerInfo(ctx context.Context, nameOrID string) (image string, env map[string]string, err error) {
+	var raw struct {
+		Config struct {
+			Image string   `json:"Image"`
+			Env   []string `json:"Env"`
+		} `json:"Config"`
+	}
+	if err = c.do(ctx, http.MethodGet, "/containers/"+nameOrID+"/json", nil, &raw); err != nil {
+		return
+	}
+	image = raw.Config.Image
+	env = make(map[string]string, len(raw.Config.Env))
+	for _, kv := range raw.Config.Env {
+		if i := strings.IndexByte(kv, '='); i >= 0 {
+			env[kv[:i]] = kv[i+1:]
+		}
+	}
+	return
 }
 
 func (c *Client) do(ctx context.Context, method, path string, body any, out any) error { var buf io.Reader; if body != nil { data, _ := json.Marshal(body); buf = bytes.NewReader(data) }; req, err := http.NewRequestWithContext(ctx, method, "http://docker"+path, buf); if err != nil { return err }; if body != nil { req.Header.Set("Content-Type", "application/json") }; res, err := c.http.Do(req); if err != nil { return err }; defer res.Body.Close(); if res.StatusCode >= 400 { data, _ := io.ReadAll(res.Body); return fmt.Errorf("docker %s %s: %s", method, path, strings.TrimSpace(string(data))) }; if out == nil { io.Copy(io.Discard, res.Body); return nil }; return json.NewDecoder(res.Body).Decode(out) }
