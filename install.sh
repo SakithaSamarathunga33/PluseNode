@@ -82,10 +82,12 @@ fi
 if [[ "$LISTEN" == "80" ]]; then
   BASE_URL="http://${HOST}"
   CADDY_SITE_ADDRESS=":80"
+  OVERLAY="docker-compose.standalone.yml"
 else
   BASE_URL="http://${HOST}:${LISTEN}"
   # http:// prefix disables Caddy's automatic HTTPS (which would try to bind 443)
   CADDY_SITE_ADDRESS="http://:${LISTEN}"
+  OVERLAY="docker-compose.nossl.yml"
 fi
 echo ""
 
@@ -149,11 +151,6 @@ echo ""
 # ── Pull pre-built images or build from source ─────────────────────────────────
 echo -e "${C}━━━  Starting containers  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${N}"
 
-if [[ "$LISTEN" == "80" ]]; then
-  OVERLAY="docker-compose.standalone.yml"
-else
-  OVERLAY="docker-compose.nossl.yml"
-fi
 COMPOSE_CMD="docker compose --env-file .env.local -f docker-compose.yml -f $OVERLAY"
 
 if $COMPOSE_CMD -f docker-compose.ghcr.yml pull --quiet 2>/dev/null; then
