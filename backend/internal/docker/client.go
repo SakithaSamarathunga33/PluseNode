@@ -233,3 +233,21 @@ func (c *Client) CreateDBContainer(ctx context.Context, image, name, volumeName,
 func (c *Client) StartContainer(ctx context.Context, id string) error {
 	return c.do(ctx, http.MethodPost, "/containers/"+id+"/start", nil, nil)
 }
+
+func (c *Client) CreateTTYExec(ctx context.Context, containerID string) (string, error) {
+	var created struct{ ID string `json:"Id"` }
+	err := c.do(ctx, http.MethodPost, "/containers/"+containerID+"/exec",
+		map[string]any{
+			"Cmd":          []string{"sh"},
+			"AttachStdin":  true,
+			"AttachStdout": true,
+			"AttachStderr": true,
+			"Tty":          true,
+		}, &created)
+	return created.ID, err
+}
+
+func (c *Client) ResizeExecTTY(ctx context.Context, execID string, h, w int) error {
+	return c.do(ctx, http.MethodPost,
+		fmt.Sprintf("/exec/%s/resize?h=%d&w=%d", execID, h, w), nil, nil)
+}

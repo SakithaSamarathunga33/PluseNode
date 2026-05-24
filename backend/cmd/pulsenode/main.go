@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 
 	"pulsenode/backend/internal/api"
 	"pulsenode/backend/internal/db"
@@ -19,16 +20,26 @@ import (
 )
 
 func main() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	if os.Getenv("LOG_FORMAT") != "json" {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "15:04:05"})
+	}
+	level := zerolog.InfoLevel
+	if os.Getenv("LOG_LEVEL") == "debug" {
+		level = zerolog.DebugLevel
+	}
+	zerolog.SetGlobalLevel(level)
+
 	port := env("GO_PORT", "4002")
 
 	dockerClient, err := docker.New()
 	if err != nil {
-		log.Printf("[docker] unavailable, using mock-compatible empty responses: %v", err)
+		log.Warn().Err(err).Msg("docker socket unavailable, container features disabled")
 	}
 
 	database, err := db.Open(env("DATABASE_PATH", "/data/pulsenode.db"))
 	if err != nil {
-		log.Fatalf("[db] failed to open database: %v", err)
+		log.Fatal().Err(err).Msg("failed to open database")
 	}
 
 	collector := proc.NewCollector(60, 3*time.Second)
@@ -63,13 +74,14 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("[server] PulseNode Go backend listening on http://localhost:%s", port)
+		log.Info().Str("addr", "http://localhost:"+port).Msg("PulseNode listening")
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("[server] listen failed: %v", err)
+			log.Fatal().Err(err).Msg("server error")
 		}
 	}()
 
 	<-ctx.Done()
+	log.Info().Msg("shutting down…")
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	_ = httpServer.Shutdown(shutdownCtx)
@@ -108,23 +120,8 @@ func streamContainerStats(ctx context.Context, dockerClient *docker.Client, even
 }
 
 func env(key, fallback string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return fallback
+	if v := os.Getenv(key); v != "" {
+		return v
 	}
-	return value
+	return fallback
 }
-
-func envBool(key string, fallback bool) bool {
-	value := os.Getenv(key)
-	if value == "" {
-		return fallback
-	}
-	parsed, err := strconv.ParseBool(value)
-	if err != nil {
-		return fallback
-	}
-	return parsed
-}
-
-var _ = envBool

@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/cors"
 
 	"pulsenode/backend/internal/auth"
+	"pulsenode/backend/internal/caddy"
 	"pulsenode/backend/internal/db"
 	"pulsenode/backend/internal/docker"
 	"pulsenode/backend/internal/hub"
@@ -38,6 +39,7 @@ type Server struct {
 	db        *db.DB
 	queue     *queue.Queue
 	security  *security.Service
+	caddy     *caddy.Client
 	auth      *auth.Middleware
 	origins   []string
 }
@@ -50,6 +52,7 @@ func NewServer(cfg Config) *Server {
 		db:        cfg.DB,
 		queue:     cfg.Queue,
 		security:  security.New(),
+		caddy:     caddy.New(os.Getenv("CADDY_ADMIN_ADDR")),
 		auth: auth.NewMiddleware(auth.Config{
 			Enabled: strings.EqualFold(os.Getenv("GO_API_AUTH"), "true") || strings.EqualFold(os.Getenv("NODE_API_AUTH"), "true"),
 			Secret:  firstNonEmpty(os.Getenv("JWT_SECRET"), os.Getenv("NODE_API_SECRET"), "pulsenode-dev-secret"),
@@ -74,6 +77,11 @@ func (s *Server) Routes() http.Handler {
 	r.Get("/config", s.clientConfig)
 	r.Get("/events", s.hub.ServeSSE)
 	r.Get("/ws", s.hub.ServeWebSocket)
+
+	// Container shell — WebSocket, no auth middleware wrapping needed (auth via origin check)
+	r.Get("/api/ws/containers/{id}/shell", s.containerShell)
+	r.Post("/api/ws/containers/resize", s.containerShellResize)
+
 	r.Get("/api/github/callback", s.githubCallback)
 
 	r.Route("/api", func(r chi.Router) {
@@ -151,6 +159,12 @@ func (s *Server) Routes() http.Handler {
 
 		// Audit log
 		r.Get("/audit", s.listAuditLog)
+
+		// Caddy Admin API proxy (never exposed publicly — Admin API is localhost:2019)
+		r.Get("/caddy/config", s.caddyConfig)
+		r.Get("/caddy/routes", s.caddyRoutes)
+		r.Post("/caddy/routes", s.caddyAddRoute)
+		r.Delete("/caddy/routes/{id}", s.caddyRemoveRoute)
 
 		// Legacy stubs kept for backward compat
 		r.Get("/database/custom", emptyList)
