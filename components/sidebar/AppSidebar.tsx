@@ -7,9 +7,10 @@ import {
   Container, BarChart3, Activity, Layers, Network,
   Database, Shield, FileCode2, BellRing,
   ChevronDown, Cpu, PanelLeftClose, PanelLeftOpen, Settings,
-  FolderGit2, GitFork,
+  FolderGit2,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { GitHubDark, Docker } from "developer-icons"
 import { BorderBeam } from "@/components/magicui/border-beam"
 import { NumberTicker } from "@/components/magicui/number-ticker"
 import { cn } from "@/lib/utils"
@@ -21,6 +22,7 @@ type NavItem = {
   label: string
   href: string
   icon: LucideIcon
+  devIcon?: React.ComponentType<React.SVGProps<SVGSVGElement> & { size?: number }>
   badge?: number
   alertBadge?: boolean
 }
@@ -34,7 +36,7 @@ const BASE_NAV_SECTIONS: NavSection[] = [
   {
     label: "Workspace",
     items: [
-      { label: "Containers",   href: "/containers",   icon: Container  },
+      { label: "Containers",   href: "/containers",   icon: Container, devIcon: Docker  },
       { label: "Stats",        href: "/stats",        icon: BarChart3  },
       { label: "Processes",    href: "/processes",    icon: Activity   },
     ],
@@ -62,7 +64,7 @@ const COOLIFY_ITEM: NavItem = { label: "Coolify", href: "/coolify", icon: Layers
 const DEPLOY_SECTION: NavSection = {
   label: "Deploy",
   items: [
-    { label: "GitHub",   href: "/github",   icon: GitFork     },
+    { label: "GitHub",   href: "/github",   icon: FolderGit2, devIcon: GitHubDark },
     { label: "Projects", href: "/projects", icon: FolderGit2  },
   ],
 }
@@ -199,6 +201,7 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
               {section.items.map(item => {
                 const isActive = pathname === item.href
                 const Icon = item.icon
+                const DevIcon = item.devIcon
                 return (
                   <Link key={item.href} href={item.href}>
                     <div
@@ -225,11 +228,15 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
                           colorTo="var(--acc-2)"
                         />
                       )}
-                      <Icon
-                        size={14}
-                        className="flex-shrink-0 transition-colors"
-                        style={{ color: isActive ? "var(--acc)" : "var(--fg-3)" }}
-                      />
+                      {DevIcon ? (
+                        <DevIcon size={14} className="flex-shrink-0" />
+                      ) : (
+                        <Icon
+                          size={14}
+                          className="flex-shrink-0 transition-colors"
+                          style={{ color: isActive ? "var(--acc)" : "var(--fg-3)" }}
+                        />
+                      )}
                       {!collapsed && (
                         <>
                           <span

@@ -18,6 +18,35 @@ import { nodeApi } from "@/lib/api"
 import { getSocket } from "@/lib/socket"
 import type { Container, ContainerStats, HostInfo, SystemMetrics } from "@/lib/types"
 import { Pill } from "@/components/dashboard/Pill"
+import {
+  Docker, PostgreSQL, MySQL, MariaDB, Redis, MongoDB,
+  ClickHouse, Elastic, NodeJs, Python,
+  NestJS, NuxtJs, NextJs,
+} from "developer-icons"
+
+type DeveloperIcon = React.ComponentType<React.SVGProps<SVGSVGElement> & { size?: number }>
+
+const IMAGE_ICONS: Array<[RegExp, DeveloperIcon]> = [
+  [/postgres/i,   PostgreSQL],
+  [/mysql/i,      MySQL],
+  [/mariadb/i,    MariaDB],
+  [/redis/i,      Redis],
+  [/mongo/i,      MongoDB],
+  [/clickhouse/i, ClickHouse],
+  [/elastic/i,    Elastic],
+  [/node/i,       NodeJs],
+  [/python/i,     Python],
+  [/nestjs/i,     NestJS],
+  [/nuxt/i,       NuxtJs],
+  [/next/i,       NextJs],
+]
+
+function ImageIcon({ image }: { image: string }) {
+  for (const [re, Icon] of IMAGE_ICONS) {
+    if (re.test(image)) return <Icon size={16} className="flex-shrink-0" />
+  }
+  return <Docker size={16} className="flex-shrink-0" />
+}
 
 type ContainerHistory = Record<string, { cpuHist: number[]; ramHist: number[] }>
 
@@ -866,7 +895,12 @@ export default function ContainersPage() {
                     </div>
                   </td>
 
-                  <td className="mono-cell dim max-w-[200px] truncate">{c.image}</td>
+                  <td className="mono-cell dim max-w-[200px]">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <ImageIcon image={c.image} />
+                      <span className="truncate">{c.image}</span>
+                    </div>
+                  </td>
                   <td><StateBadge state={c.state} /></td>
                   <td className="dim">{c.uptime}</td>
                   <td className="mono-cell dim">{c.ports}</td>

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { GitFork, Key, Unlink, RefreshCw, ExternalLink, ChevronRight, Shield } from "lucide-react"
+import { Key, Unlink, RefreshCw, ExternalLink, ChevronRight, Shield } from "lucide-react"
+import { GitHubDark } from "developer-icons"
 import Link from "next/link"
 
 const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
@@ -169,7 +170,7 @@ export default function GitHubPage() {
               {oauthSettings?.configured && (
                 <div className="rounded-xl p-5 space-y-3" style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
                   <div className="flex items-center gap-2">
-                    <GitFork size={16} style={{ color: "var(--fg)" }} />
+                    <GitHubDark size={16} />
                     <p className="font-medium text-sm" style={{ color: "var(--fg)" }}>Connect with GitHub OAuth</p>
                   </div>
                   <p className="text-xs" style={{ color: "var(--fg-3)" }}>
@@ -180,7 +181,7 @@ export default function GitHubPage() {
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium"
                     style={{ background: "var(--fg)", color: "var(--bg-1)" }}
                   >
-                    <GitFork size={15} />
+                    <GitHubDark size={15} />
                     Continue with GitHub
                   </button>
                 </div>

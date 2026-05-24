@@ -14,6 +14,10 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
   AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  Docker, GitHubDark, PostgreSQL, MySQL, MariaDB, Redis,
+  MongoDB, ClickHouse, Elastic,
+} from "developer-icons"
 
 /* ── FilterChip ─────────────────────────────────────────────────────── */
 function FilterChip({ label, value }: { label: string; value: string }) {
@@ -28,20 +32,26 @@ function FilterChip({ label, value }: { label: string; value: string }) {
   )
 }
 
-/* ── Registry icon placeholder ──────────────────────────────────────── */
+/* ── Registry / image icon ───────────────────────────────────────────── */
+type DeveloperIcon = React.ComponentType<React.SVGProps<SVGSVGElement> & { size?: number }>
+
+const IMAGE_ICON_MAP: Array<[RegExp, DeveloperIcon]> = [
+  [/postgres/i,   PostgreSQL],
+  [/mysql/i,      MySQL],
+  [/mariadb/i,    MariaDB],
+  [/redis/i,      Redis],
+  [/mongo/i,      MongoDB],
+  [/clickhouse/i, ClickHouse],
+  [/elastic/i,    Elastic],
+  [/ghcr\.io/i,   GitHubDark],
+]
+
 function RegistryIcon({ repo }: { repo: string }) {
-  const isGhcr  = repo.startsWith("ghcr.io")
-  const isDocker = !repo.includes(".")
-  const bg = isGhcr ? "var(--pn-navy-light)" : "var(--pn-navy)"
-  const label = isGhcr ? "G" : isDocker ? "D" : repo[0]?.toUpperCase() ?? "?"
-  return (
-    <span
-      className="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold flex-shrink-0"
-      style={{ background: bg, color: "var(--pn-cyan)", border: "1px solid rgba(220,232,245,0.1)" }}
-    >
-      {label}
-    </span>
-  )
+  for (const [re, Icon] of IMAGE_ICON_MAP) {
+    if (re.test(repo)) return <Icon size={22} className="flex-shrink-0" />
+  }
+  // Default: Docker Hub or unknown
+  return <Docker size={22} className="flex-shrink-0" />
 }
 
 /* ── Helper: parse MB from size string ──────────────────────────────── */
