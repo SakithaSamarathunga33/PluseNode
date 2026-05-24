@@ -1,7 +1,8 @@
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
-import { RefreshCw, Bell, Settings, Search } from "lucide-react"
+import { useRef, useState, useEffect, useCallback } from "react"
+import { RefreshCw, Bell, Settings, Search, LayoutDashboard, HardDrive, Cpu, Network, Database, GitBranch, GitFork, AlertTriangle, Package, Terminal, ShieldCheck, FileCode, ChevronRight } from "lucide-react"
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
 
 const PAGE_TITLES: Record<string, string> = {
@@ -15,20 +16,190 @@ const PAGE_TITLES: Record<string, string> = {
   "/scan-history": "Scan History",
   "/sbom-history": "SBOMs",
   "/alerts":       "Alerts",
+  "/projects":     "Projects",
+  "/github":       "GitHub",
+  "/settings":     "Settings",
+}
+
+type SearchItem = {
+  label: string
+  description: string
+  href: string
+  icon: React.ReactNode
+  keywords: string[]
+}
+
+const SEARCH_ITEMS: SearchItem[] = [
+  {
+    label: "Containers",
+    description: "Manage and inspect running Docker containers",
+    href: "/containers",
+    icon: <LayoutDashboard size={14} />,
+    keywords: ["container", "docker", "running", "logs", "shell", "exec", "restart", "stop"],
+  },
+  {
+    label: "System Stats",
+    description: "Live CPU, RAM, disk and network charts",
+    href: "/stats",
+    icon: <Cpu size={14} />,
+    keywords: ["stats", "metrics", "cpu", "ram", "memory", "disk", "network", "usage", "live"],
+  },
+  {
+    label: "Processes",
+    description: "Host process list with CPU and memory usage",
+    href: "/processes",
+    icon: <Terminal size={14} />,
+    keywords: ["process", "pid", "kill", "suspend", "resume", "pm2", "cpu", "memory"],
+  },
+  {
+    label: "Images",
+    description: "Docker images on this host",
+    href: "/images",
+    icon: <Package size={14} />,
+    keywords: ["image", "docker", "pull", "prune", "layer", "tag"],
+  },
+  {
+    label: "Networks",
+    description: "Docker network topology and bridge info",
+    href: "/networks",
+    icon: <Network size={14} />,
+    keywords: ["network", "bridge", "docker", "subnet", "topology", "ip"],
+  },
+  {
+    label: "Databases",
+    description: "Provision and connect to databases",
+    href: "/databases",
+    icon: <Database size={14} />,
+    keywords: ["database", "postgres", "mysql", "redis", "mongo", "sqlite", "sql", "query", "schema", "provision"],
+  },
+  {
+    label: "Alerts",
+    description: "Alert rules and notification channels",
+    href: "/alerts",
+    icon: <AlertTriangle size={14} />,
+    keywords: ["alert", "notification", "rule", "webhook", "slack", "email", "threshold"],
+  },
+  {
+    label: "Projects",
+    description: "Deploy projects from GitHub repositories",
+    href: "/projects",
+    icon: <GitBranch size={14} />,
+    keywords: ["project", "deploy", "github", "repo", "build", "deployment", "branch"],
+  },
+  {
+    label: "Coolify",
+    description: "View Coolify projects and deployments",
+    href: "/coolify",
+    icon: <HardDrive size={14} />,
+    keywords: ["coolify", "deployment", "project", "service"],
+  },
+  {
+    label: "GitHub",
+    description: "Connect GitHub account and configure OAuth",
+    href: "/github",
+    icon: <GitFork size={14} />,
+    keywords: ["github", "oauth", "pat", "token", "repo", "repository", "connect"],
+  },
+  {
+    label: "Scan History",
+    description: "Container security vulnerability scan results",
+    href: "/scan-history",
+    icon: <ShieldCheck size={14} />,
+    keywords: ["scan", "security", "vulnerability", "trivy", "cve", "risk"],
+  },
+  {
+    label: "SBOMs",
+    description: "Software bill of materials for your images",
+    href: "/sbom-history",
+    icon: <FileCode size={14} />,
+    keywords: ["sbom", "bill", "materials", "dependency", "package", "syft"],
+  },
+  {
+    label: "Settings",
+    description: "System settings, updates, and login security",
+    href: "/settings",
+    icon: <Settings size={14} />,
+    keywords: ["setting", "security", "login", "password", "update", "version", "auth"],
+  },
+]
+
+function score(item: SearchItem, q: string): number {
+  const ql = q.toLowerCase().trim()
+  if (!ql) return 0
+  const label = item.label.toLowerCase()
+  const desc = item.description.toLowerCase()
+  if (label === ql) return 100
+  if (label.startsWith(ql)) return 80
+  if (label.includes(ql)) return 60
+  if (item.keywords.some(k => k.startsWith(ql))) return 50
+  if (item.keywords.some(k => k.includes(ql))) return 40
+  if (desc.includes(ql)) return 20
+  return 0
 }
 
 export function Topbar() {
   const pathname = usePathname()
-  const router = useRouter()
-  const title = PAGE_TITLES[pathname] ?? "PulseNode"
+  const router   = useRouter()
+  const title    = PAGE_TITLES[pathname] ?? "PulseNode"
+
+  const [query, setQuery]       = useState("")
+  const [open, setOpen]         = useState(false)
+  const [active, setActive]     = useState(0)
+  const inputRef  = useRef<HTMLInputElement>(null)
+  const dropRef   = useRef<HTMLDivElement>(null)
+
+  const results = query.trim()
+    ? SEARCH_ITEMS.map(item => ({ item, s: score(item, query) }))
+        .filter(x => x.s > 0)
+        .sort((a, b) => b.s - a.s)
+        .map(x => x.item)
+    : []
+
+  const navigate = useCallback((href: string) => {
+    setQuery("")
+    setOpen(false)
+    router.push(href)
+  }, [router])
+
+  // ⌘K / Ctrl+K shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault()
+        inputRef.current?.focus()
+        setOpen(true)
+      }
+    }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [])
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        dropRef.current && !dropRef.current.contains(e.target as Node) &&
+        inputRef.current && !inputRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!open || results.length === 0) return
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive(i => Math.min(i + 1, results.length - 1)) }
+    if (e.key === "ArrowUp")   { e.preventDefault(); setActive(i => Math.max(i - 1, 0)) }
+    if (e.key === "Enter")     { e.preventDefault(); navigate(results[active].href) }
+    if (e.key === "Escape")    { setOpen(false); inputRef.current?.blur() }
+  }
 
   return (
     <header
       className="h-[52px] flex items-center px-5 gap-4 flex-shrink-0"
-      style={{
-        background: "var(--bg-1)",
-        borderBottom: "1px solid var(--border)",
-      }}
+      style={{ background: "var(--bg-1)", borderBottom: "1px solid var(--border)" }}
     >
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-sm">
@@ -38,25 +209,109 @@ export function Topbar() {
       </div>
 
       {/* Search */}
-      <div
-        className="flex-1 max-w-sm mx-auto hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm"
-        style={{
-          background: "var(--bg-2)",
-          border: "1px solid var(--border)",
-        }}
-      >
-        <Search size={12} style={{ color: "var(--fg-3)" }} className="flex-shrink-0" />
-        <input
-          className="bg-transparent outline-none text-sm flex-1 min-w-0"
-          style={{ color: "var(--fg)" }}
-          placeholder="Search containers, images, processes…"
-        />
-        <span
-          className="text-[10px] font-mono px-1.5 py-0.5 rounded"
-          style={{ background: "var(--bg-3)", color: "var(--fg-3)" }}
+      <div className="flex-1 max-w-sm mx-auto hidden md:block relative">
+        <div
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm"
+          style={{ background: "var(--bg-2)", border: `1px solid ${open ? "var(--acc)" : "var(--border)"}`, transition: "border-color 0.15s" }}
         >
-          ⌘K
-        </span>
+          <Search size={12} style={{ color: "var(--fg-3)" }} className="flex-shrink-0" />
+          <input
+            ref={inputRef}
+            className="bg-transparent outline-none text-sm flex-1 min-w-0"
+            style={{ color: "var(--fg)" }}
+            placeholder="Search pages…"
+            value={query}
+            onChange={e => { setQuery(e.target.value); setOpen(true); setActive(0) }}
+            onFocus={() => setOpen(true)}
+            onKeyDown={handleKeyDown}
+          />
+          <span
+            className="text-[10px] font-mono px-1.5 py-0.5 rounded flex-shrink-0"
+            style={{ background: "var(--bg-3)", color: "var(--fg-3)" }}
+          >
+            ⌘K
+          </span>
+        </div>
+
+        {/* Dropdown */}
+        {open && (
+          <div
+            ref={dropRef}
+            className="absolute left-0 right-0 top-[calc(100%+6px)] rounded-xl overflow-hidden z-50 py-1"
+            style={{ background: "var(--bg-2)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.25)" }}
+          >
+            {results.length > 0 ? (
+              <>
+                <p className="px-3 pt-1 pb-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--fg-3)" }}>
+                  Pages
+                </p>
+                {results.map((item, i) => (
+                  <button
+                    key={item.href}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-left transition-colors"
+                    style={{
+                      background: i === active ? "var(--bg-3)" : "transparent",
+                      color: "var(--fg)",
+                    }}
+                    onMouseEnter={() => setActive(i)}
+                    onClick={() => navigate(item.href)}
+                  >
+                    <span className="flex-shrink-0" style={{ color: i === active ? "var(--acc)" : "var(--fg-3)" }}>
+                      {item.icon}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-sm font-medium">{item.label}</span>
+                      <span className="block text-xs truncate" style={{ color: "var(--fg-3)" }}>{item.description}</span>
+                    </span>
+                    <ChevronRight size={12} style={{ color: "var(--fg-4)", flexShrink: 0 }} />
+                  </button>
+                ))}
+              </>
+            ) : query.trim() ? (
+              <p className="px-3 py-3 text-sm text-center" style={{ color: "var(--fg-3)" }}>
+                No pages found for &ldquo;{query}&rdquo;
+              </p>
+            ) : (
+              <>
+                <p className="px-3 pt-1 pb-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--fg-3)" }}>
+                  All pages
+                </p>
+                {SEARCH_ITEMS.map((item, i) => (
+                  <button
+                    key={item.href}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-left transition-colors"
+                    style={{
+                      background: i === active ? "var(--bg-3)" : "transparent",
+                      color: "var(--fg)",
+                    }}
+                    onMouseEnter={() => setActive(i)}
+                    onClick={() => navigate(item.href)}
+                  >
+                    <span className="flex-shrink-0" style={{ color: i === active ? "var(--acc)" : "var(--fg-3)" }}>
+                      {item.icon}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-sm font-medium">{item.label}</span>
+                      <span className="block text-xs truncate" style={{ color: "var(--fg-3)" }}>{item.description}</span>
+                    </span>
+                    <ChevronRight size={12} style={{ color: "var(--fg-4)", flexShrink: 0 }} />
+                  </button>
+                ))}
+              </>
+            )}
+            <div className="flex items-center gap-3 px-3 py-1.5 mt-0.5" style={{ borderTop: "1px solid var(--border)" }}>
+              <span className="text-[10px]" style={{ color: "var(--fg-4)" }}>
+                <kbd className="font-mono">↑↓</kbd> navigate
+              </span>
+              <span className="text-[10px]" style={{ color: "var(--fg-4)" }}>
+                <kbd className="font-mono">↵</kbd> open
+              </span>
+              <span className="text-[10px]" style={{ color: "var(--fg-4)" }}>
+                <kbd className="font-mono">Esc</kbd> close
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Actions */}
