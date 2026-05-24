@@ -62,6 +62,9 @@ services:
       PULSENODE_VERSION: ${PULSENODE_VERSION:-dev}
       PULSENODE_WORKSPACE: /workspace
       PULSENODE_OVERLAY: ${PULSENODE_OVERLAY:-docker-compose.standalone.yml}
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: safe.directory
+      GIT_CONFIG_VALUE_0: /workspace
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - pn-go-data:/var/lib/pulsenode
