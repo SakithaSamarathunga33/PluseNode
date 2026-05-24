@@ -160,6 +160,14 @@ CREATE TABLE IF NOT EXISTS oauth_settings (
   client_id     TEXT NOT NULL DEFAULT '',
   client_secret TEXT NOT NULL DEFAULT ''
 );
+
+CREATE TABLE IF NOT EXISTS users (
+  id            INTEGER PRIMARY KEY,
+  username      TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 `)
 	return err
 }
@@ -535,6 +543,21 @@ func (d *DB) GetManagedDatabase(id string) (*ManagedDatabase, error) {
 	return &m, nil
 }
 
+func (d *DB) GetManagedDatabaseByContainerName(engine, name string) (*ManagedDatabase, error) {
+	row := d.QueryRow(`SELECT id,name,engine,COALESCE(container_id,''),COALESCE(volume_name,''),COALESCE(host_port,0),username,encrypted_password,db_name,status,created_at FROM managed_databases WHERE engine=? AND name=?`, engine, name)
+	var m ManagedDatabase
+	var enc string
+	if err := row.Scan(&m.ID, &m.Name, &m.Engine, &m.ContainerID, &m.VolumeName, &m.HostPort, &m.Username, &enc, &m.DBName, &m.Status, &m.CreatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	plain, _ := Decrypt(enc)
+	m.Password = plain
+	return &m, nil
+}
+
 func (d *DB) DeleteManagedDatabase(id string) error {
 	_, err := d.Exec(`DELETE FROM managed_databases WHERE id=?`, id)
 	return err
@@ -719,4 +742,45 @@ func (d *DB) DeleteNotificationChannel(id string) error {
 func (d *DB) InsertAuditLog(actor, action, resource, ip string, status int) {
 	_, _ = d.Exec(`INSERT INTO audit_log (actor,action,resource,ip,status) VALUES (?,?,?,?,?)`,
 		actor, action, resource, ip, status)
+}
+
+// ── Users (auth) ──────────────────────────────────────────────────────────────
+
+type User struct {
+	ID           int64
+	Username     string
+	PasswordHash string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
+// GetUser returns the single admin user, or nil if none exists (auth disabled).
+func (d *DB) GetUser() (*User, error) {
+	row := d.QueryRow(`SELECT id, username, password_hash, created_at, updated_at FROM users LIMIT 1`)
+	var u User
+	if err := row.Scan(&u.ID, &u.Username, &u.PasswordHash, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &u, nil
+}
+
+// UpsertUser creates or replaces the single admin user (id=1).
+func (d *DB) UpsertUser(username, passwordHash string) error {
+	_, err := d.Exec(`
+INSERT INTO users (id, username, password_hash) VALUES (1, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+  username=excluded.username,
+  password_hash=excluded.password_hash,
+  updated_at=CURRENT_TIMESTAMP`,
+		username, passwordHash)
+	return err
+}
+
+// DeleteUser removes the admin user, disabling login protection.
+func (d *DB) DeleteUser() error {
+	_, err := d.Exec(`DELETE FROM users`)
+	return err
 }
