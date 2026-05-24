@@ -87,8 +87,8 @@ export default function ImagesPage() {
     setPruning(true)
     setPruneMsg(null)
     try {
-      const data = await nodeApi.post<{ reclaimedMB: string }>("/api/docker/images/prune")
-      setPruneMsg(`Pruned unused images · ${data.reclaimedMB} MB reclaimed`)
+      const res = await nodeApi.post<{ reclaimedMB: string }>("/api/docker/images/prune")
+      setPruneMsg(`Pruned unused images · ${res.reclaimedMB} MB reclaimed`)
       fetchImages()
     } catch (e: unknown) {
       setPruneMsg(`Error: ${e instanceof Error ? e.message : "prune failed"}`)
