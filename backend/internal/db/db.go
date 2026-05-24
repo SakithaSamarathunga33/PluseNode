@@ -476,17 +476,17 @@ func (d *DB) GetLogs(deploymentID string) ([]map[string]string, error) {
 // ── Managed Databases ─────────────────────────────────────────────────────────
 
 type ManagedDatabase struct {
-	ID                string
-	Name              string
-	Engine            string
-	ContainerID       string
-	VolumeName        string
-	HostPort          int
-	Username          string
-	Password          string // decrypted
-	DBName            string
-	Status            string
-	CreatedAt         time.Time
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Engine      string    `json:"engine"`
+	ContainerID string    `json:"container_id"`
+	VolumeName  string    `json:"volume_name"`
+	HostPort    int       `json:"host_port"`
+	Username    string    `json:"username"`
+	Password    string    `json:"password"` // decrypted
+	DBName      string    `json:"db_name"`
+	Status      string    `json:"status"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 func (d *DB) CreateManagedDatabase(m *ManagedDatabase) error {
@@ -543,15 +543,15 @@ func (d *DB) DeleteManagedDatabase(id string) error {
 // ── Connected Databases ───────────────────────────────────────────────────────
 
 type ConnectedDatabase struct {
-	ID        string
-	Name      string
-	Engine    string
-	Host      string
-	Port      int
-	Username  string
-	Password  string
-	DBName    string
-	CreatedAt time.Time
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Engine    string    `json:"engine"`
+	Host      string    `json:"host"`
+	Port      int       `json:"port"`
+	Username  string    `json:"username"`
+	Password  string    `json:"password"`
+	DBName    string    `json:"db_name"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (d *DB) CreateConnectedDatabase(c *ConnectedDatabase) error {
