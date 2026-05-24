@@ -22,6 +22,7 @@ type Image struct { Repo string `json:"repo"`; Tag string `json:"tag"`; ID strin
 type Network struct { Name string `json:"name"`; Driver string `json:"driver"`; Scope string `json:"scope"`; Subnet string `json:"subnet"`; Gateway string `json:"gateway"`; Containers int `json:"containers"`; Attachable bool `json:"attachable"`; Internal bool `json:"internal"` }
 type Database struct { Name string `json:"name"`; ContainerID string `json:"containerId"`; Engine string `json:"engine"`; Version string `json:"version"`; Host string `json:"host"`; Port int `json:"port"`; Size string `json:"size"`; Conns int `json:"conns"`; MaxConns int `json:"maxConns"`; QPS int `json:"qps"`; Slow int `json:"slow"`; State string `json:"state"` }
 type Stat struct { ContainerID string `json:"containerId"`; CPU float64 `json:"cpu"`; RAM float64 `json:"ram"` }
+type ContainerStat struct { ID string `json:"id"`; Name string `json:"name"`; Image string `json:"image"`; State string `json:"state"`; CPU float64 `json:"cpu"`; RAMPct float64 `json:"ramPct"`; RAMMb float64 `json:"ramMb"`; RAMLimitMb float64 `json:"ramLimitMb"` }
 
 func New() (*Client, error) {
 	transport := &http.Transport{DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) { return (&net.Dialer{}).DialContext(ctx, "unix", "/var/run/docker.sock") }}
@@ -109,6 +110,56 @@ func (c *Client) ContainerStats(ctx context.Context) ([]Stat, error) {
 	return out, nil
 }
 
+type detailedStat struct {
+	cpu        float64
+	ramPct     float64
+	ramMb      float64
+	ramLimitMb float64
+}
+
+func (c *Client) ContainerStatsNamed(ctx context.Context) ([]ContainerStat, error) {
+	containers, err := c.Containers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	type result struct {
+		stat ContainerStat
+		err  error
+	}
+	running := 0
+	for _, ctr := range containers {
+		if ctr.State == "running" {
+			running++
+		}
+	}
+	ch := make(chan result, running)
+	for _, ctr := range containers {
+		if ctr.State != "running" {
+			continue
+		}
+		go func(ctr Container) {
+			ds, e := c.fetchDetailedStat(ctx, ctr.ID)
+			if e != nil {
+				ch <- result{err: e}
+				return
+			}
+			ch <- result{stat: ContainerStat{
+				ID: ctr.ID, Name: ctr.Name, Image: ctr.Image, State: ctr.State,
+				CPU: ds.cpu, RAMPct: ds.ramPct, RAMMb: ds.ramMb, RAMLimitMb: ds.ramLimitMb,
+			}}
+		}(ctr)
+	}
+	out := make([]ContainerStat, 0, running)
+	for i := 0; i < running; i++ {
+		r := <-ch
+		if r.err == nil {
+			out = append(out, r.stat)
+		}
+	}
+	return out, nil
+}
+
 func (c *Client) fetchOneStat(ctx context.Context, id string) (Stat, error) {
 	var raw struct {
 		ID     string `json:"id"`
@@ -166,6 +217,59 @@ func (c *Client) fetchOneStat(ctx context.Context, id string) (Stat, error) {
 		shortid = shortid[:12]
 	}
 	return Stat{ContainerID: shortid, CPU: cpuPct, RAM: ramPct}, nil
+}
+
+func (c *Client) fetchDetailedStat(ctx context.Context, id string) (detailedStat, error) {
+	var raw struct {
+		CPUSt  struct {
+			Usage       struct{ Total uint64 `json:"total_usage"` } `json:"cpu_usage"`
+			SystemUsage uint64 `json:"system_cpu_usage"`
+			OnlineCPUs  int    `json:"online_cpus"`
+		} `json:"cpu_stats"`
+		PreCPUSt struct {
+			Usage       struct{ Total uint64 `json:"total_usage"` } `json:"cpu_usage"`
+			SystemUsage uint64 `json:"system_cpu_usage"`
+		} `json:"precpu_stats"`
+		MemSt struct {
+			Usage uint64 `json:"usage"`
+			Limit uint64 `json:"limit"`
+			Cache uint64 `json:"cache"`
+			Stats struct{ Cache uint64 `json:"cache"` } `json:"stats"`
+		} `json:"memory_stats"`
+	}
+	statCtx, cancel := context.WithTimeout(ctx, 4*time.Second)
+	defer cancel()
+	if err := c.do(statCtx, http.MethodGet, "/containers/"+id+"/stats?stream=false&one-shot=true", nil, &raw); err != nil {
+		return detailedStat{}, err
+	}
+	cpuDelta := float64(raw.CPUSt.Usage.Total) - float64(raw.PreCPUSt.Usage.Total)
+	sysDelta  := float64(raw.CPUSt.SystemUsage) - float64(raw.PreCPUSt.SystemUsage)
+	numCPU := raw.CPUSt.OnlineCPUs
+	if numCPU == 0 {
+		numCPU = 1
+	}
+	cpuPct := 0.0
+	if sysDelta > 0 {
+		cpuPct = (cpuDelta / sysDelta) * float64(numCPU) * 100.0
+	}
+	cache := raw.MemSt.Stats.Cache
+	if cache == 0 {
+		cache = raw.MemSt.Cache
+	}
+	used := raw.MemSt.Usage
+	if used > cache {
+		used -= cache
+	}
+	ramPct := 0.0
+	if raw.MemSt.Limit > 0 {
+		ramPct = float64(used) / float64(raw.MemSt.Limit) * 100.0
+	}
+	return detailedStat{
+		cpu:        cpuPct,
+		ramPct:     ramPct,
+		ramMb:      float64(used) / 1024 / 1024,
+		ramLimitMb: float64(raw.MemSt.Limit) / 1024 / 1024,
+	}, nil
 }
 
 func (c *Client) do(ctx context.Context, method, path string, body any, out any) error { var buf io.Reader; if body != nil { data, _ := json.Marshal(body); buf = bytes.NewReader(data) }; req, err := http.NewRequestWithContext(ctx, method, "http://docker"+path, buf); if err != nil { return err }; if body != nil { req.Header.Set("Content-Type", "application/json") }; res, err := c.http.Do(req); if err != nil { return err }; defer res.Body.Close(); if res.StatusCode >= 400 { data, _ := io.ReadAll(res.Body); return fmt.Errorf("docker %s %s: %s", method, path, strings.TrimSpace(string(data))) }; if out == nil { io.Copy(io.Discard, res.Body); return nil }; return json.NewDecoder(res.Body).Decode(out) }

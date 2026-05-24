@@ -23,6 +23,19 @@ func (s *Server) processes(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, items)
 }
 
+func (s *Server) containerStats(w http.ResponseWriter, r *http.Request) {
+	if s.docker == nil {
+		writeJSON(w, http.StatusOK, []any{})
+		return
+	}
+	stats, err := s.docker.ContainerStatsNamed(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusOK, []any{})
+		return
+	}
+	writeJSON(w, http.StatusOK, stats)
+}
+
 func (s *Server) host(w http.ResponseWriter, r *http.Request) {
 	running := 0
 	if s.docker != nil {
