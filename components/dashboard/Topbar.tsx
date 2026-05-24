@@ -169,19 +169,6 @@ export function Topbar() {
     router.push(href)
   }, [router])
 
-  // ⌘K / Ctrl+K shortcut
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault()
-        inputRef.current?.focus()
-        setOpen(true)
-      }
-    }
-    window.addEventListener("keydown", handler)
-    return () => window.removeEventListener("keydown", handler)
-  }, [])
-
   // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -229,16 +216,9 @@ export function Topbar() {
             style={{ color: "var(--fg)" }}
             placeholder="Search pages…"
             value={query}
-            onChange={e => { setQuery(e.target.value); setOpen(true); setActive(0) }}
-            onFocus={() => setOpen(true)}
+            onChange={e => { setQuery(e.target.value); setOpen(e.target.value.trim().length > 0); setActive(0) }}
             onKeyDown={handleKeyDown}
           />
-          <span
-            className="text-[10px] font-mono px-1.5 py-0.5 rounded flex-shrink-0"
-            style={{ background: "var(--bg-3)", color: "var(--fg-3)" }}
-          >
-            ⌘K
-          </span>
         </div>
 
         {/* Dropdown */}
@@ -275,37 +255,10 @@ export function Topbar() {
                   </button>
                 ))}
               </>
-            ) : query.trim() ? (
+            ) : (
               <p className="px-3 py-3 text-sm text-center" style={{ color: "var(--fg-3)" }}>
                 No pages found for &ldquo;{query}&rdquo;
               </p>
-            ) : (
-              <>
-                <p className="px-3 pt-1 pb-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--fg-3)" }}>
-                  All pages
-                </p>
-                {SEARCH_ITEMS.map((item, i) => (
-                  <button
-                    key={item.href}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-left transition-colors"
-                    style={{
-                      background: i === active ? "var(--bg-3)" : "transparent",
-                      color: "var(--fg)",
-                    }}
-                    onMouseEnter={() => setActive(i)}
-                    onClick={() => navigate(item.href)}
-                  >
-                    <span className="flex-shrink-0" style={{ color: i === active ? "var(--acc)" : "var(--fg-3)" }}>
-                      {item.icon}
-                    </span>
-                    <span className="flex-1 min-w-0">
-                      <span className="block text-sm font-medium">{item.label}</span>
-                      <span className="block text-xs truncate" style={{ color: "var(--fg-3)" }}>{item.description}</span>
-                    </span>
-                    <ChevronRight size={12} style={{ color: "var(--fg-4)", flexShrink: 0 }} />
-                  </button>
-                ))}
-              </>
             )}
             <div className="flex items-center gap-3 px-3 py-1.5 mt-0.5" style={{ borderTop: "1px solid var(--border)" }}>
               <span className="text-[10px]" style={{ color: "var(--fg-4)" }}>
