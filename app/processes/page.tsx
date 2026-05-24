@@ -7,7 +7,6 @@ import {
   ChevronDown, ChevronUp,
   XCircle, PauseCircle, PlayCircle, Ban,
   ShieldAlert, ShieldCheck, AlertTriangle, CheckCircle2,
-  Box, ExternalLink,
 } from "lucide-react"
 import { PROCESSES as MOCK_PROCESSES } from "@/lib/mock-data"
 import { nodeApi, pythonApi } from "@/lib/api"
@@ -23,106 +22,6 @@ import { cn } from "@/lib/utils"
 
 type DialogState = { type: "kill" | "suspend"; proc: Process } | null
 type Tab = "processes" | "suspicious"
-
-type ContainerStat = {
-  id: string
-  name: string
-  image: string
-  state: string
-  cpu: number
-  ramPct: number
-  ramMb: number
-  ramLimitMb: number
-}
-
-function DockerContainersPanel({ containers }: { containers: ContainerStat[] }) {
-  if (containers.length === 0) return null
-  return (
-    <div className="gsap-enter rounded-xl bg-pulseNode-navyLight border border-pulseNode-border/10 shadow-card overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: "1px solid var(--border)" }}>
-        <div className="flex items-center gap-2">
-          <Box size={14} style={{ color: "var(--acc)" }} />
-          <span className="text-sm font-semibold" style={{ color: "var(--fg)" }}>Docker Containers</span>
-          <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono"
-            style={{ background: "var(--bg-3)", color: "var(--fg-3)" }}>
-            {containers.length} running
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 text-[11px]" style={{ color: "var(--fg-3)" }}>
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400 status-live" />
-          Live
-        </div>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="pn-table w-full">
-          <thead>
-            <tr>
-              <th>Container</th>
-              <th>Image</th>
-              <th>CPU%</th>
-              <th>RAM</th>
-              <th className="right">
-                <a href="/containers" className="inline-flex items-center gap-1 text-[10px] font-medium transition-opacity hover:opacity-70"
-                  style={{ color: "var(--acc)" }}>
-                  View all <ExternalLink size={9} />
-                </a>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {containers.map(c => (
-              <tr key={c.id}>
-                <td>
-                  <div className="flex items-center gap-2">
-                    <Box size={12} style={{ color: "var(--acc)", flexShrink: 0 }} />
-                    <span className="text-[12px] font-semibold" style={{ color: "var(--fg)" }}>{c.name}</span>
-                  </div>
-                </td>
-                <td>
-                  <span className="text-[11px] font-mono truncate max-w-[180px] block" style={{ color: "var(--fg-3)" }}>
-                    {c.image.length > 30 ? c.image.slice(0, 30) + "…" : c.image}
-                  </span>
-                </td>
-                <td>
-                  <div className="flex items-center gap-2">
-                    <MiniBar value={Math.min(100, c.cpu)} color={c.cpu > 80 ? "var(--bad)" : c.cpu > 50 ? "var(--warn)" : "var(--pn-cyan)"} />
-                    <span className="text-[11px] font-mono" style={{ color: c.cpu > 80 ? "var(--bad)" : "var(--fg)" }}>
-                      {c.cpu.toFixed(1)}%
-                    </span>
-                  </div>
-                </td>
-                <td>
-                  <div className="flex items-center gap-2">
-                    <MiniBar value={c.ramPct} color={c.ramPct > 80 ? "var(--bad)" : c.ramPct > 60 ? "var(--warn)" : "var(--pn-blue)"} />
-                    <span className="text-[11px] font-mono" style={{ color: c.ramPct > 80 ? "var(--bad)" : "var(--fg)" }}>
-                      {c.ramMb < 1024
-                        ? `${Math.round(c.ramMb)}MB`
-                        : `${(c.ramMb / 1024).toFixed(1)}GB`}
-                    </span>
-                    {c.ramLimitMb > 0 && (
-                      <span className="text-[10px]" style={{ color: "var(--fg-4)" }}>
-                        / {c.ramLimitMb < 1024
-                          ? `${Math.round(c.ramLimitMb)}MB`
-                          : `${(c.ramLimitMb / 1024).toFixed(1)}GB`}
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="right">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
-                    style={{ background: "color-mix(in srgb, var(--ok) 15%, transparent)", color: "var(--ok)" }}>
-                    <span className="w-1 h-1 rounded-full" style={{ background: "var(--ok)" }} />
-                    running
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
-}
 
 // ── Python process mapper ──────────────────────────────────────────────────────
 
@@ -448,7 +347,6 @@ export default function ProcessesPage() {
   const [sortDir,    setSortDir]     = useState<"asc" | "desc">("desc")
   const [processes,   setProcesses]   = useState<Process[]>(MOCK_PROCESSES)
   const [cpuCores,    setCpuCores]    = useState<number[]>([])
-  const [containers,  setContainers]  = useState<ContainerStat[]>([])
   const [menuPid,     setMenuPid]     = useState<number | null>(null)
   const [dialog,     setDialog]      = useState<DialogState>(null)
   const [blocked,    setBlocked]     = useState<Process[]>([])
@@ -479,19 +377,11 @@ export default function ProcessesPage() {
         .catch(() => {})
     }
 
-    function fetchContainerStats() {
-      nodeApi.get<ContainerStat[]>("/api/docker/container-stats")
-        .then(({ data }) => { if (Array.isArray(data)) setContainers(data) })
-        .catch(() => {})
-    }
-
     fetchProcesses()
     fetchCores()
-    fetchContainerStats()
     const t1 = setInterval(() => { if (!document.hidden) fetchProcesses() }, 5000)
     const t2 = setInterval(() => { if (!document.hidden) fetchCores() }, 5000)
-    const t3 = setInterval(() => { if (!document.hidden) fetchContainerStats() }, 3000)
-    return () => { clearInterval(t1); clearInterval(t2); clearInterval(t3) }
+    return () => { clearInterval(t1); clearInterval(t2) }
   }, [])
 
   useGSAP(() => {
@@ -656,8 +546,6 @@ export default function ProcessesPage() {
           </div>
         </div>
       )}
-
-      <DockerContainersPanel containers={containers} />
 
       {/* ── Tab bar ── */}
       <div className="gsap-enter flex items-center gap-0" style={{ borderBottom: "1px solid var(--border)" }}>
