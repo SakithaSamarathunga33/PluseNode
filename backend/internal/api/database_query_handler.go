@@ -55,6 +55,16 @@ type dbQueryResult struct {
 	DurationMs int64           `json:"durationMs"`
 }
 
+func (s *Server) databaseConnectionString(w http.ResponseWriter, r *http.Request) {
+	containerName := chi.URLParam(r, "name")
+	mdb, err := s.resolveManagedDB(containerName)
+	if err != nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"connectionString": buildConnString(mdb)})
+}
+
 func (s *Server) databaseSchema(w http.ResponseWriter, r *http.Request) {
 	if !s.requireDocker(w) {
 		return
