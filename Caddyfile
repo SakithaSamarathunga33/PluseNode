@@ -3,7 +3,9 @@
 }
 
 {$CADDY_SITE_ADDRESS} {
-	encode gzip
+	# Compress everything except streaming endpoints
+	@compressible not path /events /ws /api/ws/*
+	encode @compressible gzip
 
 	handle_path /go/* {
 		reverse_proxy go-api:4002 {
