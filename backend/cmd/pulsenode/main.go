@@ -11,9 +11,11 @@ import (
 	"time"
 
 	"pulsenode/backend/internal/api"
+	"pulsenode/backend/internal/db"
 	"pulsenode/backend/internal/docker"
 	"pulsenode/backend/internal/hub"
 	"pulsenode/backend/internal/proc"
+	"pulsenode/backend/internal/queue"
 )
 
 func main() {
@@ -24,12 +26,22 @@ func main() {
 		log.Printf("[docker] unavailable, using mock-compatible empty responses: %v", err)
 	}
 
+	database, err := db.Open(env("DATABASE_PATH", "/data/pulsenode.db"))
+	if err != nil {
+		log.Fatalf("[db] failed to open database: %v", err)
+	}
+
 	collector := proc.NewCollector(60, 3*time.Second)
 	events := hub.New()
+	jobQueue := queue.New(database, events, 2)
+	jobQueue.RecoverStuck()
+
 	server := api.NewServer(api.Config{
 		Docker:    dockerClient,
 		Collector: collector,
 		Hub:       events,
+		DB:        database,
+		Queue:     jobQueue,
 		Origins: []string{
 			env("NEXT_PUBLIC_ORIGIN", "http://localhost:3000"),
 			"http://localhost:3001",

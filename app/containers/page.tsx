@@ -405,7 +405,7 @@ export default function ContainersPage() {
   const [timeRange, setTimeRange] = useState("1h")
   const [containers, setContainers] = useState<Container[]>(MOCK_CONTAINERS)
   const [host, setHost]             = useState<HostInfo>(MOCK_HOST)
-  const [containerHist, setContainerHist] = useState<ContainerHistory>({})
+  const [, setContainerHist] = useState<ContainerHistory>({})
   const [netHist, setNetHist]       = useState<number[]>([0, 0])
   const [cpuHist, setCpuHist]       = useState<number[]>([0, 0])
   const [ramHist, setRamHist]       = useState<number[]>([0, 0])
@@ -825,8 +825,8 @@ export default function ContainersPage() {
                 <th>State</th>
                 <th>Uptime</th>
                 <th>Ports</th>
-                <th>CPU 1h</th>
-                <th>RAM 1h</th>
+                <th>CPU</th>
+                <th>RAM</th>
                 <th>Created</th>
                 <th className="right">Actions</th>
               </tr>
@@ -873,24 +873,12 @@ export default function ContainersPage() {
 
                   {/* CPU live */}
                   <td>
-                    <div className="flex items-center gap-2">
-                      <MiniSpark
-                        data={containerHist[c.id]?.cpuHist.length ? containerHist[c.id].cpuHist : [0, 0]}
-                        color="var(--acc)" width={56} height={22}
-                      />
-                      <span className="text-[11px] font-mono" style={{ color: "var(--fg)" }}>{c.cpu.toFixed(1)}%</span>
-                    </div>
+                    <span className="text-[11px] font-mono" style={{ color: "var(--fg)" }}>{c.cpu.toFixed(1)}%</span>
                   </td>
 
                   {/* RAM live */}
                   <td>
-                    <div className="flex items-center gap-2">
-                      <MiniSpark
-                        data={containerHist[c.id]?.ramHist.length ? containerHist[c.id].ramHist : [0, 0]}
-                        color="var(--acc-2)" width={56} height={22}
-                      />
-                      <span className="text-[11px] font-mono" style={{ color: "var(--fg)" }}>{c.ram.toFixed(1)}%</span>
-                    </div>
+                    <span className="text-[11px] font-mono" style={{ color: "var(--fg)" }}>{c.ram.toFixed(1)}%</span>
                   </td>
 
                   <td className="dim">{c.created}</td>

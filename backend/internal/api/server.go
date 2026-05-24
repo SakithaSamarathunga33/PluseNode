@@ -14,9 +14,11 @@ import (
 	"github.com/go-chi/cors"
 
 	"pulsenode/backend/internal/auth"
+	"pulsenode/backend/internal/db"
 	"pulsenode/backend/internal/docker"
 	"pulsenode/backend/internal/hub"
 	"pulsenode/backend/internal/proc"
+	"pulsenode/backend/internal/queue"
 	"pulsenode/backend/internal/security"
 )
 
@@ -24,6 +26,8 @@ type Config struct {
 	Docker    *docker.Client
 	Collector *proc.Collector
 	Hub       *hub.Hub
+	DB        *db.DB
+	Queue     *queue.Queue
 	Origins   []string
 }
 
@@ -31,6 +35,8 @@ type Server struct {
 	docker    *docker.Client
 	collector *proc.Collector
 	hub       *hub.Hub
+	db        *db.DB
+	queue     *queue.Queue
 	security  *security.Service
 	auth      *auth.Middleware
 	origins   []string
@@ -41,6 +47,8 @@ func NewServer(cfg Config) *Server {
 		docker:    cfg.Docker,
 		collector: cfg.Collector,
 		hub:       cfg.Hub,
+		db:        cfg.DB,
+		queue:     cfg.Queue,
 		security:  security.New(),
 		auth: auth.NewMiddleware(auth.Config{
 			Enabled: strings.EqualFold(os.Getenv("GO_API_AUTH"), "true") || strings.EqualFold(os.Getenv("NODE_API_AUTH"), "true"),
@@ -64,6 +72,7 @@ func (s *Server) Routes() http.Handler {
 	r.Get("/config", s.clientConfig)
 	r.Get("/events", s.hub.ServeSSE)
 	r.Get("/ws", s.hub.ServeWebSocket)
+	r.Get("/api/github/callback", s.githubCallback)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Use(s.auth.Require)
@@ -92,6 +101,27 @@ func (s *Server) Routes() http.Handler {
 
 		r.Get("/coolify/projects", s.coolifyProjects)
 		r.Get("/coolify/deployments", s.coolifyDeployments)
+
+		// GitHub integration
+		r.Get("/github/auth-url", s.githubAuthURL)
+		r.Get("/github/account", s.githubAccount)
+		r.Delete("/github/account", s.githubDisconnect)
+		r.Post("/github/pat", s.githubSavePAT)
+		r.Get("/github/repos", s.githubRepos)
+		r.Get("/github/branches", s.githubBranches)
+		r.Get("/github/oauth-settings", s.githubOAuthSettings)
+		r.Post("/github/oauth-settings", s.githubSaveOAuthSettings)
+
+		// Projects (deploy)
+		r.Get("/projects/free-port", s.freePort)
+		r.Get("/projects", s.listProjects)
+		r.Post("/projects", s.createProject)
+		r.Get("/projects/{id}", s.getProject)
+		r.Put("/projects/{id}", s.updateProject)
+		r.Delete("/projects/{id}", s.deleteProject)
+		r.Post("/projects/{id}/deploy", s.deployProject)
+		r.Get("/projects/{id}/deployments", s.listDeployments)
+		r.Get("/projects/{id}/deployments/{depID}/logs", s.getDeploymentLogs)
 
 		r.Get("/database/custom", emptyList)
 		r.Post("/database/custom/test", notImplemented)

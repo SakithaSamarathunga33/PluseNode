@@ -6,11 +6,15 @@
 	encode gzip
 
 	handle_path /go/* {
-		reverse_proxy go-api:4002
+		reverse_proxy go-api:4002 {
+			flush_interval -1
+		}
 	}
 
 	handle /events {
-		reverse_proxy go-api:4002
+		reverse_proxy go-api:4002 {
+			flush_interval -1
+		}
 	}
 
 	handle /ws {

@@ -40,6 +40,21 @@ func (h *Hub) Broadcast(kind string, data any) {
 	}
 }
 
+func (h *Hub) Subscribe() chan Event {
+	ch := make(chan Event, 32)
+	h.mu.Lock()
+	h.clients[ch] = struct{}{}
+	h.mu.Unlock()
+	return ch
+}
+
+func (h *Hub) Unsubscribe(ch chan Event) {
+	h.mu.Lock()
+	delete(h.clients, ch)
+	h.mu.Unlock()
+	close(ch)
+}
+
 func (h *Hub) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")

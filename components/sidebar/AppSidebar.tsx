@@ -7,6 +7,7 @@ import {
   Container, BarChart3, Activity, Layers, Network,
   Database, Shield, FileCode2, BellRing,
   ChevronDown, Cpu, PanelLeftClose, PanelLeftOpen, Settings,
+  FolderGit2, GitFork,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { BorderBeam } from "@/components/magicui/border-beam"
@@ -58,11 +59,19 @@ const BASE_NAV_SECTIONS: NavSection[] = [
 
 const COOLIFY_ITEM: NavItem = { label: "Coolify", href: "/coolify", icon: Layers }
 
+const DEPLOY_SECTION: NavSection = {
+  label: "Deploy",
+  items: [
+    { label: "GitHub",   href: "/github",   icon: GitFork     },
+    { label: "Projects", href: "/projects", icon: FolderGit2  },
+  ],
+}
+
 interface AppSidebarProps { alertCount?: number }
 
 export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
   const [collapsed,       setCollapsed]       = useState(false)
-  const [openSections,    setOpenSections]    = useState<Record<string, boolean>>({ Workspace: true, Resources: true, Security: true })
+  const [openSections,    setOpenSections]    = useState<Record<string, boolean>>({ Workspace: true, Resources: true, Security: true, Deploy: true })
   const [cpu,             setCpu]             = useState(HOST.cpu.usage)
   const [hasUpdate,       setHasUpdate]       = useState(false)
   const [coolifyEnabled,  setCoolifyEnabled]  = useState(false)
@@ -98,11 +107,14 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
   const toggleSection = (label: string) =>
     setOpenSections(prev => ({ ...prev, [label]: !prev[label] }))
 
-  const navSections: NavSection[] = BASE_NAV_SECTIONS.map(section =>
+  const navSections: NavSection[] = [
+    ...BASE_NAV_SECTIONS.map(section =>
     section.label === "Workspace" && coolifyEnabled
       ? { ...section, items: [...section.items, COOLIFY_ITEM] }
       : section
-  )
+    ),
+    DEPLOY_SECTION,
+  ]
 
   return (
     <aside
@@ -134,11 +146,13 @@ export function AppSidebar({ alertCount = 3 }: AppSidebarProps) {
         {!collapsed && (
           <div className="flex flex-col min-w-0 gap-1 animate-in fade-in slide-in-from-left-2 duration-150 fill-mode-both" style={{ animationDelay: "50ms" }}>
             <span className="relative block h-[30px] w-[158px] overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logodark-removebg-preview.png"
                 alt="PulseNode"
                 className="theme-logo-dark h-full w-full object-contain object-left"
               />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo-removebg-preview.png"
                 alt="PulseNode"
