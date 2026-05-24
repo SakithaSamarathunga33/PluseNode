@@ -81,10 +81,12 @@ if ss -tlnp 2>/dev/null | grep -q ':80 ' || netstat -tlnp 2>/dev/null | grep -q 
 fi
 if [[ "$LISTEN" == "80" ]]; then
   BASE_URL="http://${HOST}"
+  CADDY_SITE_ADDRESS=":80"
 else
   BASE_URL="http://${HOST}:${LISTEN}"
+  # http:// prefix disables Caddy's automatic HTTPS (which would try to bind 443)
+  CADDY_SITE_ADDRESS="http://:${LISTEN}"
 fi
-CADDY_SITE_ADDRESS=":${LISTEN}"
 echo ""
 
 # ── Optional integrations ──────────────────────────────────────────────────────
