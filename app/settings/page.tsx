@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { AlertTriangle, CheckCircle2, Download, RefreshCw, Settings, Zap } from "lucide-react"
+import { AlertTriangle, CheckCircle2, Download, LogOut, RefreshCw, Settings, Shield, ShieldOff, Zap } from "lucide-react"
 
 const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
 
@@ -39,6 +39,21 @@ export default function SettingsPage() {
   const [countdown, setCountdown] = useState(0)
   const [reconnecting, setReconnecting] = useState(false)
 
+  // ── Security state ─────────────────────────────────────────────────────────
+  interface AuthStatus { enabled: boolean; loggedIn: boolean; username?: string }
+  const [authStatus,  setAuthStatus]  = useState<AuthStatus | null>(null)
+  const [secLoading,  setSecLoading]  = useState(false)
+  const [secError,    setSecError]    = useState("")
+  const [secSuccess,  setSecSuccess]  = useState("")
+  const [newUsername, setNewUsername] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPwd,  setConfirmPwd]  = useState("")
+  const [curPassword, setCurPassword] = useState("")
+  const [chgPassword, setChgPassword] = useState("")
+  const [chgConfirm,  setChgConfirm]  = useState("")
+  const [disablePwd,  setDisablePwd]  = useState("")
+  const [showDisable, setShowDisable] = useState(false)
+
   const fetchVersion = useCallback(async () => {
     setChecking(true)
     try {
@@ -56,6 +71,67 @@ export default function SettingsPage() {
   }, [])
 
   useEffect(() => { fetchVersion() }, [fetchVersion])
+
+  const fetchAuthStatus = useCallback(async () => {
+    try {
+      const res = await fetch(`${GO_API}/api/auth/status`, { cache: "no-store" })
+      if (res.ok) setAuthStatus(await res.json() as AuthStatus)
+    } catch { /* ignore */ }
+  }, [])
+
+  useEffect(() => { fetchAuthStatus() }, [fetchAuthStatus])
+
+  async function handleEnableLogin(e: React.FormEvent) {
+    e.preventDefault()
+    setSecError(""); setSecSuccess(""); setSecLoading(true)
+    if (newPassword !== confirmPwd) { setSecError("Passwords do not match"); setSecLoading(false); return }
+    try {
+      const res = await fetch(`${GO_API}/api/auth/setup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: newUsername, password: newPassword }),
+      })
+      if (!res.ok) { const b = await res.json().catch(() => ({})) as { error?: string }; setSecError(b.error ?? "Failed"); return }
+      setSecSuccess("Login protection enabled!")
+      setNewUsername(""); setNewPassword(""); setConfirmPwd("")
+      await fetchAuthStatus()
+    } catch { setSecError("Request failed") } finally { setSecLoading(false) }
+  }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault()
+    setSecError(""); setSecSuccess(""); setSecLoading(true)
+    if (chgPassword !== chgConfirm) { setSecError("Passwords do not match"); setSecLoading(false); return }
+    try {
+      const res = await fetch(`${GO_API}/api/auth/setup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: authStatus?.username ?? "", password: chgPassword, current_password: curPassword }),
+      })
+      if (!res.ok) { const b = await res.json().catch(() => ({})) as { error?: string }; setSecError(b.error ?? "Failed"); return }
+      setSecSuccess("Password updated!")
+      setCurPassword(""); setChgPassword(""); setChgConfirm("")
+    } catch { setSecError("Request failed") } finally { setSecLoading(false) }
+  }
+
+  async function handleDisableLogin() {
+    setSecError(""); setSecLoading(true)
+    try {
+      const res = await fetch(`${GO_API}/api/auth/setup`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: disablePwd }),
+      })
+      if (!res.ok) { const b = await res.json().catch(() => ({})) as { error?: string }; setSecError(b.error ?? "Failed"); setSecLoading(false); return }
+      setDisablePwd(""); setShowDisable(false)
+      await fetchAuthStatus()
+    } catch { setSecError("Request failed") } finally { setSecLoading(false) }
+  }
+
+  async function handleLogout() {
+    await fetch(`${GO_API}/api/auth/logout`, { method: "POST" }).catch(() => {})
+    window.location.href = "/login"
+  }
 
   // Poll status while updating
   useEffect(() => {
@@ -273,6 +349,161 @@ export default function SettingsPage() {
           </p>
         </div>
       )}
+
+      {/* Security */}
+      <div className="rounded-xl border border-pulseNode-border/20 bg-pulseNode-navyLight overflow-hidden">
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-pulseNode-border/10 bg-pulseNode-navy">
+          <Shield size={14} className="text-pn-electric" />
+          <span className="text-sm font-semibold text-helm-fg">Security</span>
+          {authStatus?.enabled && (
+            <span className="ml-auto flex items-center gap-1.5 text-[10px] font-semibold text-emerald-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+              Protected · {authStatus.username}
+            </span>
+          )}
+          {authStatus && !authStatus.enabled && (
+            <span className="ml-auto flex items-center gap-1.5 text-[10px] font-semibold text-helm-fg3">
+              <span className="w-1.5 h-1.5 rounded-full bg-helm-fg3 inline-block" />
+              Off
+            </span>
+          )}
+        </div>
+
+        <div className="p-4 space-y-5">
+          {secError && (
+            <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-xs text-red-400">{secError}</div>
+          )}
+          {secSuccess && (
+            <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 text-xs text-emerald-400">{secSuccess}</div>
+          )}
+
+          {/* No login configured — enable form */}
+          {authStatus && !authStatus.enabled && (
+            <form onSubmit={handleEnableLogin} className="space-y-3">
+              <p className="text-xs text-helm-fg3">
+                Login protection is <strong className="text-helm-fg">off</strong>. Anyone who can reach this URL can access the dashboard.
+                Set a username and password to lock it down.
+              </p>
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-helm-fg3 font-semibold">Username</label>
+                  <input
+                    value={newUsername} onChange={e => setNewUsername(e.target.value)} required
+                    className="w-full px-3 py-2 rounded-lg text-sm bg-pulseNode-navy border border-pulseNode-border/20 text-helm-fg focus:outline-none focus:border-pn-cyan/40"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-helm-fg3 font-semibold">Password</label>
+                  <input
+                    type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required minLength={8}
+                    className="w-full px-3 py-2 rounded-lg text-sm bg-pulseNode-navy border border-pulseNode-border/20 text-helm-fg focus:outline-none focus:border-pn-cyan/40"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-helm-fg3 font-semibold">Confirm password</label>
+                  <input
+                    type="password" value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} required minLength={8}
+                    className="w-full px-3 py-2 rounded-lg text-sm bg-pulseNode-navy border border-pulseNode-border/20 text-helm-fg focus:outline-none focus:border-pn-cyan/40"
+                  />
+                </div>
+              </div>
+              <button
+                type="submit" disabled={secLoading || !newUsername || !newPassword || !confirmPwd}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-semibold transition-colors"
+              >
+                <Shield size={12} />
+                {secLoading ? "Enabling…" : "Enable login protection"}
+              </button>
+            </form>
+          )}
+
+          {/* Login active — change password + disable */}
+          {authStatus?.enabled && (
+            <div className="space-y-5">
+              <form onSubmit={handleChangePassword} className="space-y-3">
+                <p className="text-[10px] uppercase tracking-wider text-helm-fg3 font-semibold">Change password</p>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-helm-fg3">Current password</label>
+                  <input
+                    type="password" value={curPassword} onChange={e => setCurPassword(e.target.value)} required
+                    className="w-full px-3 py-2 rounded-lg text-sm bg-pulseNode-navy border border-pulseNode-border/20 text-helm-fg focus:outline-none focus:border-pn-cyan/40"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-helm-fg3">New password</label>
+                  <input
+                    type="password" value={chgPassword} onChange={e => setChgPassword(e.target.value)} required minLength={8}
+                    className="w-full px-3 py-2 rounded-lg text-sm bg-pulseNode-navy border border-pulseNode-border/20 text-helm-fg focus:outline-none focus:border-pn-cyan/40"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-helm-fg3">Confirm new password</label>
+                  <input
+                    type="password" value={chgConfirm} onChange={e => setChgConfirm(e.target.value)} required minLength={8}
+                    className="w-full px-3 py-2 rounded-lg text-sm bg-pulseNode-navy border border-pulseNode-border/20 text-helm-fg focus:outline-none focus:border-pn-cyan/40"
+                  />
+                </div>
+                <button
+                  type="submit" disabled={secLoading || !curPassword || !chgPassword || !chgConfirm}
+                  className="px-4 py-1.5 rounded-lg border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg disabled:opacity-50 text-xs transition-colors"
+                >
+                  {secLoading ? "Updating…" : "Update password"}
+                </button>
+              </form>
+
+              <div className="border-t border-pulseNode-border/10" />
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-pulseNode-border/20 text-helm-fg3 hover:text-helm-fg text-xs transition-colors"
+                >
+                  <LogOut size={12} />
+                  Sign out
+                </button>
+                {!showDisable && (
+                  <button
+                    onClick={() => { setShowDisable(true); setSecError(""); setSecSuccess("") }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-500/20 text-red-400/60 hover:text-red-400 text-xs transition-colors"
+                  >
+                    <ShieldOff size={12} />
+                    Disable login protection
+                  </button>
+                )}
+              </div>
+
+              {showDisable && (
+                <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 space-y-3">
+                  <p className="text-xs text-red-400">
+                    This will remove login protection. Anyone with the URL can access the dashboard. Confirm your password to proceed.
+                  </p>
+                  <input
+                    type="password" placeholder="Current password" value={disablePwd}
+                    onChange={e => setDisablePwd(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg text-sm bg-pulseNode-navy border border-red-500/20 text-helm-fg focus:outline-none"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setShowDisable(false); setDisablePwd("") }}
+                      className="px-3 py-1.5 rounded-lg border border-pulseNode-border/20 text-helm-fg3 text-xs transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleDisableLogin}
+                      disabled={secLoading || !disablePwd}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/80 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-semibold transition-colors"
+                    >
+                      <ShieldOff size={12} />
+                      {secLoading ? "Disabling…" : "Confirm disable"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
