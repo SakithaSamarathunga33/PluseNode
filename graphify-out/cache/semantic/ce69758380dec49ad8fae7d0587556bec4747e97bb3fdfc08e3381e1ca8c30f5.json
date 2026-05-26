@@ -1,0 +1,1 @@
+{"nodes": [{"id": "builder_detect_detect", "label": "builder.Detect func", "file_type": "code", "source_file": "/home/sakitha/apps/vps/backend/internal/builder/detect.go", "source_location": {"line": 15}, "source_url": null, "captured_at": null, "author": null, "contributor": null}], "edges": [], "hyperedges": []}
