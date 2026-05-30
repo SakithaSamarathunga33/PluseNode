@@ -47,6 +47,10 @@ export default function SettingsPage() {
   const [countdown,    setCountdown]    = useState(0)
   const [reconnecting, setReconnecting] = useState(false)
   const logEndRef = useRef<HTMLDivElement>(null)
+  // Boot id of the backend we are currently talking to. After an update we reload
+  // only once this changes, which proves the container restarted with new code.
+  const bootIdRef = useRef<number | null>(null)
+  const HEALTH_URL = `${GO_API.replace(/\/go$/, "")}/health`
 
   // ── Security state ─────────────────────────────────────────────────────────
   const [authStatus,  setAuthStatus]  = useState<AuthStatus | null>(null)
@@ -99,30 +103,62 @@ export default function SettingsPage() {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [status?.log.length])
 
+  // Capture the backend's boot id on mount so we have a baseline to compare against
+  // once an update restarts the container.
+  useEffect(() => {
+    fetch(HEALTH_URL, { cache: "no-store" })
+      .then(r => (r.ok ? r.json() : null))
+      .then((d: { startedAt?: number } | null) => { if (d?.startedAt != null) bootIdRef.current = d.startedAt })
+      .catch(() => { /* ignore */ })
+  }, [HEALTH_URL])
+
+  // Cosmetic "restart expected in ~Ns" countdown shown in the progress UI. It does
+  // NOT trigger the reload — the reload is driven purely by detecting a real restart.
   useEffect(() => {
     if (!updating) return
-    // Source builds take 2-3 min; give 3 min before switching to reconnect mode
     setCountdown(180)
-    const tick = setInterval(() => {
-      setCountdown(c => {
-        if (c <= 1) { clearInterval(tick); setReconnecting(true); return 0 }
-        return c - 1
-      })
-    }, 1000)
+    const tick = setInterval(() => setCountdown(c => (c <= 1 ? 0 : c - 1)), 1000)
     return () => clearInterval(tick)
   }, [updating])
 
+  // Reload only once the backend has actually restarted with the new code. Docker
+  // builds the new image while the OLD container keeps serving, so /health stays up
+  // the whole time — waiting for the boot id to CHANGE avoids reloading the old
+  // version. A failed probe means the container is mid-restart (reconnecting UI).
   useEffect(() => {
-    if (!reconnecting) return
-    const tryReconnect = async () => {
+    if (!updating) return
+    let cancelled = false
+    let sawOutage = false // backend went unreachable at least once → it is restarting
+    const startedProbingAt = Date.now()
+    const MAX_WAIT = 8 * 60 * 1000 // hard cap — source builds on small VPSes can be slow
+
+    const probe = async () => {
+      if (cancelled) return
       try {
-        const res = await fetch(`${GO_API.replace(/\/go$/, "")}/health`)
-        if (res.ok) { window.location.reload(); return }
-      } catch { /* still offline */ }
-      setTimeout(tryReconnect, 3000)
+        const res = await fetch(HEALTH_URL, { cache: "no-store" })
+        if (res.ok) {
+          const d = await res.json().catch(() => null) as { startedAt?: number } | null
+          const boot = d?.startedAt ?? null
+          if (boot != null) {
+            if (bootIdRef.current == null) bootIdRef.current = boot        // establish baseline
+            else if (boot !== bootIdRef.current) { window.location.reload(); return } // new code live
+          } else if (sawOutage) {
+            // Backend doesn't report a boot id (pre-update version) but we saw it go
+            // down and come back — that recovery is itself proof of a restart.
+            window.location.reload(); return
+          }
+          setReconnecting(false)
+        }
+      } catch {
+        sawOutage = true
+        setReconnecting(true) // backend unreachable → container is restarting
+      }
+      if (Date.now() - startedProbingAt > MAX_WAIT) { window.location.reload(); return }
+      if (!cancelled) setTimeout(probe, 2500)
     }
-    setTimeout(tryReconnect, 3000)
-  }, [reconnecting])
+    const t = setTimeout(probe, 5000) // brief grace before the first probe
+    return () => { cancelled = true; clearTimeout(t) }
+  }, [updating, HEALTH_URL])
 
   async function handleUpdate() {
     setUpdating(true)

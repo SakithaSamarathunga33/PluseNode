@@ -203,8 +203,17 @@ func (s *Server) Routes() http.Handler {
 	return r
 }
 
+// processStart marks when this go-api process booted. Exposed via /health so the
+// dashboard can detect when the backend has actually restarted (e.g. after a
+// self-update) and reload to the new version — rather than reloading the moment
+// /health responds, which during a build still answers from the old container.
+var processStart = time.Now()
+
 func (s *Server) health(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "service": "pulsenode-go", "ts": time.Now().UnixMilli()})
+	writeJSON(w, http.StatusOK, map[string]any{
+		"ok": true, "service": "pulsenode-go",
+		"ts": time.Now().UnixMilli(), "startedAt": processStart.UnixMilli(),
+	})
 }
 
 func (s *Server) clientConfig(w http.ResponseWriter, r *http.Request) {
