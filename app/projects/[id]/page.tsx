@@ -312,9 +312,9 @@ export default function ProjectDetailPage() {
       {/* Tabs */}
       <div className="flex-shrink-0 px-6 flex gap-1 pt-3 pb-0" style={{ borderBottom: "1px solid var(--border)" }}>
         {([
+          { key: "settings", label: "Settings", icon: Settings2 },
           { key: "logs",     label: "Logs",     icon: Terminal  },
           { key: "history",  label: "History",  icon: History   },
-          { key: "settings", label: "Settings", icon: Settings2 },
         ] as const).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
