@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -169,7 +170,24 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 `)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Incremental column additions for existing databases (CREATE TABLE IF NOT
+	// EXISTS won't add columns to a table that already exists).
+	d.addColumn("projects", "auto_deploy", "INTEGER NOT NULL DEFAULT 1")
+	d.addColumn("projects", "last_commit_sha", "TEXT")
+	return nil
+}
+
+// addColumn runs an ALTER TABLE ADD COLUMN, ignoring the "duplicate column"
+// error so migrations stay idempotent across restarts.
+func (d *DB) addColumn(table, column, definition string) {
+	_, err := d.Exec(fmt.Sprintf(`ALTER TABLE %s ADD COLUMN %s %s`, table, column, definition))
+	if err != nil && !strings.Contains(err.Error(), "duplicate column") {
+		fmt.Fprintf(os.Stderr, "[db] addColumn %s.%s: %v\n", table, column, err)
+	}
 }
 
 // ── Encryption ────────────────────────────────────────────────────────────────
@@ -292,19 +310,21 @@ func (d *DB) DeleteGitHubAccount() error {
 // ── Projects ──────────────────────────────────────────────────────────────────
 
 type Project struct {
-	ID           string
-	Name         string
-	RepoURL      string
-	Branch       string
-	BuildMethod  string
-	BuildCommand string
-	Port         int
-	Domain       string
-	EnvVars      string // JSON map, encrypted at rest
-	ContainerID  string
-	Status       string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID            string
+	Name          string
+	RepoURL       string
+	Branch        string
+	BuildMethod   string
+	BuildCommand  string
+	Port          int
+	Domain        string
+	EnvVars       string // JSON map, encrypted at rest
+	ContainerID   string
+	Status        string
+	AutoDeploy    bool
+	LastCommitSHA string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 func (d *DB) CreateProject(p *Project) error {
@@ -313,14 +333,14 @@ func (d *DB) CreateProject(p *Project) error {
 		return err
 	}
 	_, err = d.Exec(`
-INSERT INTO projects (id, name, repo_url, branch, build_method, build_command, port, domain, env_vars, status)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		p.ID, p.Name, p.RepoURL, p.Branch, p.BuildMethod, p.BuildCommand, p.Port, p.Domain, enc, p.Status)
+INSERT INTO projects (id, name, repo_url, branch, build_method, build_command, port, domain, env_vars, status, auto_deploy)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		p.ID, p.Name, p.RepoURL, p.Branch, p.BuildMethod, p.BuildCommand, p.Port, p.Domain, enc, p.Status, boolToInt(p.AutoDeploy))
 	return err
 }
 
 func (d *DB) ListProjects() ([]Project, error) {
-	rows, err := d.Query(`SELECT id, name, repo_url, branch, build_method, COALESCE(build_command,''), port, domain, env_vars, COALESCE(container_id,''), status, created_at, updated_at FROM projects ORDER BY created_at DESC`)
+	rows, err := d.Query(`SELECT id, name, repo_url, branch, build_method, COALESCE(build_command,''), port, domain, env_vars, COALESCE(container_id,''), status, COALESCE(auto_deploy,1), COALESCE(last_commit_sha,''), created_at, updated_at FROM projects ORDER BY created_at DESC`)
 	if err != nil {
 		return nil, err
 	}
@@ -329,9 +349,11 @@ func (d *DB) ListProjects() ([]Project, error) {
 	for rows.Next() {
 		var p Project
 		var enc string
-		if err := rows.Scan(&p.ID, &p.Name, &p.RepoURL, &p.Branch, &p.BuildMethod, &p.BuildCommand, &p.Port, &p.Domain, &enc, &p.ContainerID, &p.Status, &p.CreatedAt, &p.UpdatedAt); err != nil {
+		var autoDeploy int
+		if err := rows.Scan(&p.ID, &p.Name, &p.RepoURL, &p.Branch, &p.BuildMethod, &p.BuildCommand, &p.Port, &p.Domain, &enc, &p.ContainerID, &p.Status, &autoDeploy, &p.LastCommitSHA, &p.CreatedAt, &p.UpdatedAt); err != nil {
 			return nil, err
 		}
+		p.AutoDeploy = autoDeploy != 0
 		p.EnvVars = "[]" // never expose values in list
 		out = append(out, p)
 	}
@@ -339,15 +361,17 @@ func (d *DB) ListProjects() ([]Project, error) {
 }
 
 func (d *DB) GetProject(id string) (*Project, error) {
-	row := d.QueryRow(`SELECT id, name, repo_url, branch, build_method, COALESCE(build_command,''), port, domain, env_vars, COALESCE(container_id,''), status, created_at, updated_at FROM projects WHERE id=?`, id)
+	row := d.QueryRow(`SELECT id, name, repo_url, branch, build_method, COALESCE(build_command,''), port, domain, env_vars, COALESCE(container_id,''), status, COALESCE(auto_deploy,1), COALESCE(last_commit_sha,''), created_at, updated_at FROM projects WHERE id=?`, id)
 	var p Project
 	var enc string
-	if err := row.Scan(&p.ID, &p.Name, &p.RepoURL, &p.Branch, &p.BuildMethod, &p.BuildCommand, &p.Port, &p.Domain, &enc, &p.ContainerID, &p.Status, &p.CreatedAt, &p.UpdatedAt); err != nil {
+	var autoDeploy int
+	if err := row.Scan(&p.ID, &p.Name, &p.RepoURL, &p.Branch, &p.BuildMethod, &p.BuildCommand, &p.Port, &p.Domain, &enc, &p.ContainerID, &p.Status, &autoDeploy, &p.LastCommitSHA, &p.CreatedAt, &p.UpdatedAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
 	}
+	p.AutoDeploy = autoDeploy != 0
 	plain, err := Decrypt(enc)
 	if err != nil {
 		return nil, err
@@ -361,14 +385,27 @@ func (d *DB) UpdateProjectStatus(id, status, containerID string) error {
 	return err
 }
 
-func (d *DB) UpdateProject(id, name, branch, buildMethod, buildCommand string, port int, domain, envVars string) error {
+func (d *DB) UpdateProject(id, name, branch, buildMethod, buildCommand string, port int, domain, envVars string, autoDeploy bool) error {
 	enc, err := Encrypt(envVars)
 	if err != nil {
 		return err
 	}
-	_, err = d.Exec(`UPDATE projects SET name=?, branch=?, build_method=?, build_command=?, port=?, domain=?, env_vars=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
-		name, branch, buildMethod, buildCommand, port, domain, enc, id)
+	_, err = d.Exec(`UPDATE projects SET name=?, branch=?, build_method=?, build_command=?, port=?, domain=?, env_vars=?, auto_deploy=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
+		name, branch, buildMethod, buildCommand, port, domain, enc, boolToInt(autoDeploy), id)
 	return err
+}
+
+// UpdateProjectCommit records the last commit SHA that was deployed for a project.
+func (d *DB) UpdateProjectCommit(id, sha string) error {
+	_, err := d.Exec(`UPDATE projects SET last_commit_sha=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`, sha, id)
+	return err
+}
+
+func boolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }
 
 func (d *DB) DeleteProject(id string) error {
@@ -424,6 +461,12 @@ func (d *DB) ListDeployments(projectID string) ([]Deployment, error) {
 
 func (d *DB) UpdateDeploymentStatus(id, status string, startedAt, finishedAt *time.Time) error {
 	_, err := d.Exec(`UPDATE deployments SET status=?, started_at=?, finished_at=? WHERE id=?`, status, startedAt, finishedAt, id)
+	return err
+}
+
+// UpdateDeploymentCommit records the commit SHA and message a deployment built.
+func (d *DB) UpdateDeploymentCommit(id, sha, msg string) error {
+	_, err := d.Exec(`UPDATE deployments SET commit_sha=?, commit_msg=? WHERE id=?`, sha, msg, id)
 	return err
 }
 

@@ -92,7 +92,7 @@ func (q *Queue) runDeployment(depID string) {
 		token = acct.AccessToken
 	}
 
-	containerID, buildErr := builder.Run(ctx, builder.Config{
+	res, buildErr := builder.Run(ctx, builder.Config{
 		DeploymentID: depID,
 		ProjectID:    proj.ID,
 		ProjectName:  proj.Name,
@@ -107,6 +107,11 @@ func (q *Queue) runDeployment(depID string) {
 		Log:          emit,
 	})
 
+	// Record the commit that was built (even on failure, for history/diagnostics).
+	if res.CommitSHA != "" {
+		_ = q.db.UpdateDeploymentCommit(depID, res.CommitSHA, res.CommitMsg)
+	}
+
 	finishedAt := time.Now()
 	if buildErr != nil {
 		emit("system", "✕ Build failed: "+buildErr.Error())
@@ -116,8 +121,91 @@ func (q *Queue) runDeployment(depID string) {
 	}
 
 	_ = q.db.UpdateDeploymentStatus(depID, "success", &now, &finishedAt)
-	_ = q.db.UpdateProjectStatus(proj.ID, "running", containerID)
+	_ = q.db.UpdateProjectStatus(proj.ID, "running", res.ContainerID)
+	// Seed/refresh the baseline commit so the poller only fires on newer commits.
+	if res.CommitSHA != "" {
+		_ = q.db.UpdateProjectCommit(proj.ID, res.CommitSHA)
+	}
 	emit("system", "=== Deployment Successful ===")
 }
 
 func timePtr(t time.Time) *time.Time { return &t }
+
+// StartPoller periodically checks each auto-deploy project's branch on GitHub
+// and queues a new deployment when the branch HEAD has moved past the last
+// commit that was built. It blocks until ctx is cancelled.
+//
+// A project only auto-deploys after it has a baseline commit (set by its first
+// successful manual deploy), so brand-new projects never deploy unexpectedly.
+func (q *Queue) StartPoller(ctx context.Context, interval time.Duration) {
+	if interval <= 0 {
+		interval = time.Minute
+	}
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	log.Printf("[poller] watching branches every %s", interval)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			q.pollOnce(ctx)
+		}
+	}
+}
+
+func (q *Queue) pollOnce(ctx context.Context) {
+	acct, err := q.db.GetGitHubAccount()
+	if err != nil || acct == nil {
+		return // no GitHub connection → nothing to poll
+	}
+	projects, err := q.db.ListProjects()
+	if err != nil {
+		log.Printf("[poller] list projects: %v", err)
+		return
+	}
+	client := github.NewClient(acct.AccessToken)
+	for _, p := range projects {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		if !p.AutoDeploy {
+			continue
+		}
+		// Skip until a baseline exists and while a build is already in flight.
+		if p.LastCommitSHA == "" || p.Status == "building" || p.Status == "queued" {
+			continue
+		}
+		owner, repo, ok := github.ParseOwnerRepo(p.RepoURL)
+		if !ok {
+			continue
+		}
+		sha, msg, err := client.GetBranchHead(owner, repo, p.Branch)
+		if err != nil {
+			log.Printf("[poller] %s: head lookup failed: %v", p.Name, err)
+			continue
+		}
+		if sha == "" || sha == p.LastCommitSHA {
+			continue // up to date
+		}
+
+		log.Printf("[poller] %s: new commit %.7s on %s — auto-deploying", p.Name, sha, p.Branch)
+		dep := &db.Deployment{
+			ID:        db.NewID("dep"),
+			ProjectID: p.ID,
+			Status:    "queued",
+			Trigger:   "auto",
+		}
+		if err := q.db.CreateDeployment(dep); err != nil {
+			log.Printf("[poller] %s: create deployment: %v", p.Name, err)
+			continue
+		}
+		_ = q.db.UpdateDeploymentCommit(dep.ID, sha, msg)
+		// Mark the commit as seen up-front so a failing build doesn't loop.
+		_ = q.db.UpdateProjectCommit(p.ID, sha)
+		_ = q.db.UpdateProjectStatus(p.ID, "building", "")
+		q.Enqueue(dep.ID)
+	}
+}

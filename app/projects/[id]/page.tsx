@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, type ReactNode } from "react"
 import { useParams, useRouter } from "next/navigation"
 import {
   RefreshCw, Play, Trash2, Globe, GitBranch, Circle, Clock,
-  ChevronLeft, Terminal, History, Settings2, ExternalLink,
+  ChevronLeft, Terminal, History, Settings2, ExternalLink, Check, Save, Zap,
 } from "lucide-react"
 import Link from "next/link"
 import { getSocket } from "@/lib/socket"
@@ -15,6 +15,7 @@ type Project = {
   ID: string; Name: string; RepoURL: string; Branch: string
   Domain: string; Status: string; BuildMethod: string; Port: number
   BuildCommand: string; EnvVars: string; CreatedAt: string
+  AutoDeploy: boolean; LastCommitSHA: string
 }
 type Deployment = {
   ID: string; Status: string; Trigger: string
@@ -26,6 +27,16 @@ type LogLine = { stream: string; line: string; ts: string }
 const STATUS_COLOR: Record<string, string> = {
   running: "var(--ok)", building: "var(--acc)",
   failed: "var(--err)", idle: "var(--fg-4)", queued: "var(--acc)",
+}
+
+function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  return (
+    <div>
+      <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>{label}</label>
+      {children}
+      {hint && <p className="text-[10px] mt-1" style={{ color: "var(--fg-4)" }}>{hint}</p>}
+    </div>
+  )
 }
 
 function age(ts: string) {
@@ -50,6 +61,15 @@ export default function ProjectDetailPage() {
   const [deleting, setDeleting]         = useState(false)
   const logsRef                         = useRef<HTMLDivElement>(null)
   const activeDepRef                    = useRef<string | null>(null)
+
+  // Editable settings form
+  const [form, setForm] = useState({
+    name: "", branch: "", domain: "", port: "3000",
+    buildMethod: "auto", buildCommand: "", envText: "", autoDeploy: true,
+  })
+  const [saving, setSaving]     = useState(false)
+  const [savedAt, setSavedAt]   = useState(0)
+  const [settingsErr, setSettingsErr] = useState("")
 
   const fetchProject = useCallback(async () => {
     const r = await fetch(`${GO_API}/api/projects/${id}`)
@@ -77,6 +97,30 @@ export default function ProjectDetailPage() {
   useEffect(() => {
     Promise.all([fetchProject(), fetchDeployments()]).finally(() => setLoading(false))
   }, [fetchProject, fetchDeployments])
+
+  // Populate the settings form once the project (by ID) is loaded — keyed on ID
+  // so background status refreshes don't clobber in-progress edits.
+  useEffect(() => {
+    if (!project) return
+    let envText = ""
+    try {
+      const obj = JSON.parse(project.EnvVars || "{}")
+      if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+        envText = Object.entries(obj).map(([k, v]) => `${k}=${v}`).join("\n")
+      }
+    } catch { /* leave blank */ }
+    setForm({
+      name: project.Name,
+      branch: project.Branch,
+      domain: project.Domain,
+      port: String(project.Port),
+      buildMethod: project.BuildMethod,
+      buildCommand: project.BuildCommand ?? "",
+      envText,
+      autoDeploy: project.AutoDeploy,
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project?.ID])
 
   // Keep ref in sync so the realtime handler always sees the current dep
   useEffect(() => { activeDepRef.current = activeDep }, [activeDep])
@@ -121,6 +165,53 @@ export default function ProjectDetailPage() {
         fetchProject()
       }
     } finally { setDeploying(false) }
+  }
+
+  const parseEnvVars = (text: string): Record<string, string> => {
+    const map: Record<string, string> = {}
+    for (const line of text.split("\n")) {
+      const idx = line.indexOf("=")
+      if (idx > 0) {
+        const k = line.slice(0, idx).trim()
+        if (k) map[k] = line.slice(idx + 1).trim()
+      }
+    }
+    return map
+  }
+
+  // Persist settings. Returns true on success. If redeploy is true, kicks off
+  // a fresh deployment with the saved config afterwards.
+  const saveSettings = async (redeploy: boolean) => {
+    setSaving(true)
+    setSettingsErr("")
+    try {
+      const r = await fetch(`${GO_API}/api/projects/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          branch: form.branch,
+          buildMethod: form.buildMethod,
+          buildCommand: form.buildMethod === "custom" ? form.buildCommand : "",
+          port: parseInt(form.port, 10) || 3000,
+          domain: form.domain,
+          envVars: JSON.stringify(parseEnvVars(form.envText)),
+          autoDeploy: form.autoDeploy,
+        }),
+      })
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}))
+        setSettingsErr(d.error ?? "Failed to save settings")
+        return false
+      }
+      await fetchProject()
+      setSavedAt(Date.now())
+      if (redeploy) await triggerDeploy()
+      return true
+    } catch (e) {
+      setSettingsErr(e instanceof Error ? e.message : "Network error")
+      return false
+    } finally { setSaving(false) }
   }
 
   const deleteProject = async () => {
@@ -314,9 +405,19 @@ export default function ProjectDetailPage() {
                     {age(dep.CreatedAt)}
                   </span>
                 </div>
-                <p className="text-xs mt-2 font-mono truncate" style={{ color: "var(--fg-3)" }}>
-                  {dep.ID}
-                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span
+                    className="text-[10px] px-1.5 py-0.5 rounded font-medium capitalize"
+                    style={{ background: "var(--bg-3)", color: dep.Trigger === "auto" ? "var(--acc)" : "var(--fg-3)" }}
+                  >
+                    {dep.Trigger === "auto" ? "⚡ auto" : dep.Trigger}
+                  </span>
+                  {dep.CommitSHA && (
+                    <span className="text-xs font-mono" style={{ color: "var(--fg-3)" }}>
+                      {dep.CommitSHA.slice(0, 7)}
+                    </span>
+                  )}
+                </div>
                 {dep.CommitMsg && (
                   <p className="text-xs mt-1 truncate" style={{ color: "var(--fg)" }}>{dep.CommitMsg}</p>
                 )}
@@ -329,23 +430,155 @@ export default function ProjectDetailPage() {
         {tab === "settings" && (
           <div className="h-full overflow-y-auto p-6">
             <div className="max-w-lg space-y-4">
+              {/* Read-only identity */}
               <div className="rounded-xl p-5 space-y-3" style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
                 {[
-                  { label: "Project ID", value: project.ID, mono: true },
+                  { label: "Project ID", value: project.ID },
                   { label: "Repository", value: project.RepoURL },
-                  { label: "Branch",     value: project.Branch },
-                  { label: "Domain",     value: project.Domain, mono: true },
-                  { label: "Port",       value: String(project.Port), mono: true },
-                  { label: "Build Method", value: project.BuildMethod },
+                  { label: "Last deployed commit", value: project.LastCommitSHA ? project.LastCommitSHA.slice(0, 7) : "—" },
                 ].map(row => (
-                  <div key={row.label} className="flex items-center justify-between text-sm">
+                  <div key={row.label} className="flex items-center justify-between text-sm gap-3">
                     <span style={{ color: "var(--fg-3)" }}>{row.label}</span>
-                    <span className={row.mono ? "font-mono text-xs" : "text-xs"} style={{ color: "var(--fg)" }}>
-                      {row.value}
-                    </span>
+                    <span className="font-mono text-xs truncate" style={{ color: "var(--fg)" }}>{row.value}</span>
                   </div>
                 ))}
               </div>
+
+              {/* Editable config */}
+              <div className="rounded-xl p-5 space-y-4" style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
+                {/* Auto-deploy toggle */}
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium flex items-center gap-1.5" style={{ color: "var(--fg)" }}>
+                      <Zap size={13} style={{ color: "var(--acc)" }} /> Auto-deploy
+                    </p>
+                    <p className="text-[11px] mt-0.5" style={{ color: "var(--fg-4)" }}>
+                      Rebuild &amp; redeploy automatically when <span className="font-mono">{form.branch || "the branch"}</span> gets new commits.
+                    </p>
+                  </div>
+                  <button
+                    role="switch"
+                    aria-checked={form.autoDeploy}
+                    onClick={() => setForm(f => ({ ...f, autoDeploy: !f.autoDeploy }))}
+                    className="relative w-10 h-6 rounded-full flex-shrink-0 transition-colors"
+                    style={{ background: form.autoDeploy ? "var(--acc)" : "var(--bg-3)", border: "1px solid var(--border)" }}
+                  >
+                    <span
+                      className="absolute top-0.5 w-4 h-4 rounded-full transition-all"
+                      style={{ left: form.autoDeploy ? "1.25rem" : "0.15rem", background: "#fff" }}
+                    />
+                  </button>
+                </div>
+
+                {/* Name */}
+                <Field label="Project Name">
+                  <input
+                    value={form.name}
+                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                    style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
+                  />
+                </Field>
+
+                {/* Branch */}
+                <Field label="Branch">
+                  <input
+                    value={form.branch}
+                    onChange={e => setForm(f => ({ ...f, branch: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono"
+                    style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
+                  />
+                </Field>
+
+                {/* Domain */}
+                <Field label="Domain">
+                  <input
+                    value={form.domain}
+                    onChange={e => setForm(f => ({ ...f, domain: e.target.value }))}
+                    placeholder="app.yourdomain.com"
+                    className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono"
+                    style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
+                  />
+                </Field>
+
+                {/* Port */}
+                <Field label="Container Port">
+                  <input
+                    type="number"
+                    value={form.port}
+                    onChange={e => setForm(f => ({ ...f, port: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                    style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
+                  />
+                </Field>
+
+                {/* Build method */}
+                <Field label="Build Method">
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { value: "auto",       label: "Auto-detect" },
+                      { value: "compose",    label: "Docker Compose" },
+                      { value: "dockerfile", label: "Dockerfile" },
+                      { value: "nixpacks",   label: "Nixpacks" },
+                    ].map(opt => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setForm(f => ({ ...f, buildMethod: opt.value }))}
+                        className="p-2.5 rounded-lg text-left transition-colors text-xs font-medium"
+                        style={{
+                          background: form.buildMethod === opt.value ? "var(--acc)/10" : "var(--bg-3)",
+                          border: `1px solid ${form.buildMethod === opt.value ? "var(--acc)" : "var(--border)"}`,
+                          color: form.buildMethod === opt.value ? "var(--acc)" : "var(--fg)",
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+
+                {/* Env vars */}
+                <Field label="Environment Variables" hint="One KEY=VALUE per line">
+                  <textarea
+                    value={form.envText}
+                    onChange={e => setForm(f => ({ ...f, envText: e.target.value }))}
+                    placeholder={"NODE_ENV=production\nPORT=3000"}
+                    rows={4}
+                    className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono resize-y"
+                    style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
+                  />
+                </Field>
+              </div>
+
+              {settingsErr && (
+                <p className="text-sm px-3 py-2 rounded-lg" style={{ background: "var(--err)/10", color: "var(--err)" }}>
+                  {settingsErr}
+                </p>
+              )}
+
+              {/* Save actions */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => saveSettings(false)}
+                  disabled={saving || deploying}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium disabled:opacity-60"
+                  style={{ background: "var(--bg-2)", color: "var(--fg)", border: "1px solid var(--border)" }}
+                >
+                  {savedAt && !saving ? <Check size={14} style={{ color: "var(--ok)" }} /> : <Save size={14} />}
+                  {saving ? "Saving…" : "Save"}
+                </button>
+                <button
+                  onClick={() => saveSettings(true)}
+                  disabled={saving || deploying}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium disabled:opacity-60"
+                  style={{ background: "var(--acc)", color: "#fff" }}
+                >
+                  {saving || deploying
+                    ? <><RefreshCw size={14} className="animate-spin" /> Working…</>
+                    : <><Play size={14} /> Save &amp; Redeploy</>}
+                </button>
+              </div>
+
               <button
                 onClick={deleteProject}
                 disabled={deleting}

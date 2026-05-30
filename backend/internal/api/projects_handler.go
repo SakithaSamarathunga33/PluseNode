@@ -50,6 +50,7 @@ func (s *Server) createProject(w http.ResponseWriter, r *http.Request) {
 		Port         int    `json:"port"`
 		Domain       string `json:"domain"`
 		EnvVars      string `json:"envVars"`
+		AutoDeploy   *bool  `json:"autoDeploy"`
 	}
 	if err := decodeJSON(r, &body); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid body"})
@@ -72,6 +73,11 @@ func (s *Server) createProject(w http.ResponseWriter, r *http.Request) {
 		body.EnvVars = "{}"
 	}
 
+	autoDeploy := true
+	if body.AutoDeploy != nil {
+		autoDeploy = *body.AutoDeploy
+	}
+
 	proj := &db.Project{
 		ID:           db.NewID("proj"),
 		Name:         body.Name,
@@ -83,6 +89,7 @@ func (s *Server) createProject(w http.ResponseWriter, r *http.Request) {
 		Domain:       body.Domain,
 		EnvVars:      body.EnvVars,
 		Status:       "idle",
+		AutoDeploy:   autoDeploy,
 	}
 	if err := s.db.CreateProject(proj); err != nil {
 		writeError(w, err)
@@ -115,12 +122,20 @@ func (s *Server) updateProject(w http.ResponseWriter, r *http.Request) {
 		Port         int    `json:"port"`
 		Domain       string `json:"domain"`
 		EnvVars      string `json:"envVars"`
+		AutoDeploy   *bool  `json:"autoDeploy"`
 	}
 	if err := decodeJSON(r, &body); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid body"})
 		return
 	}
-	if err := s.db.UpdateProject(id, body.Name, body.Branch, body.BuildMethod, body.BuildCommand, body.Port, body.Domain, body.EnvVars); err != nil {
+	// Preserve the current auto-deploy setting when the field is omitted.
+	autoDeploy := true
+	if body.AutoDeploy != nil {
+		autoDeploy = *body.AutoDeploy
+	} else if cur, _ := s.db.GetProject(id); cur != nil {
+		autoDeploy = cur.AutoDeploy
+	}
+	if err := s.db.UpdateProject(id, body.Name, body.Branch, body.BuildMethod, body.BuildCommand, body.Port, body.Domain, body.EnvVars, autoDeploy); err != nil {
 		writeError(w, err)
 		return
 	}

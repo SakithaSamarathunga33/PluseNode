@@ -98,6 +98,46 @@ func (c *Client) ListBranches(owner, repo string) ([]string, error) {
 	return branches, nil
 }
 
+// GetBranchHead returns the latest commit SHA and message for a branch.
+func (c *Client) GetBranchHead(owner, repo, branch string) (sha, msg string, err error) {
+	var raw struct {
+		Commit struct {
+			SHA    string `json:"sha"`
+			Commit struct {
+				Message string `json:"message"`
+			} `json:"commit"`
+		} `json:"commit"`
+	}
+	path := fmt.Sprintf("/repos/%s/%s/branches/%s", owner, repo, url.PathEscape(branch))
+	if err = c.get(path, &raw); err != nil {
+		return "", "", err
+	}
+	msg = raw.Commit.Commit.Message
+	if i := strings.IndexByte(msg, '\n'); i >= 0 {
+		msg = msg[:i] // first line only
+	}
+	return raw.Commit.SHA, strings.TrimSpace(msg), nil
+}
+
+// ParseOwnerRepo extracts "owner" and "repo" from a GitHub clone/HTML URL.
+// Supports https://github.com/owner/repo(.git) and git@github.com:owner/repo(.git).
+func ParseOwnerRepo(repoURL string) (owner, repo string, ok bool) {
+	s := strings.TrimSpace(repoURL)
+	s = strings.TrimSuffix(s, ".git")
+	// Normalise scp-style SSH URLs (git@github.com:owner/repo) to a path.
+	if i := strings.Index(s, "github.com"); i >= 0 {
+		s = s[i+len("github.com"):]
+		s = strings.TrimLeft(s, ":/")
+	} else {
+		return "", "", false
+	}
+	parts := strings.Split(s, "/")
+	if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
+		return "", "", false
+	}
+	return parts[0], parts[1], true
+}
+
 // AuthorisedCloneURL injects the token for private repo access
 func AuthorisedCloneURL(cloneURL, token string) string {
 	if token == "" {

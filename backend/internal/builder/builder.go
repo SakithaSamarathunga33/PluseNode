@@ -32,12 +32,19 @@ type Config struct {
 	Log          LogFunc
 }
 
+// Result is the outcome of a successful build.
+type Result struct {
+	ContainerID string
+	CommitSHA   string // full SHA of the built commit
+	CommitMsg   string // first line of the commit message
+}
+
 // Run clones the repo, builds, and starts the container.
-// Returns the container ID of the primary running container.
-func Run(ctx context.Context, cfg Config) (containerID string, err error) {
+// Returns the running container and the commit that was built.
+func Run(ctx context.Context, cfg Config) (Result, error) {
 	tmpDir, err := os.MkdirTemp("", "pn-build-*")
 	if err != nil {
-		return "", fmt.Errorf("mktemp: %w", err)
+		return Result{}, fmt.Errorf("mktemp: %w", err)
 	}
 	defer os.RemoveAll(tmpDir)
 
@@ -47,7 +54,13 @@ func Run(ctx context.Context, cfg Config) (containerID string, err error) {
 	// 1. Clone
 	cfg.log("system", "→ Cloning repository…")
 	if err := cfg.run(ctx, tmpDir, "git", "clone", "--depth", "1", "--branch", cfg.Branch, cfg.RepoURL, "."); err != nil {
-		return "", fmt.Errorf("clone: %w", err)
+		return Result{}, fmt.Errorf("clone: %w", err)
+	}
+
+	// Capture the commit that was actually checked out.
+	commitSHA, commitMsg := CommitInfo(tmpDir)
+	if commitSHA != "" {
+		cfg.log("system", fmt.Sprintf("→ Building commit %s — %s", shortSHA(commitSHA), commitMsg))
 	}
 
 	// 2. Detect method if auto
@@ -70,6 +83,7 @@ func Run(ctx context.Context, cfg Config) (containerID string, err error) {
 	containerName := fmt.Sprintf("pn-%s", slug)
 
 	// 4. Build & run
+	var containerID string
 	switch method {
 	case MethodCompose:
 		containerID, err = cfg.buildCompose(ctx, tmpDir, containerName, envMap)
@@ -78,15 +92,23 @@ func Run(ctx context.Context, cfg Config) (containerID string, err error) {
 	case MethodNixpacks:
 		containerID, err = cfg.buildNixpacks(ctx, tmpDir, imageName, containerName, envMap)
 	default:
-		return "", fmt.Errorf("unknown build method: %s", method)
+		return Result{}, fmt.Errorf("unknown build method: %s", method)
 	}
 	if err != nil {
-		return "", err
+		return Result{}, err
 	}
 
-	cfg.log("system", fmt.Sprintf("✓ Container running: %s", containerID[:12]))
+	cfg.log("system", fmt.Sprintf("✓ Container running: %s", containerID[:min(12, len(containerID))]))
 	cfg.log("system", fmt.Sprintf("✓ Live at https://%s", cfg.Domain))
-	return containerID, nil
+	return Result{ContainerID: containerID, CommitSHA: commitSHA, CommitMsg: commitMsg}, nil
+}
+
+// shortSHA returns the first 7 characters of a commit SHA.
+func shortSHA(sha string) string {
+	if len(sha) > 7 {
+		return sha[:7]
+	}
+	return sha
 }
 
 func (cfg Config) buildCompose(ctx context.Context, dir, containerName string, envMap map[string]string) (string, error) {
@@ -281,11 +303,11 @@ func sanitizeName(name string) string {
 	return s
 }
 
-// CommitInfo returns short SHA and message from the cloned repo.
+// CommitInfo returns the full SHA and subject line from the cloned repo.
 func CommitInfo(dir string) (sha, msg string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	sha, _ = runOutput(ctx, dir, "git", "rev-parse", "--short", "HEAD")
+	sha, _ = runOutput(ctx, dir, "git", "rev-parse", "HEAD")
 	msg, _ = runOutput(ctx, dir, "git", "log", "-1", "--pretty=%s")
 	return strings.TrimSpace(sha), strings.TrimSpace(msg)
 }

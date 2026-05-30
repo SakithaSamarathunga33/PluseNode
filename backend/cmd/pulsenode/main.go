@@ -66,6 +66,7 @@ func main() {
 	go collector.Start(ctx)
 	go streamSystemMetrics(ctx, collector, events)
 	go streamContainerStats(ctx, dockerClient, events)
+	go jobQueue.StartPoller(ctx, pollInterval())
 
 	httpServer := &http.Server{
 		Addr:              ":" + port,
@@ -124,4 +125,14 @@ func env(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// pollInterval reads DEPLOY_POLL_INTERVAL (e.g. "60s", "2m"), defaulting to 60s.
+func pollInterval() time.Duration {
+	if v := os.Getenv("DEPLOY_POLL_INTERVAL"); v != "" {
+		if d, err := time.ParseDuration(v); err == nil && d > 0 {
+			return d
+		}
+	}
+	return 60 * time.Second
 }
