@@ -55,7 +55,7 @@ export default function ProjectDetailPage() {
   const [deployments, setDeployments]   = useState<Deployment[]>([])
   const [logs, setLogs]                 = useState<LogLine[]>([])
   const [activeDep, setActiveDep]       = useState<string | null>(null)
-  const [tab, setTab]                   = useState<"logs" | "history" | "settings">("logs")
+  const [tab, setTab]                   = useState<"logs" | "history" | "settings">("settings")
   const [loading, setLoading]           = useState(true)
   const [deploying, setDeploying]       = useState(false)
   const [deleting, setDeleting]         = useState(false)
