@@ -168,14 +168,20 @@ func runUpdate() {
 	updateLog(":: phase :: Updating containers…")
 	updateLog("⚠ The dashboard will go offline for ~30-90s during the restart.")
 
-	overlay := os.Getenv("PULSENODE_OVERLAY")
-	if overlay == "" {
-		overlay = "docker-compose.standalone.yml"
-	}
-
 	// Load .env.local and inject as env vars — avoids relying on --env-file
 	// which is not available in older Docker CLI versions.
 	envVars := loadDotEnv(workspace + "/.env.local")
+
+	// Prefer .env.local over the container's frozen env: the container's
+	// PULSENODE_OVERLAY is baked at first `docker compose up` time and can
+	// drift from .env.local, which silently breaks port bindings on update.
+	overlay := envVarVal(envVars, "PULSENODE_OVERLAY")
+	if overlay == "" {
+		overlay = os.Getenv("PULSENODE_OVERLAY")
+	}
+	if overlay == "" {
+		overlay = "docker-compose.standalone.yml"
+	}
 
 	composeBin, composePrefix := resolveCompose(envVars)
 	updateLog("Using compose: " + composeBin)
