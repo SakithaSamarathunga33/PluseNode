@@ -37,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <script
           dangerouslySetInnerHTML={{
-            __html: "try{var t=localStorage.getItem('pn-theme');document.documentElement.dataset.theme=t==='light'?'light':'dark'}catch(e){}",
+            __html: "try{var p=window.location.pathname;var t=(p==='/login'||p.startsWith('/login/'))?'dark':(localStorage.getItem('pn-theme')==='light'?'light':'dark');document.documentElement.dataset.theme=t;}catch(e){}",
           }}
         />
         <AppShell>{children}</AppShell>

@@ -77,7 +77,7 @@ function LoginForm() {
         backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="absolute inset-0 bg-pulseNode-navy/45 pointer-events-none" />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(8,8,11,0.55)" }} />
       <div className="w-full max-w-sm relative z-10">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-helm-fg">PulseNode</h1>
@@ -125,7 +125,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-pn-blue hover:bg-pn-blue/90 disabled:opacity-60 text-white rounded-lg py-2.5 text-sm font-semibold shadow-glow transition-colors"
+            className="w-full flex items-center justify-center gap-2 bg-[var(--acc)] hover:bg-[var(--acc-2)] disabled:opacity-60 text-white rounded-lg py-2.5 text-sm font-semibold shadow-[0_1px_0_rgba(255,255,255,0.16)_inset,0_10px_24px_-14px_rgba(139,124,255,0.9)] transition-colors"
           >
             {loading && <Loader2 size={14} className="animate-spin" />}
             Sign in

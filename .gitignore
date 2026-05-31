@@ -28,6 +28,7 @@ __pycache__/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.next-dev.*.log
 
 # local env files
 .env
