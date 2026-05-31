@@ -145,7 +145,7 @@ function detectSuspicious(proc: Process): SuspicionResult {
   if (/\/(tmp|dev\/shm|var\/tmp|run\/user\/\d+|proc\/\d+\/fd)\//.test(cmd))
     reasons.push("Executing from suspicious path (/tmp, /dev/shm, etc.)")
 
-  if (/\/\.[a-zA-Z]/.test(cmd) && !/\/(\.local|\.config|\.npm|\.node|\.pyenv|\.rbenv)/.test(cmd))
+  if (/\/\.[a-zA-Z]/.test(cmd) && !/\/(\.local|\.config|\.npm|\.node|\.pm2|\.pyenv|\.rbenv)/.test(cmd))
     reasons.push("Hidden directory in executable path")
 
   // ── Signal 3: Obfuscated / injection commands ────────────────────────────
