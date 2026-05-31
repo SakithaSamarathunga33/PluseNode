@@ -2,8 +2,10 @@
 
 import { usePathname, useRouter } from "next/navigation"
 import { useRef, useState, useEffect, useCallback } from "react"
-import { RefreshCw, Bell, Settings, Search, LayoutDashboard, HardDrive, Cpu, Network, Database, GitBranch, GitFork, AlertTriangle, Package, Terminal, ShieldCheck, FileCode, ChevronRight } from "lucide-react"
+import { RefreshCw, Bell, Settings, Search, LayoutDashboard, HardDrive, Cpu, Network, Database, GitBranch, GitFork, AlertTriangle, Package, Terminal, ShieldCheck, FileCode, ChevronRight, LogOut } from "lucide-react"
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
+
+const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
 
 const PAGE_TITLES: Record<string, string> = {
   "/containers":   "Containers",
@@ -153,8 +155,26 @@ export function Topbar() {
   const [query, setQuery]       = useState("")
   const [open, setOpen]         = useState(false)
   const [active, setActive]     = useState(0)
+  const [authEnabled, setAuthEnabled] = useState(false)
   const inputRef  = useRef<HTMLInputElement>(null)
   const dropRef   = useRef<HTMLDivElement>(null)
+
+  // Only show the logout button when login protection is configured.
+  useEffect(() => {
+    fetch(`${GO_API}/api/auth/status`, { cache: "no-store" })
+      .then(r => r.json() as Promise<{ enabled?: boolean }>)
+      .then(d => setAuthEnabled(!!d.enabled))
+      .catch(() => {})
+  }, [])
+
+  async function handleLogout() {
+    try {
+      await fetch(`${GO_API}/api/auth/logout`, { method: "POST" })
+    } finally {
+      // Hard navigation so middleware re-evaluates with the cleared cookie.
+      window.location.href = "/login"
+    }
+  }
 
   const results = query.trim()
     ? SEARCH_ITEMS.map(item => ({ item, s: score(item, query) }))
@@ -327,6 +347,24 @@ export function Topbar() {
         >
           <Settings size={14} />
         </button>
+        {authEnabled && (
+          <button
+            className="relative p-2 rounded-lg transition-colors"
+            style={{ color: "var(--fg-3)" }}
+            title="Log out"
+            onClick={handleLogout}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-2)"
+              ;(e.currentTarget as HTMLButtonElement).style.color = "var(--fg)"
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLButtonElement).style.background = "transparent"
+              ;(e.currentTarget as HTMLButtonElement).style.color = "var(--fg-3)"
+            }}
+          >
+            <LogOut size={14} />
+          </button>
+        )}
         <div
           className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white ml-1 flex-shrink-0"
           style={{ background: "var(--acc)" }}
