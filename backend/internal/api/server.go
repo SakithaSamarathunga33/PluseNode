@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"syscall"
@@ -222,8 +223,31 @@ func (s *Server) clientConfig(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// installedVersion reports the version PulseNode is running. Prefers the most
+// recent git tag in the workspace — that auto-refreshes when `git pull` runs
+// during self-update, so we don't depend on install.sh keeping
+// PULSENODE_VERSION in sync (it doesn't; it writes the value once at install
+// and never touches it again, so the env stays frozen at install-time).
+// Falls back to PULSENODE_VERSION env, then "dev".
+func installedVersion() string {
+	workspace := os.Getenv("PULSENODE_WORKSPACE")
+	if workspace == "" {
+		workspace = "/workspace"
+	}
+	out, err := exec.Command("git", "-C", workspace,
+		"-c", "safe.directory="+workspace,
+		"describe", "--tags", "--abbrev=0").Output()
+	if err == nil {
+		v := strings.TrimSpace(strings.TrimPrefix(string(out), "v"))
+		if v != "" {
+			return v
+		}
+	}
+	return firstNonEmpty(os.Getenv("PULSENODE_VERSION"), "dev")
+}
+
 func (s *Server) version(w http.ResponseWriter, r *http.Request) {
-	current := firstNonEmpty(os.Getenv("PULSENODE_VERSION"), "dev")
+	current := installedVersion()
 
 	type ghRelease struct {
 		TagName string `json:"tag_name"`
