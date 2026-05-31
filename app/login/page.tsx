@@ -65,8 +65,17 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-pulseNode-navy p-4">
-      <div className="w-full max-w-sm">
+    <div
+      className="min-h-screen flex items-center justify-center bg-pulseNode-navy p-4 relative"
+      style={{
+        backgroundImage: "url('/file_0000000053ac720b95e22d8410d1da4d.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <div className="absolute inset-0 bg-pulseNode-navy/60 pointer-events-none" />
+      <div className="w-full max-w-sm relative z-10">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-helm-fg">PulseNode</h1>
           <p className="text-sm text-helm-fg3 mt-1">Sign in to your dashboard</p>
