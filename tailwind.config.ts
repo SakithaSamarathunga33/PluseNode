@@ -91,6 +91,11 @@ const config: Config = {
           from: { opacity: "0", transform: "translateY(8px)" },
           to:   { opacity: "1", transform: "translateY(0)" },
         },
+        shine: {
+          "0%":   { "background-position": "0% 0%" },
+          "50%":  { "background-position": "100% 100%" },
+          "100%": { "background-position": "0% 0%" },
+        },
       },
 
       animation: {
@@ -100,6 +105,7 @@ const config: Config = {
         sparkle:          "sparkle 1.5s ease-in-out infinite",
         meteor:           "meteor linear infinite",
         "fade-in":        "fade-in 0.35s ease forwards",
+        shine:            "shine var(--duration) infinite linear",
       },
     },
   },

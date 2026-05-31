@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
+import { ShineBorder } from "@/components/magicui/shine-border"
 
 const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
 
@@ -80,14 +81,24 @@ function LoginForm() {
       <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(8,8,11,0.55)" }} />
       <div className="w-full max-w-sm relative z-10">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-helm-fg">PulseNode</h1>
-          <p className="text-sm text-helm-fg3 mt-1">Sign in to your dashboard</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logodark-removebg-preview.png"
+            alt="PulseNode"
+            className="mx-auto h-12 w-auto"
+          />
+          <p className="text-sm text-helm-fg3 mt-3">Sign in to your dashboard</p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="rounded-xl border border-pulseNode-border/20 bg-pulseNode-navyLight p-6 space-y-4"
+          className="relative overflow-hidden rounded-xl border border-pulseNode-border/20 bg-pulseNode-navyLight p-6 space-y-4"
         >
+          <ShineBorder
+            borderWidth={2}
+            duration={10}
+            shineColor={["#8b7cff", "#22d3ee", "#6d5cff"]}
+          />
           <div className="space-y-1.5">
             <label className="text-[11px] font-semibold uppercase tracking-wider text-helm-fg3">
               Username
