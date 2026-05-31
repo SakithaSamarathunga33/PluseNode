@@ -223,12 +223,13 @@ func runUpdate() {
 		pullArgs := append(append([]string{}, composePrefix...), "pull")
 		updateLog("Pulling pre-built images from GitHub Container Registry…")
 		if err := streamCmdEnv(ghcrEnv, composeBin, pullArgs...); err == nil {
-			upArgs := append(append([]string{}, composePrefix...), "up", "-d")
-			if err := streamCmdEnv(ghcrEnv, composeBin, upArgs...); err != nil {
-				updateFail("docker compose up failed: " + err.Error())
+			updateLog("✓ Images pulled — handing off to background updater…")
+			hostFiles := toHostPaths(ghcrFiles, workspace, installDir)
+			if err := runDetachedComposeUp(envVars, hostFiles, installDir, projectName); err != nil {
+				updateFail("failed to start background updater: " + err.Error())
 				return
 			}
-			updateLog("✓ Updated from pre-built images — restarting dashboard…")
+			updateLog("✓ Updater started — dashboard will restart in a few seconds…")
 			globalUpdate.mu.Lock()
 			globalUpdate.running = false
 			globalUpdate.mu.Unlock()
@@ -238,14 +239,103 @@ func runUpdate() {
 	}
 
 	updateLog("Building from source (this takes ~2-3 min)…")
-	buildArgs := append(append([]string{}, composePrefix...), "up", "-d", "--build")
+	// Build is safe to stream in-process — it doesn't recreate containers.
+	buildArgs := append(append([]string{}, composePrefix...), "build")
 	if err := streamCmdEnv(baseEnv, composeBin, buildArgs...); err != nil {
 		updateFail("docker compose build failed: " + err.Error())
 		return
 	}
-	updateLog("✓ Built and restarted — dashboard coming back online…")
+	updateLog("✓ Built — handing off to background updater…")
+	hostFiles := toHostPaths(baseFiles, workspace, installDir)
+	if err := runDetachedComposeUp(envVars, hostFiles, installDir, projectName); err != nil {
+		updateFail("failed to start background updater: " + err.Error())
+		return
+	}
+	updateLog("✓ Updater started — dashboard will restart in a few seconds…")
 
 	globalUpdate.mu.Lock()
 	globalUpdate.running = false
 	globalUpdate.mu.Unlock()
+}
+
+// runDetachedComposeUp spawns a sidecar container that runs `docker compose
+// up -d` on our behalf. We can't run the swap in-process: compose recreates
+// the go-api container, which kills the compose subprocess mid-flight and
+// leaves the stack half-swapped (new container stuck in "Created", old one
+// stuck in "Exited"). `docker run -d` hands the sidecar to the host daemon,
+// so it survives us dying.
+//
+// The sidecar reuses our own image (which already ships docker-cli + compose),
+// so no external image pull is needed.
+//
+// hostComposeFiles must be HOST-absolute paths — the sidecar talks to the host
+// daemon via the mounted socket, so /workspace/... paths from our PoV are
+// meaningless to it.
+func runDetachedComposeUp(envVars []string, hostComposeFiles []string, installDir, projectName string) error {
+	image, err := selfImage()
+	if err != nil {
+		return fmt.Errorf("resolve self image: %w", err)
+	}
+
+	sidecarName := projectName + "-updater"
+	// Best-effort cleanup of a stale updater from a previous failed run.
+	_ = exec.Command("docker", "rm", "-f", sidecarName).Run()
+
+	args := []string{
+		"run", "--rm", "-d",
+		"--name", sidecarName,
+		"-v", "/var/run/docker.sock:/var/run/docker.sock",
+		"-v", installDir + ":" + installDir,
+		"-w", installDir,
+		"-e", "COMPOSE_FILE=" + strings.Join(hostComposeFiles, ":"),
+		"-e", "COMPOSE_PROJECT_DIR=" + installDir,
+		"-e", "COMPOSE_PROJECT_NAME=" + projectName,
+	}
+	for _, kv := range envVars {
+		// Skip COMPOSE_* — we set explicit host-path versions above.
+		if strings.HasPrefix(kv, "COMPOSE_") {
+			continue
+		}
+		args = append(args, "-e", kv)
+	}
+	// The sleep gives go-api a moment to finish its in-flight HTTP response
+	// before the swap begins; without it the client sees a torn connection
+	// instead of the "updater started" acknowledgement.
+	args = append(args, image, "sh", "-c", "sleep 2; exec docker compose up -d")
+
+	out, err := exec.Command("docker", args...).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("docker run: %w (%s)", err, strings.TrimSpace(string(out)))
+	}
+	return nil
+}
+
+// selfImage returns the image of the currently-running container (read via
+// docker inspect on $HOSTNAME, which docker sets to the container ID).
+func selfImage() (string, error) {
+	hostname, err := os.Hostname()
+	if err != nil || hostname == "" {
+		return "", fmt.Errorf("read hostname: %w", err)
+	}
+	out, err := exec.Command("docker", "inspect", hostname, "--format", "{{.Config.Image}}").CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("inspect %s: %w (%s)", hostname, err, strings.TrimSpace(string(out)))
+	}
+	img := strings.TrimSpace(string(out))
+	if img == "" {
+		return "", fmt.Errorf("empty image for %s", hostname)
+	}
+	return img, nil
+}
+
+// toHostPaths rewrites container-side compose file paths (/workspace/...) to
+// the equivalent host paths, so the sidecar (which talks to the host daemon)
+// can resolve them.
+func toHostPaths(containerFiles []string, workspace, installDir string) []string {
+	out := make([]string, 0, len(containerFiles))
+	for _, f := range containerFiles {
+		rel := strings.TrimPrefix(f, workspace+"/")
+		out = append(out, installDir+"/"+rel)
+	}
+	return out
 }
