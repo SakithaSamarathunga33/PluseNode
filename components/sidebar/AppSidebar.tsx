@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   Container, BarChart3, Activity, Layers, Network,
@@ -83,6 +83,7 @@ export function AppSidebar() {
   })
   const [coolifyEnabled,  setCoolifyEnabled]  = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
 
   // Fetch server config once on mount (non-blocking)
   useEffect(() => {
@@ -340,13 +341,16 @@ export function AppSidebar() {
         )}
 
         {/* Settings link */}
-        <Link
-          href="/settings"
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors mb-1 relative ${
+        <button
+          type="button"
+          onClick={() => router.push("/settings")}
+          title="Settings"
+          aria-label="Settings"
+          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors mb-1 relative ${
             pathname === "/settings"
               ? "bg-pn-electric/10 text-pn-electric"
               : "text-helm-fg3 hover:text-helm-fg hover:bg-pulseNode-border/10"
-          }`}
+          } ${collapsed ? "justify-center" : ""}`}
         >
           <Settings size={14} className="flex-shrink-0" />
           {!collapsed && <span className="font-medium">Settings</span>}
@@ -356,7 +360,7 @@ export function AppSidebar() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400" />
             </span>
           )}
-        </Link>
+        </button>
 
         <button
           onClick={() => setCollapsed(v => !v)}
