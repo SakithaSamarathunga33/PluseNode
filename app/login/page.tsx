@@ -48,7 +48,10 @@ function LoginForm() {
         setError(b.error ?? "Login failed")
         return
       }
-      router.replace(params.get("next") ?? "/")
+      // Hard navigation so middleware re-runs server-side with the freshly-set
+      // session cookie. A client-side router.replace can race the new cookie and
+      // bounce straight back to /login.
+      window.location.href = params.get("next") ?? "/"
     } catch {
       setError("Could not reach server")
     } finally {
@@ -121,8 +124,8 @@ function LoginForm() {
 
           <button
             type="submit"
-            disabled={loading || !username || !password}
-            className="w-full flex items-center justify-center gap-2 bg-pn-cyan hover:bg-pn-cyan/90 disabled:opacity-50 text-white rounded-lg py-2 text-sm font-semibold transition-colors"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 bg-pn-cyan hover:bg-pn-cyan/90 disabled:opacity-60 text-white rounded-lg py-2 text-sm font-semibold transition-colors"
           >
             {loading && <Loader2 size={14} className="animate-spin" />}
             Sign in

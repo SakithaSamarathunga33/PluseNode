@@ -1,8 +1,7 @@
 import type { Metadata } from "next"
 import localFont from "next/font/local"
 import "./globals.css"
-import { AppSidebar } from "@/components/sidebar/AppSidebar"
-import { Topbar } from "@/components/dashboard/Topbar"
+import { AppShell } from "@/components/AppShell"
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -41,15 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: "try{var t=localStorage.getItem('pn-theme');document.documentElement.dataset.theme=t==='light'?'light':'dark'}catch(e){}",
           }}
         />
-        <div className="flex h-screen overflow-hidden">
-          <AppSidebar />
-          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-            <Topbar />
-            <main className="flex-1 overflow-y-auto">
-              {children}
-            </main>
-          </div>
-        </div>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   )
