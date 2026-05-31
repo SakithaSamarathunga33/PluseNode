@@ -156,16 +156,19 @@ export function Topbar() {
   const [open, setOpen]         = useState(false)
   const [active, setActive]     = useState(0)
   const [authEnabled, setAuthEnabled] = useState(false)
+  const [username, setUsername] = useState("")
   const inputRef  = useRef<HTMLInputElement>(null)
   const dropRef   = useRef<HTMLDivElement>(null)
 
   // Only show the logout button when login protection is configured.
   useEffect(() => {
     fetch(`${GO_API}/api/auth/status`, { cache: "no-store" })
-      .then(r => r.json() as Promise<{ enabled?: boolean }>)
-      .then(d => setAuthEnabled(!!d.enabled))
+      .then(r => r.json() as Promise<{ enabled?: boolean; username?: string }>)
+      .then(d => { setAuthEnabled(!!d.enabled); setUsername(d.username ?? "") })
       .catch(() => {})
   }, [])
+
+  const avatarInitial = username.trim().charAt(0).toUpperCase() || "?"
 
   async function handleLogout() {
     try {
@@ -368,8 +371,9 @@ export function Topbar() {
         <div
           className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white ml-1 flex-shrink-0"
           style={{ background: "var(--acc)" }}
+          title={username || undefined}
         >
-          SS
+          {avatarInitial}
         </div>
       </div>
     </header>
