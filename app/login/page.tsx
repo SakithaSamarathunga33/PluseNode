@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
-import { ShineBorder } from "@/components/magicui/shine-border"
 import { BorderBeam } from "@/components/magicui/border-beam"
 
 const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
@@ -95,11 +94,6 @@ function LoginForm() {
           onSubmit={handleSubmit}
           className="relative overflow-hidden rounded-xl border border-pulseNode-border/20 bg-pulseNode-navyLight p-6 space-y-4"
         >
-          <ShineBorder
-            borderWidth={2}
-            duration={10}
-            shineColor={["#8b7cff", "#22d3ee", "#6d5cff"]}
-          />
           <BorderBeam size={120} duration={8} borderWidth={2} />
           <div className="space-y-1.5">
             <label className="text-[11px] font-semibold uppercase tracking-wider text-helm-fg3">
