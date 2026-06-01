@@ -6772,7 +6772,7 @@
       "label": ".health()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L225",
+      "source_location": "L226",
       "id": "api_server_health",
       "community": 6,
       "norm_label": ".health()"
@@ -6781,7 +6781,7 @@
       "label": ".clientConfig()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L232",
+      "source_location": "L233",
       "id": "api_server_clientconfig",
       "community": 6,
       "norm_label": ".clientconfig()"
@@ -6790,7 +6790,7 @@
       "label": "installedVersion()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L244",
+      "source_location": "L245",
       "id": "api_server_installedversion",
       "community": 6,
       "norm_label": "installedversion()"
@@ -6799,7 +6799,7 @@
       "label": "workspaceDir()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L258",
+      "source_location": "L259",
       "id": "api_server_workspacedir",
       "community": 6,
       "norm_label": "workspacedir()"
@@ -6808,7 +6808,7 @@
       "label": "runningAtLeast()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L270",
+      "source_location": "L271",
       "id": "api_server_runningatleast",
       "community": 6,
       "norm_label": "runningatleast()"
@@ -6817,7 +6817,7 @@
       "label": ".version()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L281",
+      "source_location": "L282",
       "id": "api_server_version",
       "community": 6,
       "norm_label": ".version()"
@@ -6826,7 +6826,7 @@
       "label": "notImplemented()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L365",
+      "source_location": "L366",
       "id": "api_server_notimplemented",
       "community": 6,
       "norm_label": "notimplemented()"
@@ -6835,7 +6835,7 @@
       "label": "emptyList()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L369",
+      "source_location": "L370",
       "id": "api_server_emptylist",
       "community": 6,
       "norm_label": "emptylist()"
@@ -6844,7 +6844,7 @@
       "label": "signalHandler()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L373",
+      "source_location": "L374",
       "id": "api_server_signalhandler",
       "community": 13,
       "norm_label": "signalhandler()"
@@ -6853,7 +6853,7 @@
       "label": "firstNonEmpty()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L388",
+      "source_location": "L389",
       "id": "api_server_firstnonempty",
       "community": 6,
       "norm_label": "firstnonempty()"
@@ -7786,10 +7786,19 @@
       "norm_label": ".domainsettings()"
     },
     {
+      "label": ".saveDomainSettings()",
+      "file_type": "code",
+      "source_file": "backend/internal/api/domain_handler.go",
+      "source_location": "L61",
+      "id": "api_server_savedomainsettings",
+      "community": 23,
+      "norm_label": ".savedomainsettings()"
+    },
+    {
       "label": "resolveDomain()",
       "file_type": "code",
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L63",
+      "source_location": "L84",
       "id": "api_domain_handler_resolvedomain",
       "community": 23,
       "norm_label": "resolvedomain()"
@@ -7798,7 +7807,7 @@
       "label": ".checkDomain()",
       "file_type": "code",
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L95",
+      "source_location": "L116",
       "id": "api_server_checkdomain",
       "community": 23,
       "norm_label": ".checkdomain()"
@@ -7807,7 +7816,7 @@
       "label": "allCloudflareIPs()",
       "file_type": "code",
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L108",
+      "source_location": "L129",
       "id": "api_domain_handler_allcloudflareips",
       "community": 23,
       "norm_label": "allcloudflareips()"
@@ -7816,7 +7825,7 @@
       "label": "isCloudflareIP()",
       "file_type": "code",
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L121",
+      "source_location": "L142",
       "id": "api_domain_handler_iscloudflareip",
       "community": 23,
       "norm_label": "iscloudflareip()"
@@ -7825,7 +7834,7 @@
       "label": "currentDomainSettings()",
       "file_type": "code",
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L156",
+      "source_location": "L177",
       "id": "api_domain_handler_currentdomainsettings",
       "community": 23,
       "norm_label": "currentdomainsettings()"
@@ -7834,7 +7843,7 @@
       "label": "expectedVPSIP()",
       "file_type": "code",
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L171",
+      "source_location": "L192",
       "id": "api_domain_handler_expectedvpsip",
       "community": 23,
       "norm_label": "expectedvpsip()"
@@ -7843,7 +7852,7 @@
       "label": "lookupPublicIP()",
       "file_type": "code",
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L203",
+      "source_location": "L224",
       "id": "api_domain_handler_lookuppublicip",
       "community": 23,
       "norm_label": "lookuppublicip()"
@@ -7852,7 +7861,7 @@
       "label": "rootFromURL()",
       "file_type": "code",
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L224",
+      "source_location": "L245",
       "id": "api_domain_handler_rootfromurl",
       "community": 23,
       "norm_label": "rootfromurl()"
@@ -7861,7 +7870,7 @@
       "label": "hostFromURL()",
       "file_type": "code",
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L228",
+      "source_location": "L249",
       "id": "api_domain_handler_hostfromurl",
       "community": 23,
       "norm_label": "hostfromurl()"
@@ -7870,7 +7879,7 @@
       "label": "rootFromHost()",
       "file_type": "code",
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L239",
+      "source_location": "L260",
       "id": "api_domain_handler_rootfromhost",
       "community": 23,
       "norm_label": "rootfromhost()"
@@ -7879,7 +7888,7 @@
       "label": "cleanDomain()",
       "file_type": "code",
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L248",
+      "source_location": "L269",
       "id": "api_domain_handler_cleandomain",
       "community": 23,
       "norm_label": "cleandomain()"
@@ -14892,17 +14901,8 @@
       "source_file": "lib/api.ts",
       "source_location": "L46",
       "id": "lib_api_pythonapi",
-      "community": 11,
+      "community": 9,
       "norm_label": "pythonapi"
-    },
-    {
-      "label": ".saveDomainSettings()",
-      "file_type": "code",
-      "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L61",
-      "community": 23,
-      "norm_label": ".savedomainsettings()",
-      "id": "api_server_savedomainsettings"
     },
     {
       "label": "Settings",
@@ -29891,9 +29891,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L19",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go",
-      "target": "api_domains_handler_parsetraefikhosts"
+      "target": "api_domains_handler_parsetraefikhosts",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -29901,9 +29901,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L38",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go",
-      "target": "api_saveddomain"
+      "target": "api_saveddomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -29911,9 +29911,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L49",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go",
-      "target": "api_domainsresponse"
+      "target": "api_domainsresponse",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -29921,9 +29921,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L192",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go",
-      "target": "api_inuseref"
+      "target": "api_inuseref",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -29931,9 +29931,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L198",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go",
-      "target": "api_inusehost"
+      "target": "api_inusehost",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -29942,9 +29942,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L232",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_discoverinusehosts",
-      "target": "api_domains_handler_parsetraefikhosts"
+      "target": "api_domains_handler_parsetraefikhosts",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -29963,9 +29963,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L55",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go_api_server",
-      "target": "api_server_builddomainsresponse"
+      "target": "api_server_builddomainsresponse",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -29973,9 +29973,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L89",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go_api_server",
-      "target": "api_server_writedomainsresponse"
+      "target": "api_server_writedomainsresponse",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -29983,9 +29983,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L99",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go_api_server",
-      "target": "api_server_domainsaved"
+      "target": "api_server_domainsaved",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -29993,9 +29993,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L112",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go_api_server",
-      "target": "api_server_listdomains"
+      "target": "api_server_listdomains",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -30003,9 +30003,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L116",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go_api_server",
-      "target": "api_server_savedomain"
+      "target": "api_server_savedomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -30013,9 +30013,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L144",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go_api_server",
-      "target": "api_server_recheckdomain"
+      "target": "api_server_recheckdomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -30023,9 +30023,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L159",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go_api_server",
-      "target": "api_server_setprimarydomain"
+      "target": "api_server_setprimarydomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -30033,9 +30033,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L179",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go_api_server",
-      "target": "api_server_deletedomain"
+      "target": "api_server_deletedomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -30043,9 +30043,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L205",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go_api_server",
-      "target": "api_server_discoverinusehosts"
+      "target": "api_server_discoverinusehosts",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -30053,9 +30053,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L256",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go_api_server",
-      "target": "api_server_inusedomains"
+      "target": "api_server_inusedomains",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -30063,9 +30063,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L262",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_go_api_server",
-      "target": "api_server_seeddomainsifempty"
+      "target": "api_server_seeddomainsifempty",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -30074,9 +30074,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L90",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_writedomainsresponse",
-      "target": "api_server_builddomainsresponse"
+      "target": "api_server_builddomainsresponse",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -30085,9 +30085,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L113",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_listdomains",
-      "target": "api_server_writedomainsresponse"
+      "target": "api_server_writedomainsresponse",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -30096,9 +30096,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L141",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_savedomain",
-      "target": "api_server_writedomainsresponse"
+      "target": "api_server_writedomainsresponse",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -30107,9 +30107,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L156",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_recheckdomain",
-      "target": "api_server_writedomainsresponse"
+      "target": "api_server_writedomainsresponse",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -30118,9 +30118,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L176",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_setprimarydomain",
-      "target": "api_server_writedomainsresponse"
+      "target": "api_server_writedomainsresponse",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -30129,9 +30129,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L189",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_deletedomain",
-      "target": "api_server_writedomainsresponse"
+      "target": "api_server_writedomainsresponse",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -30151,9 +30151,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L150",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_recheckdomain",
-      "target": "api_server_domainsaved"
+      "target": "api_server_domainsaved",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -30162,9 +30162,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L165",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_setprimarydomain",
-      "target": "api_server_domainsaved"
+      "target": "api_server_domainsaved",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -30338,9 +30338,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L257",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_inusedomains",
-      "target": "api_server_discoverinusehosts"
+      "target": "api_server_discoverinusehosts",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -30349,9 +30349,9 @@
       "source_file": "backend/internal/api/domains_handler.go",
       "source_location": "L270",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_seeddomainsifempty",
-      "target": "api_server_discoverinusehosts"
+      "target": "api_server_discoverinusehosts",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -31179,9 +31179,9 @@
       "source_file": "backend/internal/api/domains_handler_test.go",
       "source_location": "L8",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domains_handler_test_go",
-      "target": "api_domains_handler_test_testparsetraefikhosts"
+      "target": "api_domains_handler_test_testparsetraefikhosts",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -33842,9 +33842,9 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L62",
+      "source_location": "L40",
       "weight": 1.0,
-      "source": "api_server_checkdomain",
+      "source": "api_server_savedomainsettings",
       "target": "api_http_writejson"
     },
     {
@@ -33853,9 +33853,9 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L40",
+      "source_location": "L62",
       "weight": 1.0,
-      "source": "api_server_savedomainsettings",
+      "source": "api_server_checkdomain",
       "target": "api_http_writejson"
     },
     {
@@ -34022,9 +34022,9 @@
       "source_file": "backend/internal/api/domain_handler.go",
       "source_location": "L84",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domain_handler_go",
-      "target": "api_domain_handler_resolvedomain"
+      "target": "api_domain_handler_resolvedomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -34122,9 +34122,9 @@
       "source_file": "backend/internal/api/domain_handler.go",
       "source_location": "L33",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domain_handler_go_api_server",
-      "target": "api_server_rootdomain"
+      "target": "api_server_rootdomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -34132,9 +34132,9 @@
       "source_file": "backend/internal/api/domain_handler.go",
       "source_location": "L45",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_domain_handler_go_api_server",
-      "target": "api_server_effectivedomainsettings"
+      "target": "api_server_effectivedomainsettings",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -34150,21 +34150,21 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L56",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "backend_internal_api_domain_handler_go_api_server",
-      "target": "api_server_checkdomain"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/api/domain_handler.go",
       "source_location": "L35",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "backend_internal_api_domain_handler_go_api_server",
       "target": "api_server_savedomainsettings"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/internal/api/domain_handler.go",
+      "source_location": "L56",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "backend_internal_api_domain_handler_go_api_server",
+      "target": "api_server_checkdomain"
     },
     {
       "relation": "calls",
@@ -34173,9 +34173,9 @@
       "source_file": "backend/internal/api/domain_handler.go",
       "source_location": "L39",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_rootdomain",
-      "target": "api_domain_handler_currentdomainsettings"
+      "target": "api_domain_handler_currentdomainsettings",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -34184,9 +34184,9 @@
       "source_file": "backend/internal/api/domain_handler.go",
       "source_location": "L47",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_effectivedomainsettings",
-      "target": "api_server_rootdomain"
+      "target": "api_server_rootdomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -34195,9 +34195,9 @@
       "source_file": "backend/internal/api/domain_handler.go",
       "source_location": "L119",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_checkdomain",
-      "target": "api_server_rootdomain"
+      "target": "api_server_rootdomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -34206,9 +34206,9 @@
       "source_file": "backend/internal/api/domain_handler.go",
       "source_location": "L46",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_effectivedomainsettings",
-      "target": "api_domain_handler_currentdomainsettings"
+      "target": "api_domain_handler_currentdomainsettings",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -34217,9 +34217,9 @@
       "source_file": "backend/internal/api/domain_handler.go",
       "source_location": "L58",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_domainsettings",
-      "target": "api_server_effectivedomainsettings"
+      "target": "api_server_effectivedomainsettings",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -34237,11 +34237,33 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L107",
+      "source_location": "L43",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "source": "api_server_savedomainsettings",
+      "target": "api_domain_handler_cleandomain"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/internal/api/domain_handler.go",
+      "source_location": "L53",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "api_server_savedomainsettings",
+      "target": "api_domain_handler_currentdomainsettings"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/internal/api/domain_handler.go",
+      "source_location": "L107",
+      "weight": 1.0,
       "source": "api_domain_handler_resolvedomain",
-      "target": "api_domain_handler_allcloudflareips"
+      "target": "api_domain_handler_allcloudflareips",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -34250,9 +34272,9 @@
       "source_file": "backend/internal/api/domain_handler.go",
       "source_location": "L125",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_checkdomain",
-      "target": "api_domain_handler_resolvedomain"
+      "target": "api_domain_handler_resolvedomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -34369,17 +34391,6 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L53",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "api_server_savedomainsettings",
-      "target": "api_domain_handler_currentdomainsettings"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/api/domain_handler.go",
       "source_location": "L171",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -34453,25 +34464,14 @@
       "target": "api_domain_handler_cleandomain"
     },
     {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/api/domain_handler.go",
-      "source_location": "L43",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "api_server_savedomainsettings",
-      "target": "api_domain_handler_cleandomain"
-    },
-    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "backend/internal/db/db_test.go",
       "source_location": "L8",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_db_db_test_go",
-      "target": "db_db_test_newtestdb"
+      "target": "db_db_test_newtestdb",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -34479,9 +34479,9 @@
       "source_file": "backend/internal/db/db_test.go",
       "source_location": "L17",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_db_db_test_go",
-      "target": "db_db_test_testupsertdomainidempotent"
+      "target": "db_db_test_testupsertdomainidempotent",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -34489,9 +34489,9 @@
       "source_file": "backend/internal/db/db_test.go",
       "source_location": "L42",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_db_db_test_go",
-      "target": "db_db_test_testsetprimarydomainsinglewinner"
+      "target": "db_db_test_testsetprimarydomainsinglewinner",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -34499,9 +34499,9 @@
       "source_file": "backend/internal/db/db_test.go",
       "source_location": "L71",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_db_db_test_go",
-      "target": "db_db_test_testprimarydomainempty"
+      "target": "db_db_test_testprimarydomainempty",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -34509,9 +34509,9 @@
       "source_file": "backend/internal/db/db_test.go",
       "source_location": "L82",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_db_db_test_go",
-      "target": "db_db_test_testupdatedomaincheckroundtrip"
+      "target": "db_db_test_testupdatedomaincheckroundtrip",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -34520,9 +34520,9 @@
       "source_file": "backend/internal/db/db_test.go",
       "source_location": "L18",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db_test_testupsertdomainidempotent",
-      "target": "db_db_test_newtestdb"
+      "target": "db_db_test_newtestdb",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -34531,9 +34531,9 @@
       "source_file": "backend/internal/db/db_test.go",
       "source_location": "L43",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db_test_testsetprimarydomainsinglewinner",
-      "target": "db_db_test_newtestdb"
+      "target": "db_db_test_newtestdb",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -34542,9 +34542,9 @@
       "source_file": "backend/internal/db/db_test.go",
       "source_location": "L72",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db_test_testprimarydomainempty",
-      "target": "db_db_test_newtestdb"
+      "target": "db_db_test_newtestdb",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -34553,9 +34553,9 @@
       "source_file": "backend/internal/db/db_test.go",
       "source_location": "L83",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db_test_testupdatedomaincheckroundtrip",
-      "target": "db_db_test_newtestdb"
+      "target": "db_db_test_newtestdb",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -34734,9 +34734,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L847",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_db_db_go",
-      "target": "db_domain"
+      "target": "db_domain",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -35164,9 +35164,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L861",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db",
-      "target": "db_db_upsertdomain"
+      "target": "db_db_upsertdomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -35174,9 +35174,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L873",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db",
-      "target": "db_db_listdomains"
+      "target": "db_db_listdomains",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -35184,9 +35184,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L904",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db",
-      "target": "db_db_setprimarydomain"
+      "target": "db_db_setprimarydomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -35194,9 +35194,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L920",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db",
-      "target": "db_db_updatedomaincheck"
+      "target": "db_db_updatedomaincheck",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -35204,9 +35204,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L930",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db",
-      "target": "db_db_deletedomain"
+      "target": "db_db_deletedomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -35214,9 +35214,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L936",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db",
-      "target": "db_db_primarydomain"
+      "target": "db_db_primarydomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -35473,9 +35473,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L862",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db_upsertdomain",
-      "target": "db_db_newid"
+      "target": "db_db_newid",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -35517,9 +35517,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L926",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db_updatedomaincheck",
-      "target": "db_db_booltoint"
+      "target": "db_db_booltoint",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -36765,9 +36765,9 @@
       "source_file": "backend/internal/docker/client.go",
       "source_location": "L26",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_docker_client_go",
-      "target": "docker_containerlabels"
+      "target": "docker_containerlabels",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -36855,9 +36855,9 @@
       "source_file": "backend/internal/docker/client.go",
       "source_location": "L46",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docker_client",
-      "target": "docker_client_containerswithlabels"
+      "target": "docker_client_containerswithlabels",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -37184,9 +37184,9 @@
       "source_file": "backend/internal/docker/client.go",
       "source_location": "L48",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docker_client_containerswithlabels",
-      "target": "docker_client_do"
+      "target": "docker_client_do",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -40371,9 +40371,9 @@
       "source_file": "app/domain/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "app_domain_page_tsx",
-      "target": "domain_page_saveddomain"
+      "target": "domain_page_saveddomain",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -40381,9 +40381,9 @@
       "source_file": "app/domain/page.tsx",
       "source_location": "L19",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "app_domain_page_tsx",
-      "target": "domain_page_domainsresponse"
+      "target": "domain_page_domainsresponse",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -40391,9 +40391,9 @@
       "source_file": "app/domain/page.tsx",
       "source_location": "L25",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "app_domain_page_tsx",
-      "target": "domain_page_inuseref"
+      "target": "domain_page_inuseref",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -40401,9 +40401,9 @@
       "source_file": "app/domain/page.tsx",
       "source_location": "L26",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "app_domain_page_tsx",
-      "target": "domain_page_inusehost"
+      "target": "domain_page_inusehost",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -40421,9 +40421,9 @@
       "source_file": "app/domain/page.tsx",
       "source_location": "L38",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "app_domain_page_tsx",
-      "target": "domain_page_statusof"
+      "target": "domain_page_statusof",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -42917,9 +42917,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L1",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_superpowers_plans_2026_06_01_domain_management_md",
-      "target": "plans_2026_06_01_domain_management_domain_management_implementation_plan"
+      "target": "plans_2026_06_01_domain_management_domain_management_implementation_plan",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -42927,9 +42927,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L13",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_domain_management_implementation_plan",
-      "target": "plans_2026_06_01_domain_management_file_structure"
+      "target": "plans_2026_06_01_domain_management_file_structure",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -42937,9 +42937,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L27",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_domain_management_implementation_plan",
-      "target": "plans_2026_06_01_domain_management_task_1_domains_table_db_methods"
+      "target": "plans_2026_06_01_domain_management_task_1_domains_table_db_methods",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -42947,9 +42947,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L257",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_domain_management_implementation_plan",
-      "target": "plans_2026_06_01_domain_management_task_2_extract_resolvedomain_helper"
+      "target": "plans_2026_06_01_domain_management_task_2_extract_resolvedomain_helper",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -42957,9 +42957,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L383",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_domain_management_implementation_plan",
-      "target": "plans_2026_06_01_domain_management_task_3_docker_containerswithlabels"
+      "target": "plans_2026_06_01_domain_management_task_3_docker_containerswithlabels",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -42967,9 +42967,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L440",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_domain_management_implementation_plan",
-      "target": "plans_2026_06_01_domain_management_task_4_traefik_host_parser"
+      "target": "plans_2026_06_01_domain_management_task_4_traefik_host_parser",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -42977,9 +42977,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L555",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_domain_management_implementation_plan",
-      "target": "plans_2026_06_01_domain_management_task_5_saved_domain_endpoints_in_use_discovery_auto_seed"
+      "target": "plans_2026_06_01_domain_management_task_5_saved_domain_endpoints_in_use_discovery_auto_seed",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -42987,9 +42987,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L805",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_domain_management_implementation_plan",
-      "target": "plans_2026_06_01_domain_management_task_6_wire_routes_startup_seed"
+      "target": "plans_2026_06_01_domain_management_task_6_wire_routes_startup_seed",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -42997,9 +42997,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L858",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_domain_management_implementation_plan",
-      "target": "plans_2026_06_01_domain_management_task_7_frontend_restructured_domain_page"
+      "target": "plans_2026_06_01_domain_management_task_7_frontend_restructured_domain_page",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43007,9 +43007,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L1220",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_domain_management_implementation_plan",
-      "target": "plans_2026_06_01_domain_management_task_8_full_verification_graph_update"
+      "target": "plans_2026_06_01_domain_management_task_8_full_verification_graph_update",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43017,9 +43017,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L1257",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_domain_management_implementation_plan",
-      "target": "plans_2026_06_01_domain_management_notes_for_the_implementer"
+      "target": "plans_2026_06_01_domain_management_notes_for_the_implementer",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43027,9 +43027,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L37",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_1_domains_table_db_methods",
-      "target": "plans_2026_06_01_domain_management_codeblock_1"
+      "target": "plans_2026_06_01_domain_management_codeblock_1",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43037,9 +43037,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L60",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_1_domains_table_db_methods",
-      "target": "plans_2026_06_01_domain_management_codeblock_2"
+      "target": "plans_2026_06_01_domain_management_codeblock_2",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43047,9 +43047,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L156",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_1_domains_table_db_methods",
-      "target": "plans_2026_06_01_domain_management_codeblock_3"
+      "target": "plans_2026_06_01_domain_management_codeblock_3",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43057,9 +43057,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L250",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_1_domains_table_db_methods",
-      "target": "plans_2026_06_01_domain_management_codeblock_4"
+      "target": "plans_2026_06_01_domain_management_codeblock_4",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43067,9 +43067,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L266",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_2_extract_resolvedomain_helper",
-      "target": "plans_2026_06_01_domain_management_codeblock_5"
+      "target": "plans_2026_06_01_domain_management_codeblock_5",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43077,9 +43077,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L306",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_2_extract_resolvedomain_helper",
-      "target": "plans_2026_06_01_domain_management_codeblock_6"
+      "target": "plans_2026_06_01_domain_management_codeblock_6",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43087,9 +43087,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L313",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_2_extract_resolvedomain_helper",
-      "target": "plans_2026_06_01_domain_management_codeblock_7"
+      "target": "plans_2026_06_01_domain_management_codeblock_7",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43097,9 +43097,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L332",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_2_extract_resolvedomain_helper",
-      "target": "plans_2026_06_01_domain_management_codeblock_8"
+      "target": "plans_2026_06_01_domain_management_codeblock_8",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43107,9 +43107,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L361",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_2_extract_resolvedomain_helper",
-      "target": "plans_2026_06_01_domain_management_codeblock_9"
+      "target": "plans_2026_06_01_domain_management_codeblock_9",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43117,9 +43117,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L376",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_2_extract_resolvedomain_helper",
-      "target": "plans_2026_06_01_domain_management_codeblock_10"
+      "target": "plans_2026_06_01_domain_management_codeblock_10",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43127,9 +43127,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L392",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_3_docker_containerswithlabels",
-      "target": "plans_2026_06_01_domain_management_codeblock_11"
+      "target": "plans_2026_06_01_domain_management_codeblock_11",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43137,9 +43137,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L402",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_3_docker_containerswithlabels",
-      "target": "plans_2026_06_01_domain_management_codeblock_12"
+      "target": "plans_2026_06_01_domain_management_codeblock_12",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43147,9 +43147,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L433",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_3_docker_containerswithlabels",
-      "target": "plans_2026_06_01_domain_management_codeblock_13"
+      "target": "plans_2026_06_01_domain_management_codeblock_13",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43157,9 +43157,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L450",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_4_traefik_host_parser",
-      "target": "plans_2026_06_01_domain_management_codeblock_14"
+      "target": "plans_2026_06_01_domain_management_codeblock_14",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43167,9 +43167,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L493",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_4_traefik_host_parser",
-      "target": "plans_2026_06_01_domain_management_codeblock_15"
+      "target": "plans_2026_06_01_domain_management_codeblock_15",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43177,9 +43177,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L548",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_4_traefik_host_parser",
-      "target": "plans_2026_06_01_domain_management_codeblock_16"
+      "target": "plans_2026_06_01_domain_management_codeblock_16",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43187,9 +43187,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L564",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_5_saved_domain_endpoints_in_use_discovery_auto_seed",
-      "target": "plans_2026_06_01_domain_management_codeblock_17"
+      "target": "plans_2026_06_01_domain_management_codeblock_17",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43197,9 +43197,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L630",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_5_saved_domain_endpoints_in_use_discovery_auto_seed",
-      "target": "plans_2026_06_01_domain_management_codeblock_18"
+      "target": "plans_2026_06_01_domain_management_codeblock_18",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43207,9 +43207,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L706",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_5_saved_domain_endpoints_in_use_discovery_auto_seed",
-      "target": "plans_2026_06_01_domain_management_codeblock_19"
+      "target": "plans_2026_06_01_domain_management_codeblock_19",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43217,9 +43217,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L798",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_5_saved_domain_endpoints_in_use_discovery_auto_seed",
-      "target": "plans_2026_06_01_domain_management_codeblock_20"
+      "target": "plans_2026_06_01_domain_management_codeblock_20",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43227,9 +43227,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L815",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_6_wire_routes_startup_seed",
-      "target": "plans_2026_06_01_domain_management_codeblock_21"
+      "target": "plans_2026_06_01_domain_management_codeblock_21",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43237,9 +43237,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L824",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_6_wire_routes_startup_seed",
-      "target": "plans_2026_06_01_domain_management_codeblock_22"
+      "target": "plans_2026_06_01_domain_management_codeblock_22",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43247,9 +43247,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L838",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_6_wire_routes_startup_seed",
-      "target": "plans_2026_06_01_domain_management_codeblock_23"
+      "target": "plans_2026_06_01_domain_management_codeblock_23",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43257,9 +43257,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L851",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_6_wire_routes_startup_seed",
-      "target": "plans_2026_06_01_domain_management_codeblock_24"
+      "target": "plans_2026_06_01_domain_management_codeblock_24",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43267,9 +43267,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L867",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_7_frontend_restructured_domain_page",
-      "target": "plans_2026_06_01_domain_management_codeblock_25"
+      "target": "plans_2026_06_01_domain_management_codeblock_25",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43277,9 +43277,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L1213",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_7_frontend_restructured_domain_page",
-      "target": "plans_2026_06_01_domain_management_codeblock_26"
+      "target": "plans_2026_06_01_domain_management_codeblock_26",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43287,9 +43287,9 @@
       "source_file": "docs/superpowers/plans/2026-06-01-domain-management.md",
       "source_location": "L1250",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "plans_2026_06_01_domain_management_task_8_full_verification_graph_update",
-      "target": "plans_2026_06_01_domain_management_codeblock_27"
+      "target": "plans_2026_06_01_domain_management_codeblock_27",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43867,9 +43867,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L1",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "docs_superpowers_specs_2026_06_01_domain_management_design_md",
-      "target": "specs_2026_06_01_domain_management_design_domain_management_db_backed_saved_domains_live_discovery"
+      "target": "specs_2026_06_01_domain_management_design_domain_management_db_backed_saved_domains_live_discovery",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43877,9 +43877,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L6",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_domain_management_db_backed_saved_domains_live_discovery",
-      "target": "specs_2026_06_01_domain_management_design_problem"
+      "target": "specs_2026_06_01_domain_management_design_problem",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43887,9 +43887,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L18",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_domain_management_db_backed_saved_domains_live_discovery",
-      "target": "specs_2026_06_01_domain_management_design_decisions_from_brainstorming"
+      "target": "specs_2026_06_01_domain_management_design_decisions_from_brainstorming",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43897,9 +43897,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L30",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_domain_management_db_backed_saved_domains_live_discovery",
-      "target": "specs_2026_06_01_domain_management_design_data_model"
+      "target": "specs_2026_06_01_domain_management_design_data_model",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43907,9 +43907,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L66",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_domain_management_db_backed_saved_domains_live_discovery",
-      "target": "specs_2026_06_01_domain_management_design_backend"
+      "target": "specs_2026_06_01_domain_management_design_backend",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43917,9 +43917,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L142",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_domain_management_db_backed_saved_domains_live_discovery",
-      "target": "specs_2026_06_01_domain_management_design_frontend_app_domain_page_tsx"
+      "target": "specs_2026_06_01_domain_management_design_frontend_app_domain_page_tsx",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43927,9 +43927,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L159",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_domain_management_db_backed_saved_domains_live_discovery",
-      "target": "specs_2026_06_01_domain_management_design_testing_verification"
+      "target": "specs_2026_06_01_domain_management_design_testing_verification",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43937,9 +43937,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L172",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_domain_management_db_backed_saved_domains_live_discovery",
-      "target": "specs_2026_06_01_domain_management_design_out_of_scope_yagni"
+      "target": "specs_2026_06_01_domain_management_design_out_of_scope_yagni",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43947,9 +43947,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L34",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_data_model",
-      "target": "specs_2026_06_01_domain_management_design_codeblock_1"
+      "target": "specs_2026_06_01_domain_management_design_codeblock_1",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43957,9 +43957,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L52",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_data_model",
-      "target": "specs_2026_06_01_domain_management_design_db_methods_db_go"
+      "target": "specs_2026_06_01_domain_management_design_db_methods_db_go",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43967,9 +43967,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L68",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_backend",
-      "target": "specs_2026_06_01_domain_management_design_shared_dns_helper_domain_handler_go"
+      "target": "specs_2026_06_01_domain_management_design_shared_dns_helper_domain_handler_go",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43977,9 +43977,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L81",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_backend",
-      "target": "specs_2026_06_01_domain_management_design_saved_domain_endpoints_registered_in_server_go"
+      "target": "specs_2026_06_01_domain_management_design_saved_domain_endpoints_registered_in_server_go",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43987,9 +43987,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L100",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_backend",
-      "target": "specs_2026_06_01_domain_management_design_live_in_use_inventory"
+      "target": "specs_2026_06_01_domain_management_design_live_in_use_inventory",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43997,9 +43997,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L127",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_backend",
-      "target": "specs_2026_06_01_domain_management_design_auto_seed_on_first_boot"
+      "target": "specs_2026_06_01_domain_management_design_auto_seed_on_first_boot",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44007,9 +44007,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L72",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_shared_dns_helper_domain_handler_go",
-      "target": "specs_2026_06_01_domain_management_design_codeblock_2"
+      "target": "specs_2026_06_01_domain_management_design_codeblock_2",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44017,9 +44017,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L105",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_live_in_use_inventory",
-      "target": "specs_2026_06_01_domain_management_design_codeblock_3"
+      "target": "specs_2026_06_01_domain_management_design_codeblock_3",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -44027,9 +44027,9 @@
       "source_file": "docs/superpowers/specs/2026-06-01-domain-management-design.md",
       "source_location": "L131",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "specs_2026_06_01_domain_management_design_auto_seed_on_first_boot",
-      "target": "specs_2026_06_01_domain_management_design_codeblock_4"
+      "target": "specs_2026_06_01_domain_management_design_codeblock_4",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -46596,5 +46596,5 @@
       "source_file": "tailwind.config.ts"
     }
   ],
-  "built_at_commit": "c82a7aac535c0e09d3f5f07fe1855635ada355a1"
+  "built_at_commit": "625f0284e7a703f5302841fba966b91dba8d6eae"
 }

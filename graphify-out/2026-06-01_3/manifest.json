@@ -270,8 +270,8 @@
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/api/server.go": {
-    "mtime": 1780300864.9274533,
-    "ast_hash": "b8e12a80952973c9cbf6009478ac9a30",
+    "mtime": 1780300133.2572775,
+    "ast_hash": "d4ac39034f61ecb0ef8041c2bc92411e",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/api/alerts_handler.go": {
@@ -675,8 +675,8 @@
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/api/domain_handler.go": {
-    "mtime": 1780300852.3663905,
-    "ast_hash": "3f98691befefb6ee2b3fd8ef91f52aa8",
+    "mtime": 1780298903.2518651,
+    "ast_hash": "08223ac68a7e4180c066d94eb0086097",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/app/domain/page.tsx": {

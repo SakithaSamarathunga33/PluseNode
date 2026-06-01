@@ -1,7 +1,7 @@
 # Graph Report - vps  (2026-06-01)
 
 ## Corpus Check
-- 123 files · ~294,852 words
+- 123 files · ~294,926 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `c82a7aac`
+- Built from commit: `625f0284`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -196,11 +196,11 @@ Nodes (22): builder.buildCompose func, builder.buildDockerfile func, builder.bui
 
 ### Community 9 - "Docker Images UI"
 Cohesion: 0.08
-Nodes (30): ConnectDatabaseModal(), Phase, CreateDatabaseModal(), Creds, ENGINES, Phase, DatabaseQueryEditor(), ResultTable() (+22 more)
+Nodes (31): ConnectDatabaseModal(), Phase, CreateDatabaseModal(), Creds, ENGINES, Phase, DatabaseQueryEditor(), ResultTable() (+23 more)
 
 ### Community 11 - "Process Monitoring"
 Cohesion: 0.09
-Nodes (17): Suspicious Process Detection Engine, FILL_COLORS, ProgressBar(), ProgressBarProps, pythonApi, PROCESSES, ActionMenuProps, detectSuspicious() (+9 more)
+Nodes (16): Suspicious Process Detection Engine, FILL_COLORS, ProgressBar(), ProgressBarProps, PROCESSES, ActionMenuProps, detectSuspicious(), DialogState (+8 more)
 
 ### Community 12 - "Security Scanning UI"
 Cohesion: 0.13
@@ -470,9 +470,9 @@ Nodes (6): parseTraefikHosts(), TestParseTraefikHosts(), domainsResponse, inUseH
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `UI Utility Components` to `Docker Images UI`, `Process Monitoring`, `Security Scanning UI`, `App Shell & Layout`, `MagicUI Base Components`, `Coolify Integration UI`, `SBOM History UI`, `MagicUI Animations`, `Container Management UI`, `Mock Data & Types`, `Terminal Animation Component`, `Badge & Tabs UI`, `MagicUI Border Animations`, `Stats & Metrics UI`, `Card UI Component`, `Login Page`, `Community 110`, `Community 118`, `Community 123`?**
-  _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **Why does `writeJSON()` connect `Project & Deploy API` to `Environment & GitHub OAuth`, `Auth Middleware`, `Deploy & Update System`, `Database Handler Utils`, `HTTP & Routing Layer`, `Database Metrics API`, `Auth Cookie Endpoints`, `GitHub API Endpoints`, `DB Query Engine`, `Community 112`, `Network Monitoring UI`, `Docker Action API`, `Community 125`, `Community 126`?**
+  _High betweenness centrality (0.024) - this node is a cross-community bridge._
+- **Why does `cn()` connect `UI Utility Components` to `Docker Images UI`, `Process Monitoring`, `Security Scanning UI`, `App Shell & Layout`, `MagicUI Base Components`, `Coolify Integration UI`, `SBOM History UI`, `MagicUI Animations`, `Container Management UI`, `Mock Data & Types`, `Terminal Animation Component`, `Badge & Tabs UI`, `MagicUI Border Animations`, `Stats & Metrics UI`, `Card UI Component`, `Login Page`, `Community 110`, `Community 118`, `Community 123`?**
   _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **Why does `importMap` connect `Alerts UI` to `Community 116`?**
   _High betweenness centrality (0.022) - this node is a cross-community bridge._
