@@ -19,6 +19,18 @@ Rules:
 - `runUpdate()` runs **inside the go-api container** and shells out to `docker compose up -d --build`, which recreates the very container running it. State (`globalUpdate`) is in-memory and is lost on restart, so the frontend cannot rely on polling `/api/system/update/status` for completion.
 - Key gotcha: `up -d --build` **builds the new image while the old containers keep serving**, so `/health` answers from old code the whole time. Detecting "update done" by `/health` being reachable reloads the *old* version. Instead, `/health` exposes `startedAt` (process boot time) and the settings page reloads only when that boot id **changes** (proving the container actually restarted). The 180s countdown is cosmetic only.
 
+### Project builds — nixpacks (`backend/internal/builder/`)
+- A user repo with **no Dockerfile** builds via **nixpacks**, run **directly inside the go-api container** against the mounted host Docker socket. So `backend/Dockerfile` must install both the `nixpacks` CLI binary **and** `docker-cli-buildx` (nixpacks builds with BuildKit). Gotcha: `ghcr.io/railwayapp/nixpacks` is nixpacks' *runtime base image*, **not** a CLI image — `docker run …nixpacks nixpacks build` fails with exit 127 (`executable not found`).
+- Node projects that don't pin a version (`engines.node` / `.nvmrc`) get `NIXPACKS_NODE_VERSION=20` injected (`buildNixpacks`), because nixpacks defaults to Node 18 — too old for Next.js 16+ (`next build` hard-fails on <20.9.0). Projects that pin a version still win.
+
+### Version display (`installedVersion()` / `version()` in `backend/internal/api/server.go`)
+- This is the **dev/publish box**: commits are pushed from here and CI auto-tags on the remote, but the box never pulls those tags back, so its local git tags lag and `git describe --tags` reports a **stale** version. `version()` reconciles by resolving the latest GitHub release tag to its commit and checking it's an ancestor of HEAD (`git merge-base --is-ancestor`); an at-or-ahead box reports up-to-date. Falls back to tag-string compare when the commit isn't local (shallow clones).
+
+### Local dev / verify
+- After changing Go code or a Dockerfile, rebuild just that service (old containers keep serving until the new image is ready): `docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d --build go-api` (or `web`). The dev box's workspace is bind-mounted at `/workspace` in go-api.
+- Most `/api/*` endpoints are auth-gated (401 without a token), so you can't curl them directly to verify — exercise the underlying logic with `docker exec vps-go-api-1 …` (e.g. the git commands behind `version()`) instead.
+- Build logs render in a chrome-only `TerminalWindow` (live stream, no typing animation) in `components/magicui/terminal.tsx` — distinct from the sequencing `Terminal` in the same file.
+
 # CLAUDE.md
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
