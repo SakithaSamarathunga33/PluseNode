@@ -137,6 +137,14 @@ func (s *Server) Routes() http.Handler {
 		r.Post("/domain/settings", s.saveDomainSettings)
 		r.Get("/domain/check", s.checkDomain)
 
+		// Saved domains + live inventory
+		r.Get("/domains", s.listDomains)
+		r.Post("/domains", s.saveDomain)
+		r.Get("/domains/in-use", s.inUseDomains)
+		r.Post("/domains/{host}/recheck", s.recheckDomain)
+		r.Post("/domains/{host}/primary", s.setPrimaryDomain)
+		r.Delete("/domains/{host}", s.deleteDomain)
+
 		// Projects (deploy)
 		r.Get("/projects/free-port", s.freePort)
 		r.Get("/projects", s.listProjects)
