@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"io"
 	"net"
 	"net/http"
@@ -28,8 +29,33 @@ type domainCheckResponse struct {
 	CheckedAt  string   `json:"checkedAt"`
 }
 
+// rootDomain returns the primary saved domain if set, else the env/host fallback.
+func (s *Server) rootDomain() string {
+	if s.db != nil {
+		if primary, err := s.db.PrimaryDomain(); err == nil && primary != "" {
+			return primary
+		}
+	}
+	return currentDomainSettings().RootDomain
+}
+
+// effectiveDomainSettings is currentDomainSettings() with RootDomain/Aliases
+// overridden by the DB primary (so projects/new and the DNS-records section
+// reflect the saved primary domain).
+func (s *Server) effectiveDomainSettings() domainSettingsResponse {
+	base := currentDomainSettings()
+	root := s.rootDomain()
+	base.RootDomain = root
+	if root != "" {
+		base.Aliases = []string{"@" + root, "*." + root}
+	} else {
+		base.Aliases = []string{}
+	}
+	return base
+}
+
 func (s *Server) domainSettings(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, currentDomainSettings())
+	writeJSON(w, http.StatusOK, s.effectiveDomainSettings())
 }
 
 func (s *Server) saveDomainSettings(w http.ResponseWriter, r *http.Request) {
@@ -53,34 +79,23 @@ func (s *Server) saveDomainSettings(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, currentDomainSettings())
 }
 
-func (s *Server) checkDomain(w http.ResponseWriter, r *http.Request) {
-	domain := cleanDomain(r.URL.Query().Get("domain"))
-	if domain == "" {
-		domain = currentDomainSettings().RootDomain
-	}
-	if domain == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "domain is required"})
-		return
-	}
-
-	expected := expectedVPSIP()
+// resolveDomain runs the DNS lookup + Cloudflare-proxy detection for host and
+// returns a populated response. Records is always a non-nil slice.
+func resolveDomain(ctx context.Context, host, expected string) domainCheckResponse {
 	res := domainCheckResponse{
-		Domain:     domain,
+		Domain:     host,
 		ExpectedIP: expected,
 		Records:    []string{},
 		CheckedAt:  time.Now().UTC().Format(time.RFC3339),
 	}
 	if expected == "" {
 		res.Error = "Could not determine this VPS public IP"
-		writeJSON(w, http.StatusOK, res)
-		return
+		return res
 	}
-
-	records, err := net.DefaultResolver.LookupIPAddr(r.Context(), domain)
+	records, err := net.DefaultResolver.LookupIPAddr(ctx, host)
 	if err != nil {
 		res.Error = err.Error()
-		writeJSON(w, http.StatusOK, res)
-		return
+		return res
 	}
 	for _, record := range records {
 		ip := record.IP.String()
@@ -95,6 +110,19 @@ func (s *Server) checkDomain(w http.ResponseWriter, r *http.Request) {
 		res.Provider = "Cloudflare"
 		res.Message = "DNS is proxied through Cloudflare, so public DNS returns Cloudflare edge IPs instead of the VPS origin IP."
 	}
+	return res
+}
+
+func (s *Server) checkDomain(w http.ResponseWriter, r *http.Request) {
+	domain := cleanDomain(r.URL.Query().Get("domain"))
+	if domain == "" {
+		domain = s.rootDomain()
+	}
+	if domain == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "domain is required"})
+		return
+	}
+	res := resolveDomain(r.Context(), domain, expectedVPSIP())
 	writeJSON(w, http.StatusOK, res)
 }
 
