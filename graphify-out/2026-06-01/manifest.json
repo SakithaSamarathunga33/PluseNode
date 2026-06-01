@@ -1,6 +1,6 @@
 {
   "/home/sakitha/apps/vps/tailwind.config.ts": {
-    "mtime": 1780231714.3128722,
+    "mtime": 1779242500.9316716,
     "ast_hash": "1384e1a22019c481d1540ac96bafcecf",
     "semantic_hash": "1384e1a22019c481d1540ac96bafcecf"
   },
@@ -15,9 +15,9 @@
     "semantic_hash": "e808a91430c925a0a78f562fdbe8f40c"
   },
   "/home/sakitha/apps/vps/deploy.sh": {
-    "mtime": 1780291147.468034,
-    "ast_hash": "3969c1d38cd64b70f88012c23a8e6a98",
-    "semantic_hash": ""
+    "mtime": 1779586786.8820636,
+    "ast_hash": "3eb5e2349ccb9109ca073f23f45b5015",
+    "semantic_hash": "3eb5e2349ccb9109ca073f23f45b5015"
   },
   "/home/sakitha/apps/vps/.eslintrc.json": {
     "mtime": 1779242500.9166715,
@@ -30,9 +30,9 @@
     "semantic_hash": "b7941c02b947e17ae32f67ae7e664ec8"
   },
   "/home/sakitha/apps/vps/install.sh": {
-    "mtime": 1780291147.468034,
-    "ast_hash": "226506e0edc2767e40a36c58281f7aaa",
-    "semantic_hash": ""
+    "mtime": 1779635788.6876478,
+    "ast_hash": "69abdf1f4439c710895a927e3d6f7fe6",
+    "semantic_hash": "69abdf1f4439c710895a927e3d6f7fe6"
   },
   "/home/sakitha/apps/vps/components.json": {
     "mtime": 1779242500.9196715,
@@ -45,9 +45,9 @@
     "semantic_hash": "570e85507d1fb0c609255b9a0aa95595"
   },
   "/home/sakitha/apps/vps/middleware.ts": {
-    "mtime": 1780226567.2772245,
-    "ast_hash": "33a764bb2dddab859a7760683b6fab51",
-    "semantic_hash": ""
+    "mtime": 1779627011.4304664,
+    "ast_hash": "118159433f44e903d82d68f469426e93",
+    "semantic_hash": "118159433f44e903d82d68f469426e93"
   },
   "/home/sakitha/apps/vps/components/dashboard/DatabaseMetricsPanel.tsx": {
     "mtime": 1779461560.8058453,
@@ -85,9 +85,9 @@
     "semantic_hash": "302e30acfcaf4f5afa62b6d194172ffc"
   },
   "/home/sakitha/apps/vps/components/dashboard/Topbar.tsx": {
-    "mtime": 1780230284.26476,
-    "ast_hash": "5ed7f2a4a3c07efd90f269108a86361c",
-    "semantic_hash": ""
+    "mtime": 1779611223.8060448,
+    "ast_hash": "b0573e1563da9a49a87f7cd659f53038",
+    "semantic_hash": "b0573e1563da9a49a87f7cd659f53038"
   },
   "/home/sakitha/apps/vps/components/dashboard/DbIcon.tsx": {
     "mtime": 1779596869.7951257,
@@ -105,14 +105,14 @@
     "semantic_hash": "6e74a6b00e6155a0e0367997f5a35980"
   },
   "/home/sakitha/apps/vps/components/sidebar/AppSidebar.tsx": {
-    "mtime": 1780291209.2983696,
-    "ast_hash": "3dd593e5eb2d050b10a478ff13de201f",
-    "semantic_hash": ""
+    "mtime": 1779610921.288356,
+    "ast_hash": "52493aeadf912a0b7717d617b105a3f0",
+    "semantic_hash": "52493aeadf912a0b7717d617b105a3f0"
   },
   "/home/sakitha/apps/vps/components/magicui/border-beam.tsx": {
-    "mtime": 1780231441.4361944,
-    "ast_hash": "9c15c3f41b55fec8a546ed8bed4bdf84",
-    "semantic_hash": ""
+    "mtime": 1779242500.9196715,
+    "ast_hash": "9a63d3fc0e20c2adc585177cf579856f",
+    "semantic_hash": "9a63d3fc0e20c2adc585177cf579856f"
   },
   "/home/sakitha/apps/vps/components/magicui/sparkles-text.tsx": {
     "mtime": 1779243690.6626399,
@@ -125,9 +125,9 @@
     "semantic_hash": "a63907ca8ba9afdc36f50b4da89bf02a"
   },
   "/home/sakitha/apps/vps/components/magicui/terminal.tsx": {
-    "mtime": 1780281713.834374,
-    "ast_hash": "bc3a609a9908dbae2fb6eb088781866f",
-    "semantic_hash": ""
+    "mtime": 1779462224.6548388,
+    "ast_hash": "85e4b15adcde06b05022652176699dc4",
+    "semantic_hash": "85e4b15adcde06b05022652176699dc4"
   },
   "/home/sakitha/apps/vps/components/magicui/blur-fade.tsx": {
     "mtime": 1779461578.7749536,
@@ -240,9 +240,9 @@
     "semantic_hash": "03cf2470d68e42908350144ed411dc30"
   },
   "/home/sakitha/apps/vps/backend/cmd/pulsenode/main.go": {
-    "mtime": 1780130283.9831777,
-    "ast_hash": "5715c4ae8ec40528e5a7b45682b41f32",
-    "semantic_hash": ""
+    "mtime": 1779603068.672754,
+    "ast_hash": "b930b55165af68aca7212ef593c9d629",
+    "semantic_hash": "b930b55165af68aca7212ef593c9d629"
   },
   "/home/sakitha/apps/vps/backend/internal/api/metrics.go": {
     "mtime": 1779610605.8265872,
@@ -255,9 +255,9 @@
     "semantic_hash": "293757a2febbc4227bd24f331fb0ef71"
   },
   "/home/sakitha/apps/vps/backend/internal/api/update.go": {
-    "mtime": 1780214705.3329709,
-    "ast_hash": "d3c856e2fe5c9860bd76be0bdd3e0bd0",
-    "semantic_hash": ""
+    "mtime": 1779636689.9410086,
+    "ast_hash": "42d3c3b8f03fb8d2e22bbf8a56521a80",
+    "semantic_hash": "42d3c3b8f03fb8d2e22bbf8a56521a80"
   },
   "/home/sakitha/apps/vps/backend/internal/api/middleware.go": {
     "mtime": 1779609026.3338153,
@@ -265,14 +265,14 @@
     "semantic_hash": "3dd4a806c36cd80804febe5b14e21cda"
   },
   "/home/sakitha/apps/vps/backend/internal/api/projects_handler.go": {
-    "mtime": 1780130283.9841776,
-    "ast_hash": "6d73966dd2758cfd44c3ca7aefd854ba",
-    "semantic_hash": ""
+    "mtime": 1779593331.3873158,
+    "ast_hash": "a2f51291a4f3dad9629c1f35451a11ca",
+    "semantic_hash": "a2f51291a4f3dad9629c1f35451a11ca"
   },
   "/home/sakitha/apps/vps/backend/internal/api/server.go": {
-    "mtime": 1780291205.1443472,
-    "ast_hash": "6ae483c3005fef555ec06b6bc5382163",
-    "semantic_hash": ""
+    "mtime": 1779629282.0205336,
+    "ast_hash": "3660af1dc6ec3b20e95c1b2623996aae",
+    "semantic_hash": "3660af1dc6ec3b20e95c1b2623996aae"
   },
   "/home/sakitha/apps/vps/backend/internal/api/alerts_handler.go": {
     "mtime": 1779602805.3942828,
@@ -320,9 +320,9 @@
     "semantic_hash": "577d0ce1f7e10551b07a133e3ef317b7"
   },
   "/home/sakitha/apps/vps/backend/internal/api/http.go": {
-    "mtime": 1780291255.9566238,
-    "ast_hash": "77263ee81b1309555d7e596650c6648d",
-    "semantic_hash": ""
+    "mtime": 1779590958.9281456,
+    "ast_hash": "6267751f0817e4238a2f625bfbb3c680",
+    "semantic_hash": "6267751f0817e4238a2f625bfbb3c680"
   },
   "/home/sakitha/apps/vps/backend/internal/api/shell.go": {
     "mtime": 1779603201.7404976,
@@ -330,9 +330,9 @@
     "semantic_hash": "7ee5ae7cdde030229311353fa7e2e6b1"
   },
   "/home/sakitha/apps/vps/backend/internal/db/db.go": {
-    "mtime": 1780130283.9841776,
-    "ast_hash": "7cb1a6595084cbaa4d1eac880f2deb66",
-    "semantic_hash": ""
+    "mtime": 1779608945.917376,
+    "ast_hash": "b71781867c67e509b8a890580cac0d34",
+    "semantic_hash": "b71781867c67e509b8a890580cac0d34"
   },
   "/home/sakitha/apps/vps/backend/internal/builder/detect.go": {
     "mtime": 1779590658.1994689,
@@ -340,14 +340,14 @@
     "semantic_hash": "234a6bc0acfac7f65d03c3a680cfb108"
   },
   "/home/sakitha/apps/vps/backend/internal/builder/builder.go": {
-    "mtime": 1780290297.052685,
-    "ast_hash": "91f40fc2fe5592a276bfba3424fef256",
-    "semantic_hash": ""
+    "mtime": 1779595451.8082187,
+    "ast_hash": "5e374eb63a2b9be19efe673f70eb32fd",
+    "semantic_hash": "5e374eb63a2b9be19efe673f70eb32fd"
   },
   "/home/sakitha/apps/vps/backend/internal/queue/queue.go": {
-    "mtime": 1780130283.9851775,
-    "ast_hash": "275466f5b99efee3c48f5f5e15f3aa7e",
-    "semantic_hash": ""
+    "mtime": 1779590736.4049053,
+    "ast_hash": "070e58d43e8a106937799f368e7af054",
+    "semantic_hash": "070e58d43e8a106937799f368e7af054"
   },
   "/home/sakitha/apps/vps/backend/internal/auth/middleware.go": {
     "mtime": 1779608965.152481,
@@ -375,9 +375,9 @@
     "semantic_hash": "ad0644a90ed02a630de1e53f6d6b8bc2"
   },
   "/home/sakitha/apps/vps/backend/internal/github/github.go": {
-    "mtime": 1780130283.9851775,
-    "ast_hash": "0eb260c322a7717b82e1385c61a16ffe",
-    "semantic_hash": ""
+    "mtime": 1779590653.177441,
+    "ast_hash": "dd9c47e2c0cf9076fef4a0ea51d0a09e",
+    "semantic_hash": "dd9c47e2c0cf9076fef4a0ea51d0a09e"
   },
   "/home/sakitha/apps/vps/backend/internal/hub/hub.go": {
     "mtime": 1779591001.344382,
@@ -385,9 +385,9 @@
     "semantic_hash": "04ce3d46b2cdfd687799b92b993bcd2b"
   },
   "/home/sakitha/apps/vps/app/layout.tsx": {
-    "mtime": 1780228219.107836,
-    "ast_hash": "3de924f1de29343d8129ac35b44da769",
-    "semantic_hash": ""
+    "mtime": 1779242500.9186716,
+    "ast_hash": "4d9728967a5d9fea7d360942931efeec",
+    "semantic_hash": "4d9728967a5d9fea7d360942931efeec"
   },
   "/home/sakitha/apps/vps/app/page.tsx": {
     "mtime": 1779242500.9186716,
@@ -400,14 +400,14 @@
     "semantic_hash": "cd856c53e5422d6296a669c3ad4c861d"
   },
   "/home/sakitha/apps/vps/app/projects/new/page.tsx": {
-    "mtime": 1780291276.3747354,
-    "ast_hash": "7a6933011024b6d724d02fa5940afdc6",
-    "semantic_hash": ""
+    "mtime": 1779593339.704362,
+    "ast_hash": "80aea71c89e249210a0291ab794bf6b6",
+    "semantic_hash": "80aea71c89e249210a0291ab794bf6b6"
   },
   "/home/sakitha/apps/vps/app/projects/[id]/page.tsx": {
-    "mtime": 1780282181.5240595,
-    "ast_hash": "17c6c7c4d9e7e8e142dd63a5cab6a0e0",
-    "semantic_hash": ""
+    "mtime": 1779598327.7942529,
+    "ast_hash": "195b78546d47ff80708d868f66339d95",
+    "semantic_hash": "195b78546d47ff80708d868f66339d95"
   },
   "/home/sakitha/apps/vps/app/runtime/page.tsx": {
     "mtime": 1779610909.621291,
@@ -425,14 +425,14 @@
     "semantic_hash": "c05b4e1fa70ef58b004506c3ee3f9794"
   },
   "/home/sakitha/apps/vps/app/login/page.tsx": {
-    "mtime": 1780231705.7628205,
-    "ast_hash": "cc08368cb9178e90344332ad4d243a01",
-    "semantic_hash": ""
+    "mtime": 1779609070.0460544,
+    "ast_hash": "a923a5c0b800f23b000b4d55cd031c05",
+    "semantic_hash": "a923a5c0b800f23b000b4d55cd031c05"
   },
   "/home/sakitha/apps/vps/app/settings/page.tsx": {
-    "mtime": 1780131912.766775,
-    "ast_hash": "cec5a5565b9c7fb786fc60d0e2954f6a",
-    "semantic_hash": ""
+    "mtime": 1779637516.0759346,
+    "ast_hash": "7ee3c4ac5d27ee0936e1c9f3a6ec04c0",
+    "semantic_hash": "7ee3c4ac5d27ee0936e1c9f3a6ec04c0"
   },
   "/home/sakitha/apps/vps/app/stats/page.tsx": {
     "mtime": 1779546730.7616649,
@@ -450,9 +450,9 @@
     "semantic_hash": "bd76b6031fa5b37ba80d7a8ebf79f6f3"
   },
   "/home/sakitha/apps/vps/app/processes/page.tsx": {
-    "mtime": 1780216909.5500658,
-    "ast_hash": "163189b0970ecf0b504c354c967071d1",
-    "semantic_hash": ""
+    "mtime": 1779611824.5903885,
+    "ast_hash": "cf24f5ff7399b7fe308e55292c5c14b1",
+    "semantic_hash": "cf24f5ff7399b7fe308e55292c5c14b1"
   },
   "/home/sakitha/apps/vps/app/scan-history/page.tsx": {
     "mtime": 1779605136.8373077,
@@ -485,9 +485,9 @@
     "semantic_hash": "0b4acbbaaf71aa4efc094376718f3741"
   },
   "/home/sakitha/apps/vps/.claude/settings.local.json": {
-    "mtime": 1780296920.915227,
-    "ast_hash": "6d03c6338028739bc797beec1eef1a3d",
-    "semantic_hash": ""
+    "mtime": 1779606184.4231596,
+    "ast_hash": "c54bd9e082ac171048cc784b4129745c",
+    "semantic_hash": "c54bd9e082ac171048cc784b4129745c"
   },
   "/home/sakitha/apps/vps/docker-compose.standalone.yml": {
     "mtime": 1779545703.2440834,
@@ -495,9 +495,9 @@
     "semantic_hash": "f720eaf890dcfb1361118a0cad31bd62"
   },
   "/home/sakitha/apps/vps/docker-compose.yml": {
-    "mtime": 1780291450.0146873,
-    "ast_hash": "d730df3eaf55d5bb4d8c0bf69ee702a1",
-    "semantic_hash": ""
+    "mtime": 1779628629.6337986,
+    "ast_hash": "2669628e3c1e714713032b7c3dd479c4",
+    "semantic_hash": "2669628e3c1e714713032b7c3dd479c4"
   },
   "/home/sakitha/apps/vps/docker-compose.ghcr.yml": {
     "mtime": 1779545716.7051556,
@@ -643,70 +643,5 @@
     "mtime": 1779451486.8934126,
     "ast_hash": "bf1ff0de7578ca6b38a111f3bb99fd01",
     "semantic_hash": "bf1ff0de7578ca6b38a111f3bb99fd01"
-  },
-  "/home/sakitha/apps/vps/redeploy.sh": {
-    "mtime": 1780230120.7689266,
-    "ast_hash": "1e61cdf2f9e86f62a737591b66e677d1",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/next-env.d.ts": {
-    "mtime": 1779242699.6208222,
-    "ast_hash": "b5ed9dd8b4c5ba8e5ab8e6a379c15838",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/.understand-anything/tmp/ua-import-map-output.json": {
-    "mtime": 1779856246.1254857,
-    "ast_hash": "7424e9f73145dc379edb64765833d682",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/.understand-anything/tmp/ua-scan-files.json": {
-    "mtime": 1779856234.0704138,
-    "ast_hash": "379a3ffe79dca2dd18f4128c33c1e4f5",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/.understand-anything/tmp/ua-import-map-input.json": {
-    "mtime": 1779856241.9164605,
-    "ast_hash": "46836c1924bffbc59936f74bc6ccefa5",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/components/AppShell.tsx": {
-    "mtime": 1780225968.7295973,
-    "ast_hash": "b8e89122afb7e7a92e6cbcf6fb7559f6",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/backend/internal/api/domain_handler.go": {
-    "mtime": 1780296586.979345,
-    "ast_hash": "ddbf14e33098e066432fab808d0188ef",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/app/domain/page.tsx": {
-    "mtime": 1780296591.769372,
-    "ast_hash": "64f6a1790d90f4158bfab15addc25421",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/.claude/settings.json": {
-    "mtime": 1779789740.6888416,
-    "ast_hash": "87f0d903477984d0587a02f8fe185263",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/CLAUDE.md": {
-    "mtime": 1780296618.9105244,
-    "ast_hash": "014336ee9ac0c7b39473f1d8d4593b98",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/pulsenode-login-purple-button.png": {
-    "mtime": 1780228219.109836,
-    "ast_hash": "668f6894aaa430859d584c6c9f34a83b",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/pulsenode-login-local.png": {
-    "mtime": 1780228219.108836,
-    "ast_hash": "398dd39ecb9e64c9dcaf067e649a05dc",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/public/file_0000000053ac720b95e22d8410d1da4d.png": {
-    "mtime": 1780219351.3898451,
-    "ast_hash": "6fd0f7efd261b8a0a27033e31a4eb333",
-    "semantic_hash": ""
   }
 }

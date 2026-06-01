@@ -67,6 +67,7 @@ func (s *Server) checkDomain(w http.ResponseWriter, r *http.Request) {
 	res := domainCheckResponse{
 		Domain:     domain,
 		ExpectedIP: expected,
+		Records:    []string{},
 		CheckedAt:  time.Now().UTC().Format(time.RFC3339),
 	}
 	if expected == "" {

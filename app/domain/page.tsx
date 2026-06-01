@@ -14,7 +14,7 @@ type Settings = {
 type CheckResult = {
   domain: string
   expectedIp: string
-  records: string[]
+  records: string[] | null
   pointed: boolean
   proxied: boolean
   provider?: string
@@ -209,7 +209,7 @@ export default function DomainPage() {
             {result.message && <p className="text-xs" style={{ color: "var(--fg-3)" }}>{result.message}</p>}
             <div className="grid gap-2 sm:grid-cols-2">
               <Info label="Expected IP" value={result.expectedIp || "Unknown"} />
-              <Info label="Resolved IPs" value={result.records.length ? result.records.join(", ") : "No A/AAAA records found"} />
+              <Info label="Resolved IPs" value={result.records?.length ? result.records.join(", ") : "No A/AAAA records found"} />
             </div>
             {result.error && <p className="text-xs" style={{ color: "var(--err)" }}>{result.error}</p>}
           </div>
