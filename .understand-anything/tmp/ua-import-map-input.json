@@ -1,0 +1,1285 @@
+{
+  "projectRoot": "/home/sakitha/apps/vps",
+  "files": [
+    {
+      "path": ".claude/settings.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": ".dockerignore",
+      "language": "unknown",
+      "fileCategory": "infra"
+    },
+    {
+      "path": ".env.deploy.example",
+      "language": "config",
+      "fileCategory": "config"
+    },
+    {
+      "path": ".env.example",
+      "language": "config",
+      "fileCategory": "config"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "language": "yaml",
+      "fileCategory": "infra"
+    },
+    {
+      "path": ".graphifyignore",
+      "language": "unknown",
+      "fileCategory": "code"
+    },
+    {
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "fileCategory": "code"
+    },
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "fileCategory": "docs"
+    },
+    {
+      "path": "app/alerts/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/containers/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/coolify/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/databases/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/github/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/globals.css",
+      "language": "css",
+      "fileCategory": "markup"
+    },
+    {
+      "path": "app/images/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/layout.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/login/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/networks/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/processes/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/projects/[id]/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/projects/new/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/projects/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/runtime/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/sbom-history/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/scan-history/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/settings/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/stats/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/cmd/pulsenode/main.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/Dockerfile",
+      "language": "dockerfile",
+      "fileCategory": "infra"
+    },
+    {
+      "path": "backend/go.mod",
+      "language": "mod",
+      "fileCategory": "config"
+    },
+    {
+      "path": "backend/go.sum",
+      "language": "sum",
+      "fileCategory": "config"
+    },
+    {
+      "path": "backend/internal/api/alerts_handler.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/auth_handler.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/caddy_handler.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/coolify.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/database_handler.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/database_metrics_handler.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/database_query_handler.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/docker.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/github_handler.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/http.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/metrics.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/middleware.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/projects_handler.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/security.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/server.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/shell.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/api/update.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/auth/middleware.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/builder/builder.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/builder/detect.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/caddy/client.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/db/db.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/docker/client.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/github/github.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/hub/hub.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/proc/collector.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/queue/queue.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/internal/security/security.go",
+      "language": "go",
+      "fileCategory": "code"
+    },
+    {
+      "path": "Caddyfile",
+      "language": "unknown",
+      "fileCategory": "code"
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "fileCategory": "docs"
+    },
+    {
+      "path": "components.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "components/dashboard/ConnectDatabaseModal.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/dashboard/CreateDatabaseModal.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/dashboard/DatabaseMetricsPanel.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/dashboard/DatabaseQueryEditor.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/dashboard/DbIcon.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/dashboard/Pill.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/dashboard/ProgressBar.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/dashboard/StatCard.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/dashboard/Topbar.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/dashboard/UPlotChart.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/dashboard/VulnBar.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/magicui/blur-fade.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/magicui/border-beam.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/magicui/meteors.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/magicui/number-ticker.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/magicui/sparkles-text.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/magicui/terminal.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/sidebar/AppSidebar.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/accordion.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/alert-dialog.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/animated-theme-toggler.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/badge.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/button.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/card.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/input.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/progress.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/scroll-area.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/separator.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/sheet.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/table.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/tabs.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/tooltip.tsx",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "deploy.sh",
+      "language": "shell",
+      "fileCategory": "script"
+    },
+    {
+      "path": "docker-compose.ghcr.yml",
+      "language": "yaml",
+      "fileCategory": "infra"
+    },
+    {
+      "path": "docker-compose.nossl.yml",
+      "language": "yaml",
+      "fileCategory": "infra"
+    },
+    {
+      "path": "docker-compose.standalone.yml",
+      "language": "yaml",
+      "fileCategory": "infra"
+    },
+    {
+      "path": "docker-compose.traefik.yml",
+      "language": "yaml",
+      "fileCategory": "infra"
+    },
+    {
+      "path": "docker-compose.yml",
+      "language": "yaml",
+      "fileCategory": "infra"
+    },
+    {
+      "path": "Dockerfile",
+      "language": "dockerfile",
+      "fileCategory": "infra"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-05-20-build-cache-clear-terminal.md",
+      "language": "markdown",
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-05-22-database-query-editor.md",
+      "language": "markdown",
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-05-22-one-click-installer.md",
+      "language": "markdown",
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-05-24-login-system.md",
+      "language": "markdown",
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-05-20-build-cache-clear-terminal-design.md",
+      "language": "markdown",
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-05-22-database-query-editor-design.md",
+      "language": "markdown",
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-05-24-login-system-design.md",
+      "language": "markdown",
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-05-24-projects-deploy-design.md",
+      "language": "markdown",
+      "fileCategory": "docs"
+    },
+    {
+      "path": "graphify-out/.graphify_chunks_meta.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/.graphify_labels.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/.graphify_python",
+      "language": "unknown",
+      "fileCategory": "code"
+    },
+    {
+      "path": "graphify-out/.graphify_root",
+      "language": "unknown",
+      "fileCategory": "code"
+    },
+    {
+      "path": "graphify-out/cache/ast/1b68c319deba879c101163077398e4b565ad5d039498804565d087ed1fa93e8a.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/221be7e618ff8350e39a009897f7ce1c60e7cbec9cf3051eeed07f882cb032af.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/27e226302f7d3a2dbaabe6316b16687e7175edea63741444976a42ecaccf2728.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/2bd4c88f79988acb0dbacf5cb8ec8656e25bddd658d1c3809aea9db06fd979bb.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/32fc7cb22398e715c3fa80e1dbac63509fb1efbc8f405dd598422e07611398a5.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/37fa84b494dd5437ab0532ea1634639f81a4766a51edf752329e6ad0469d6585.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/45c90abe7fb53f04b992cf8ca6875593e1938bbc75a366f355c69292677fb1ec.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/4a4fc0443f19281b8f6a54cd1b62c143de195655d78b19a1d742f3dc4af22e2b.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/4ba46ee74edef94107785b0edaea76d1b4f7cc3d7989ba94e67926ccfea78bef.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/4cdd369170562cf6056ecbbd10569ba584f14f31c0a227f8820259279c819c4d.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/4e383cf12b4b609a28028853d47bc9abd8f1cb2b5d728b9cb86d962b7663c227.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/50d80d06b3a9d590480b4ee5fc589208cc8b1f238365b401222973edf922a73b.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/5a03c1c83d3ed90b3005972c5ea7a52a5c4d96871ce72042b1b746dab29bda81.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/5cff0b4f6862f25a69b7195d33f8b0f265bf05ba8d367fd565abf818ed62da68.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/64287968d0601f465d1ec19d688b82f6a45dea5b2315c3eea4fcd32229c73f82.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/69b45d0afb0337d6b0632eed6d3e78fc318fc5c6e218a83d868246304aeff640.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/6ab24e8cb708d90ac7e55e78dc4799899c7f139892fcb7ae67141a238e7bcd54.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/898d0e1bd15cc651cea453732464d6200aeb15980ce0ed02b485e3a485b8f7cc.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/9c82d3578d013091f771ebbfdf8c9c25fa7f5f82fc4812656dad1a941851a0be.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/9d6b1db1fbb93313b05f951b31e59dd0f1405aed7760ac696aea17a08355dbb2.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/a88a0012874a55f8987587b5e4eee8c29dae4b4d500c8c788c33fd8bd092179c.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/a9d0e04585f9ebfa70ee3b56491fb0775a31e06cfe5122bf8a537dcebc89bb2c.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/acdf39ccc9130403de13d57ac684d22be14641db34968cae093fb75adab96784.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/ae334709d42e0cbbc5fc1afe4306de3276d05d86a0a9880bde30c20930237161.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/b6e124aaa2528d9bcf2c805f2fbb15ad600fe762d9d90dffbea80e02632c94d1.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/bb640540b631ad5f75f07e84cdf91c667c86e802b45527e51f3220b0207c53b2.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/bbbb330b00a66a2aecd9de01a0ed874861fa1d382dca3529cc25a261c07cd9c0.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/c4139e1a4ca6d07312757ba8e54101f98f8274f64f7b36866e4c8a6afc1a5180.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/ce69758380dec49ad8fae7d0587556bec4747e97bb3fdfc08e3381e1ca8c30f5.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/d9d64e0b52211e0b20a43cd5551b6be52d4300490992f0b32a2a855bb44b8aa0.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/df29bd005001d19666d238e088e31225a154795c436a5c87eb4e663d188858a7.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/e2f8301ac2652db36279c2e43fd42b1c06d1f665b525005a2a5b7fbea5d77cb1.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/e698aeebebcc00fa0c524b9cc7b59a84830b8b8ccf7385ef4e6cacf80bab849d.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/edce7add6540c1b1e9464c46ca0730a70ee8e48cf2eef847cdb80d9854cabfff.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/f412d0398672334f8c278340773c8975d147e4ca02981983fcc9fcf62f18d04b.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/ast/fd40ab1b176adcc6dcaf1032c48df255971976f37eeb79681fccf13296834bf7.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/0120a79daa4636279cffabb10912f0ad45f65c2f9ff770c7c0f03340e5abe72c.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/019ce5be7b8da3a5b6fe494c39b10ed99e7f853b69e330f3ca54dcd4117be499.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/078f6c3a904f194499e6f5b62112659b84a85bec04cc771912bf2778e4de4d93.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/0c4d962a2a86aa572353de6ef586fcf4f8b91d1aa1545a9265beb92a967f655f.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/0d04ea376d7a5cb000f420268ef7c5d7cefd78002a19c3b33f1912b4d692b44b.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/0fcb5d4d82452305e0628170868504775521893721001d1b892a0237f0ae42a5.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/13d269bdfb874990ff654b9f4567d3f9b8ab3f5e2c2540077759942bbc1f8b0c.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/221be7e618ff8350e39a009897f7ce1c60e7cbec9cf3051eeed07f882cb032af.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/224a72b1f5904d5be57d892fb3b8b5c8e19fc0dec3bb980d35437a646436cd8a.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/2bd4c88f79988acb0dbacf5cb8ec8656e25bddd658d1c3809aea9db06fd979bb.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/2fc4103c742c44600ab46e1b8ed7d3aa97a30b8bfcffde0d90af5a2923e59cc9.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/32fc7cb22398e715c3fa80e1dbac63509fb1efbc8f405dd598422e07611398a5.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/34bc6941288fbac42e677879a5983a683b1e5cd209e41d732db665b64a948420.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/37fa84b494dd5437ab0532ea1634639f81a4766a51edf752329e6ad0469d6585.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/3aa537e2b18faf499f5fb4b6488ec285b7eb1167ce482d28ae6a97f7cda590b9.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/3ae029d44b964e0ac406430395c32dcd2b67794d59c2e3a1173f0daca167f5ef.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/45c90abe7fb53f04b992cf8ca6875593e1938bbc75a366f355c69292677fb1ec.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/4765a8a9b80b1aa0a16ab7ee54c994f468ef2510892cea37896b1e191f9d5d13.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/4960e1353dbbda178918db751713971ffe68c70f73a0fa25287d70194bace3a7.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/4a4fc0443f19281b8f6a54cd1b62c143de195655d78b19a1d742f3dc4af22e2b.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/4ba46ee74edef94107785b0edaea76d1b4f7cc3d7989ba94e67926ccfea78bef.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/4e383cf12b4b609a28028853d47bc9abd8f1cb2b5d728b9cb86d962b7663c227.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/4e75ab0fdf5b5182a2725374e4f6c90073ece2bc6f467a35d83f7b2caf54f682.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/4f435c8777c66fc440bcc4ebec26dcd9f2c2fa562931815d402bfaf8ab19a30d.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/50d80d06b3a9d590480b4ee5fc589208cc8b1f238365b401222973edf922a73b.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/51ebd7cc67960aabd48a24062b9b19ab37280284f79501a9439b599525f2353f.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/51f8a3a57a978796a4bb40991e35e013b3bd740cbf4cbd988875aadd6458d77b.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/534a8f545f6ff1509af974d5e6b3e425c9d064099fcf83e623f21ed36e9f3566.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/5a03c1c83d3ed90b3005972c5ea7a52a5c4d96871ce72042b1b746dab29bda81.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/5cc3e77167828e5a336e29b37ed011b529e9aae9eac63ec8b4fe0f3575af5972.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/64b30722afafc5cbf04764567bee2ce01b979a9b8cb4c7c79c232365b2cb0393.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/68336244fbcf595058d205d603692077b83541954d3cf3fd6afcb4815d8d13f3.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/68c9eaae45232375401e472b572dd04f1fcb62f8d23365da732edbfeed962c7c.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/6ab24e8cb708d90ac7e55e78dc4799899c7f139892fcb7ae67141a238e7bcd54.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/6bf70ba0fa1acf72c1fe32bacbfa05be87b80150b43027adf66d11c58a743b5b.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/6e25f63053dff2ce63071a3cab14e72168a03ac633d45f8c1710e17af70e5d06.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/712ee77cf575928b33b7901b776c47a9cc5a2ec199e728587b28098c56a1f574.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/75c8f5ca764a97058b295151812fcae398806276163c986c0ba13173d69b34aa.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/76245020da6430b4e74c88a0256752903063a3e371819ac3f9e102bc16224d79.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/786757a1137299d6df86df70708ee4ef2f8ca2cd504575f21b8b40f8dcbcce37.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/787010b3d595014508421255ddc33ff44a0f3a33bddabb66677cbf882cd5b01f.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/7ecfb893b6e727f719d8fa5b0f7c5abda1b2184e985f87e6c7565310b96bc546.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/80568cf2ea7ce9de712707de3ff05c025a26d22bb40a6b0d583793526df6facd.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/85ed16494e8b70acada751f6c5df395585de7b60cd5355d16999bab838b74048.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/8a1b925c0fa0e73b16d02a4dfe021ff91e8f9ad1a61adfd3299d3ca8b5a05e3d.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/9079b5d5cd9b99c6b327059348287c7d5ea6f867ad705040720d4f53b0bc5beb.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/9163ee3a2305ea959511201f2672a59a1c44dae0a511124fda726dc1bf27b646.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/968adc99b0c724541c8dc2e8e19d8ae18def97c5b1428648dd421847b6f77207.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/96a26955ddbf41cd4d139601b0830574635626e3eb220bbbc754b79b5c98da53.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/9a59eab686ec46119c48475344184a19a0217ea1111780cb581c14fbe0866495.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/9d6b1db1fbb93313b05f951b31e59dd0f1405aed7760ac696aea17a08355dbb2.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/9eed25ec334519400e0fe90a63c49736ef1587132cfd1cbd6a92d8351b5ceddf.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/9fa8bc848473a2cf2e239f711ea741b79eeff8d68da653860efbc1dc884588be.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/a00fc87e7658b7cc44317d3b56df48764259f9d45740aea33e2577d039388504.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/a25b8d5446c377c39587aeff4ddb03d9aa1a5da752cc64d526912c650811cdd0.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/a5ff60e57f13e0dcd3b0c83d6f9d83654f836b0f343c24b03015f4adf98dd320.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/acdf39ccc9130403de13d57ac684d22be14641db34968cae093fb75adab96784.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/ae494ad3687bc3c1c575bfbce1100eb35a38d41867d8700eae790bd62da5d300.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/b42c5002b4165ddcb7320212702967510e9e3f220eb04ea46d9e30bba0631f26.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/b6e124aaa2528d9bcf2c805f2fbb15ad600fe762d9d90dffbea80e02632c94d1.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/bb33c7099853c34cb5ecf75d260f41f445124aff6df5cb0bfacd1ba82f989eba.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/bb640540b631ad5f75f07e84cdf91c667c86e802b45527e51f3220b0207c53b2.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/bbbb330b00a66a2aecd9de01a0ed874861fa1d382dca3529cc25a261c07cd9c0.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/bc76017e93998a723bf106f0a6fb79396ce1395e66ea7963774ca21912da54aa.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/c4139e1a4ca6d07312757ba8e54101f98f8274f64f7b36866e4c8a6afc1a5180.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/c79d1d0c5d59efe22ea325a4c10b0211cde946e7ed92edfa970202ea444e938e.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/ca276c2dca08622f9d8689434678bc00216b122fbf2d0a20ec3dba1ff5a5ec60.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/ce69758380dec49ad8fae7d0587556bec4747e97bb3fdfc08e3381e1ca8c30f5.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/cfc14076faa2f71e2e588fff089e71cf094778d9c4e366dfc89d227179b0e6c7.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/d4a78704aa62ec3db9110677683a67bf5f18239ae99004fb6904f30f04fabfd6.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/d6d671f6a833af138d87215f08b6a775ba31262a3bec1d7d0b1a79f207bd372b.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/d6dca9aaac37cf213298c77597032824a55a65f02ed073529292cc0ee7a82869.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/d8ef642d304367ed0eb7a3de73d8e315bf3994751d85cec25e5b12ae898caa09.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/dc9b07f8d8ee947c8e6724819d6e239255608b58ea4049c6a410d57a0e66ec41.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/ddbaf5c85f47eeb869eda4cc3295bdaa75c7edd7913ba2c0c6729737f941ee92.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/e19ae85700babfe7646c9482d3b854c8c0574d1e9651cba0efc89a42e15abe8c.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/e213dbf3081eaf910af78048643e6618231babd39e52475b6819458141ac20f1.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/e367ff24ece32e7e6f93f3af0958f08612a6b08472e3cef43847b5f479b433c3.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/e698aeebebcc00fa0c524b9cc7b59a84830b8b8ccf7385ef4e6cacf80bab849d.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/e7230585f4738f5a1f19a00a71109bb56a797cf96d2b62e475a3adc68e1099c5.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/e9eb2928b774271a05dd490c8a957aaaf138a17a4c335f529cb212ba220d8f4d.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/edce7add6540c1b1e9464c46ca0730a70ee8e48cf2eef847cdb80d9854cabfff.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/f0acefba286b62902defcd3927be4b724ee561089a01fba35292cb67c4daa634.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/f5095600e3c9ca117b0851c67e88e9cdbfb1d0388fc0d317fda2392d6db15777.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/semantic/f915ba0a99deb050cb958167333edba52a5aa191da4005c962b9ea05b3f79461.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cache/stat-index.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/cost.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/GRAPH_REPORT.md",
+      "language": "markdown",
+      "fileCategory": "docs"
+    },
+    {
+      "path": "graphify-out/graph.html",
+      "language": "html",
+      "fileCategory": "markup"
+    },
+    {
+      "path": "graphify-out/graph.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "graphify-out/manifest.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "install.sh",
+      "language": "shell",
+      "fileCategory": "script"
+    },
+    {
+      "path": "lib/api.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "lib/mock-data.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "lib/socket.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "lib/types.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "lib/utils.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "middleware.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "next.config.mjs",
+      "language": "javascript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "postcss.config.mjs",
+      "language": "javascript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "public/realtime-shared-worker.js",
+      "language": "javascript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "fileCategory": "docs"
+    },
+    {
+      "path": "tailwind.config.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    },
+    {
+      "path": "tsconfig.json",
+      "language": "json",
+      "fileCategory": "config"
+    },
+    {
+      "path": "types/css.d.ts",
+      "language": "typescript",
+      "fileCategory": "code"
+    }
+  ]
+}
