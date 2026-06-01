@@ -9,7 +9,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/pulseno
 
 FROM alpine:3.20
 ARG NIXPACKS_VERSION=1.41.0
-RUN apk add --no-cache ca-certificates git docker-cli docker-cli-compose curl \
+RUN apk add --no-cache ca-certificates git docker-cli docker-cli-buildx docker-cli-compose curl \
     && mkdir -p /data /var/lib/pulsenode \
     && curl -sSL "https://github.com/railwayapp/nixpacks/releases/download/v${NIXPACKS_VERSION}/nixpacks-v${NIXPACKS_VERSION}-x86_64-unknown-linux-musl.tar.gz" \
        | tar -xz -C /usr/local/bin nixpacks \
