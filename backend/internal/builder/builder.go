@@ -161,11 +161,7 @@ func (cfg Config) buildDockerfile(ctx context.Context, dir, imageName, container
 
 func (cfg Config) buildNixpacks(ctx context.Context, dir, imageName, containerName string, envMap map[string]string) (string, error) {
 	cfg.log("system", "→ Building with Nixpacks (this may take a few minutes)…")
-	if err := cfg.run(ctx, dir, "docker", "run", "--rm",
-		"-v", dir+":/app",
-		"-v", "/var/run/docker.sock:/var/run/docker.sock",
-		"ghcr.io/railwayapp/nixpacks",
-		"nixpacks", "build", "/app", "--name", imageName); err != nil {
+	if err := cfg.run(ctx, dir, "nixpacks", "build", dir, "--name", imageName); err != nil {
 		return "", fmt.Errorf("nixpacks build: %w", err)
 	}
 	return cfg.runContainer(ctx, imageName, containerName, envMap)
