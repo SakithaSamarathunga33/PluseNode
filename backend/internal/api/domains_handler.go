@@ -95,11 +95,25 @@ func (s *Server) writeDomainsResponse(w http.ResponseWriter) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
-func (s *Server) handleListDomains(w http.ResponseWriter, r *http.Request) {
+// domainSaved reports whether host is in the saved domains table.
+func (s *Server) domainSaved(host string) bool {
+	rows, err := s.db.ListDomains()
+	if err != nil {
+		return false
+	}
+	for _, dm := range rows {
+		if dm.Host == host {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Server) listDomains(w http.ResponseWriter, r *http.Request) {
 	s.writeDomainsResponse(w)
 }
 
-func (s *Server) handleSaveDomain(w http.ResponseWriter, r *http.Request) {
+func (s *Server) saveDomain(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Host string `json:"host"`
 	}
@@ -120,16 +134,21 @@ func (s *Server) handleSaveDomain(w http.ResponseWriter, r *http.Request) {
 	_ = s.db.UpdateDomainCheck(host, res.Pointed, res.Proxied, res.Records, res.Message, res.Error)
 	if primary, _ := s.db.PrimaryDomain(); primary == "" {
 		_ = s.db.SetPrimaryDomain(host)
+		// Best-effort mirror to .env.local; DB primary is the source of truth.
 		_ = upsertEnvLocal("PULSENODE_ROOT_DOMAIN", host)
 		_ = os.Setenv("PULSENODE_ROOT_DOMAIN", host)
 	}
 	s.writeDomainsResponse(w)
 }
 
-func (s *Server) handleRecheckDomain(w http.ResponseWriter, r *http.Request) {
+func (s *Server) recheckDomain(w http.ResponseWriter, r *http.Request) {
 	host := cleanDomain(chi.URLParam(r, "host"))
 	if host == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "host is required"})
+		return
+	}
+	if !s.domainSaved(host) {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "domain not found"})
 		return
 	}
 	res := resolveDomain(r.Context(), host, expectedVPSIP())
@@ -137,22 +156,27 @@ func (s *Server) handleRecheckDomain(w http.ResponseWriter, r *http.Request) {
 	s.writeDomainsResponse(w)
 }
 
-func (s *Server) handleSetPrimaryDomain(w http.ResponseWriter, r *http.Request) {
+func (s *Server) setPrimaryDomain(w http.ResponseWriter, r *http.Request) {
 	host := cleanDomain(chi.URLParam(r, "host"))
 	if host == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "host is required"})
+		return
+	}
+	if !s.domainSaved(host) {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "domain not found"})
 		return
 	}
 	if err := s.db.SetPrimaryDomain(host); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
 	}
+	// Best-effort mirror to .env.local; DB primary is the source of truth.
 	_ = upsertEnvLocal("PULSENODE_ROOT_DOMAIN", host)
 	_ = os.Setenv("PULSENODE_ROOT_DOMAIN", host)
 	s.writeDomainsResponse(w)
 }
 
-func (s *Server) handleDeleteDomain(w http.ResponseWriter, r *http.Request) {
+func (s *Server) deleteDomain(w http.ResponseWriter, r *http.Request) {
 	host := cleanDomain(chi.URLParam(r, "host"))
 	if host == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "host is required"})
@@ -229,7 +253,7 @@ func (s *Server) discoverInUseHosts(ctx context.Context) []inUseHost {
 	return out
 }
 
-func (s *Server) handleInUseDomains(w http.ResponseWriter, r *http.Request) {
+func (s *Server) inUseDomains(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"hosts": s.discoverInUseHosts(r.Context())})
 }
 
