@@ -58,27 +58,6 @@ func (s *Server) domainSettings(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, s.effectiveDomainSettings())
 }
 
-func (s *Server) saveDomainSettings(w http.ResponseWriter, r *http.Request) {
-	var body struct {
-		RootDomain string `json:"rootDomain"`
-	}
-	if err := decodeJSON(r, &body); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid JSON body"})
-		return
-	}
-	root := cleanDomain(body.RootDomain)
-	if root == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "rootDomain is required"})
-		return
-	}
-	if err := upsertEnvLocal("PULSENODE_ROOT_DOMAIN", root); err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		return
-	}
-	_ = os.Setenv("PULSENODE_ROOT_DOMAIN", root)
-	writeJSON(w, http.StatusOK, currentDomainSettings())
-}
-
 // resolveDomain runs the DNS lookup + Cloudflare-proxy detection for host and
 // returns a populated response. Records is always a non-nil slice.
 func resolveDomain(ctx context.Context, host, expected string) domainCheckResponse {

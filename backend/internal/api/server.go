@@ -134,7 +134,6 @@ func (s *Server) Routes() http.Handler {
 
 		// Domain settings
 		r.Get("/domain/settings", s.domainSettings)
-		r.Post("/domain/settings", s.saveDomainSettings)
 		r.Get("/domain/check", s.checkDomain)
 
 		// Saved domains + live inventory
