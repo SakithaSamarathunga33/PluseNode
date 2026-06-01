@@ -159,12 +159,51 @@ func (cfg Config) buildDockerfile(ctx context.Context, dir, imageName, container
 	return cfg.runContainer(ctx, imageName, containerName, envMap)
 }
 
+// defaultNodeVersion is injected for Node projects that don't pin their own
+// version. Nixpacks otherwise defaults to Node 18, which is too old for modern
+// frameworks (e.g. Next.js 16 requires Node >= 20.9.0).
+const defaultNodeVersion = "20"
+
 func (cfg Config) buildNixpacks(ctx context.Context, dir, imageName, containerName string, envMap map[string]string) (string, error) {
 	cfg.log("system", "→ Building with Nixpacks (this may take a few minutes)…")
-	if err := cfg.run(ctx, dir, "nixpacks", "build", dir, "--name", imageName); err != nil {
+	args := []string{"build", dir, "--name", imageName}
+	// NIXPACKS_NODE_VERSION overrides engines.node/.nvmrc, so only inject a
+	// default when the project hasn't pinned a version itself.
+	if isNodeProject(dir) && !pinsNodeVersion(dir) {
+		cfg.log("system", fmt.Sprintf("→ No Node version pinned; defaulting to Node %s", defaultNodeVersion))
+		args = append(args, "--env", "NIXPACKS_NODE_VERSION="+defaultNodeVersion)
+	}
+	if err := cfg.run(ctx, dir, "nixpacks", args...); err != nil {
 		return "", fmt.Errorf("nixpacks build: %w", err)
 	}
 	return cfg.runContainer(ctx, imageName, containerName, envMap)
+}
+
+// isNodeProject reports whether the build directory contains a package.json.
+func isNodeProject(dir string) bool {
+	_, err := os.Stat(filepath.Join(dir, "package.json"))
+	return err == nil
+}
+
+// pinsNodeVersion reports whether the project declares a Node version via
+// package.json "engines.node" or a .nvmrc file.
+func pinsNodeVersion(dir string) bool {
+	if _, err := os.Stat(filepath.Join(dir, ".nvmrc")); err == nil {
+		return true
+	}
+	data, err := os.ReadFile(filepath.Join(dir, "package.json"))
+	if err != nil {
+		return false
+	}
+	var pkg struct {
+		Engines struct {
+			Node string `json:"node"`
+		} `json:"engines"`
+	}
+	if err := json.Unmarshal(data, &pkg); err != nil {
+		return false
+	}
+	return strings.TrimSpace(pkg.Engines.Node) != ""
 }
 
 func (cfg Config) runContainer(ctx context.Context, imageName, containerName string, envMap map[string]string) (string, error) {
