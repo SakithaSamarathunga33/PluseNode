@@ -68,6 +68,17 @@ func TestSetPrimaryDomainSingleWinner(t *testing.T) {
 	}
 }
 
+func TestPrimaryDomainEmpty(t *testing.T) {
+	d := newTestDB(t)
+	primary, err := d.PrimaryDomain()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if primary != "" {
+		t.Fatalf("expected empty primary on empty table, got %q", primary)
+	}
+}
+
 func TestUpdateDomainCheckRoundTrip(t *testing.T) {
 	d := newTestDB(t)
 	_, _ = d.UpsertDomain("a.com")

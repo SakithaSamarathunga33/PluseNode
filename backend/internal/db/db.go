@@ -902,17 +902,27 @@ func (d *DB) ListDomains() ([]Domain, error) {
 
 // SetPrimaryDomain makes host the single primary domain.
 func (d *DB) SetPrimaryDomain(host string) error {
-	if _, err := d.Exec(`UPDATE domains SET is_primary=0`); err != nil {
+	tx, err := d.Begin()
+	if err != nil {
 		return err
 	}
-	_, err := d.Exec(`UPDATE domains SET is_primary=1 WHERE host=?`, host)
-	return err
+	defer tx.Rollback()
+	if _, err := tx.Exec(`UPDATE domains SET is_primary=0`); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(`UPDATE domains SET is_primary=1 WHERE host=?`, host); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // UpdateDomainCheck stores the latest DNS-check result for host.
 func (d *DB) UpdateDomainCheck(host string, pointed, proxied bool, records []string, message, errStr string) error {
-	recJSON, _ := json.Marshal(records)
-	_, err := d.Exec(`UPDATE domains SET last_pointed=?, last_proxied=?, last_records=?, last_message=?, last_error=?, last_checked_at=CURRENT_TIMESTAMP WHERE host=?`,
+	recJSON, err := json.Marshal(records)
+	if err != nil {
+		return err
+	}
+	_, err = d.Exec(`UPDATE domains SET last_pointed=?, last_proxied=?, last_records=?, last_message=?, last_error=?, last_checked_at=CURRENT_TIMESTAMP WHERE host=?`,
 		boolToInt(pointed), boolToInt(proxied), string(recJSON), message, errStr, host)
 	return err
 }
