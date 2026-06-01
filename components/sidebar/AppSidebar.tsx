@@ -7,7 +7,7 @@ import {
   Container, BarChart3, Activity, Layers, Network,
   Database, Shield, FileCode2, BellRing,
   ChevronDown, Cpu, PanelLeftClose, PanelLeftOpen, Settings,
-  FolderGit2, Box,
+  FolderGit2, Box, Globe,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { GitHubDark, Docker } from "developer-icons"
@@ -70,6 +70,7 @@ const DEPLOY_SECTION: NavSection = {
   items: [
     { label: "GitHub",   href: "/github",   icon: FolderGit2, devIcon: GitHubDark },
     { label: "Projects", href: "/projects", icon: FolderGit2, badge: "projects" },
+    { label: "Domain",   href: "/domain",   icon: Globe },
   ],
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -25,7 +26,7 @@ func decodeJSON(r *http.Request, dst any) error {
 
 // upsertEnvLocal writes or replaces KEY=VALUE in .env.local.
 func upsertEnvLocal(key, value string) error {
-	const envFile = ".env.local"
+	envFile := filepath.Join(workspaceDir(), ".env.local")
 	existing := ""
 	if data, err := os.ReadFile(envFile); err == nil {
 		existing = string(data)

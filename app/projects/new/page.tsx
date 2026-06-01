@@ -31,6 +31,7 @@ export default function NewProjectPage() {
   const [name, setName]         = useState("")
   const [domain, setDomain]     = useState("")
   const [port, setPort]         = useState("3000")
+  const [rootDomain, setRootDomain] = useState("")
   const [buildMethod, setBuildMethod] = useState("auto")
   const buildCommand = ""
   const [envText, setEnvText]   = useState("") // KEY=VALUE lines
@@ -49,6 +50,13 @@ export default function NewProjectPage() {
   }, [])
 
   useEffect(() => { loadRepos() }, [loadRepos])
+
+  useEffect(() => {
+    fetch((process.env.NEXT_PUBLIC_GO_API ?? "") + "/api/domain/settings")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.rootDomain) setRootDomain(d.rootDomain) })
+      .catch(() => {})
+  }, [])
 
   const selectRepo = async (repo: Repo) => {
     setSelectedRepo(repo)
@@ -275,7 +283,7 @@ export default function NewProjectPage() {
                   style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
                 />
                 <button
-                  onClick={() => setDomain(randomName() + ".sakitha.com")}
+                  onClick={() => setDomain(randomName() + "." + (rootDomain || "example.com"))}
                   title="Generate subdomain"
                   className="px-3 py-2 rounded-lg transition-colors"
                   style={{ background: "var(--bg-3)", color: "var(--fg-3)", border: "1px solid var(--border)" }}

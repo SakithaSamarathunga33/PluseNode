@@ -94,7 +94,7 @@ func (s *Server) Routes() http.Handler {
 	r.Route("/api", func(r chi.Router) {
 		r.Use(s.requireAuth)
 		r.Get("/docker/containers", s.dockerContainers)
-			r.Get("/docker/container-stats", s.containerStats)
+		r.Get("/docker/container-stats", s.containerStats)
 		r.Get("/docker/images", s.dockerImages)
 		r.Get("/docker/networks", s.dockerNetworks)
 		r.Get("/docker/databases", s.dockerDatabases)
@@ -131,6 +131,11 @@ func (s *Server) Routes() http.Handler {
 		r.Get("/github/branches", s.githubBranches)
 		r.Get("/github/oauth-settings", s.githubOAuthSettings)
 		r.Post("/github/oauth-settings", s.githubSaveOAuthSettings)
+
+		// Domain settings
+		r.Get("/domain/settings", s.domainSettings)
+		r.Post("/domain/settings", s.saveDomainSettings)
+		r.Get("/domain/check", s.checkDomain)
 
 		// Projects (deploy)
 		r.Get("/projects/free-port", s.freePort)
@@ -349,7 +354,6 @@ func (s *Server) version(w http.ResponseWriter, r *http.Request) {
 		"current": current, "latest": latest, "hasUpdate": hasUpdate, "releaseUrl": releaseURL, "changelog": changelog,
 	})
 }
-
 
 func notImplemented(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusNotImplemented, map[string]string{"error": "not implemented in Go backend yet"})

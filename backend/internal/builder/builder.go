@@ -21,13 +21,13 @@ type Config struct {
 	DeploymentID string
 	ProjectID    string
 	ProjectName  string
-	RepoURL      string   // already authorised for private repos
+	RepoURL      string // already authorised for private repos
 	Branch       string
-	Method       Method   // auto | compose | dockerfile | nixpacks
-	BuildCommand string   // optional override
+	Method       Method // auto | compose | dockerfile | nixpacks
+	BuildCommand string // optional override
 	Port         int
 	Domain       string
-	EnvVars      string   // JSON {"KEY":"VALUE"}
+	EnvVars      string // JSON {"KEY":"VALUE"}
 	TraefikNet   string
 	Log          LogFunc
 }
@@ -114,12 +114,19 @@ func shortSHA(sha string) string {
 func (cfg Config) buildCompose(ctx context.Context, dir, containerName string, envMap map[string]string) (string, error) {
 	// Write overlay with Traefik labels for the first service
 	cfg.log("system", "→ Writing Traefik labels overlay…")
-	overlay := cfg.composeOverlay()
+	traefikNet := cfg.resolveTraefikNetwork(ctx)
+	if traefikNet == "" {
+		return "", fmt.Errorf("TRAEFIK_NETWORK is not configured and no Traefik Docker network could be detected")
+	}
+	overlay := cfg.composeOverlay(traefikNet)
 	if err := os.WriteFile(filepath.Join(dir, "docker-compose.pulsenode.yml"), []byte(overlay), 0o644); err != nil {
 		return "", err
 	}
 
 	// Write .env for compose
+	if _, ok := envMap["PORT"]; !ok {
+		envMap["PORT"] = fmt.Sprintf("%d", cfg.Port)
+	}
 	if len(envMap) > 0 {
 		cfg.log("system", "→ Writing .env file…")
 		var sb strings.Builder
@@ -216,21 +223,24 @@ func (cfg Config) runContainer(ctx context.Context, imageName, containerName str
 	id := cfg.ProjectID
 	domain := cfg.Domain
 	port := fmt.Sprintf("%d", cfg.Port)
-	if cfg.TraefikNet != "" {
-		args = append(args, "--network", cfg.TraefikNet)
+	traefikNet := cfg.resolveTraefikNetwork(ctx)
+	if traefikNet == "" {
+		return "", fmt.Errorf("TRAEFIK_NETWORK is not configured and no Traefik Docker network could be detected")
 	}
+	args = append(args, "--network", traefikNet)
 	args = append(args,
 		"--label", "traefik.enable=true",
 		"--label", fmt.Sprintf("traefik.http.routers.pn-%s.rule=Host(`%s`)", id, domain),
 		"--label", fmt.Sprintf("traefik.http.routers.pn-%s.entrypoints=websecure", id),
 		"--label", fmt.Sprintf("traefik.http.routers.pn-%s.tls.certresolver=letsencrypt", id),
 		"--label", fmt.Sprintf("traefik.http.services.pn-%s.loadbalancer.server.port=%s", id, port),
+		"--label", fmt.Sprintf("traefik.docker.network=%s", traefikNet),
 	)
-	if cfg.TraefikNet != "" {
-		args = append(args, "--label", fmt.Sprintf("traefik.docker.network=%s", cfg.TraefikNet))
-	}
 
 	// Env vars
+	if _, ok := envMap["PORT"]; !ok {
+		args = append(args, "-e", "PORT="+port)
+	}
 	for k, v := range envMap {
 		args = append(args, "-e", fmt.Sprintf("%s=%s", k, v))
 	}
@@ -249,23 +259,21 @@ func (cfg Config) runContainer(ctx context.Context, imageName, containerName str
 	return cid, nil
 }
 
-func (cfg Config) composeOverlay() string {
+func (cfg Config) composeOverlay(net string) string {
 	id := cfg.ProjectID
 	domain := cfg.Domain
 	port := fmt.Sprintf("%d", cfg.Port)
-	net := cfg.TraefikNet
-	if net == "" {
-		net = "traefik"
-	}
 	return fmt.Sprintf(`services:
   app:
     labels:
       traefik.enable: "true"
-      traefik.http.routers.pn-%s.rule: "Host(` + "`%s`" + `)"
+      traefik.http.routers.pn-%s.rule: "Host(`+"`%s`"+`)"
       traefik.http.routers.pn-%s.entrypoints: "websecure"
       traefik.http.routers.pn-%s.tls.certresolver: "letsencrypt"
       traefik.http.services.pn-%s.loadbalancer.server.port: "%s"
       traefik.docker.network: "%s"
+    environment:
+      PORT: "%s"
     networks:
       - default
       - traefik-net
@@ -273,7 +281,67 @@ networks:
   traefik-net:
     external: true
     name: %s
-`, id, domain, id, id, id, port, net, net)
+`, id, domain, id, id, id, port, net, port, net)
+}
+
+func (cfg Config) resolveTraefikNetwork(ctx context.Context) string {
+	if net := strings.TrimSpace(cfg.TraefikNet); net != "" {
+		return net
+	}
+
+	workspace := os.Getenv("PULSENODE_WORKSPACE")
+	if workspace == "" {
+		workspace = "/workspace"
+	}
+	if net := envFileValue(filepath.Join(workspace, ".env.local"), "TRAEFIK_NETWORK"); net != "" {
+		cfg.log("system", fmt.Sprintf("→ Using Traefik network from .env.local: %s", net))
+		return net
+	}
+
+	net := detectTraefikNetwork(ctx)
+	if net != "" {
+		cfg.log("system", fmt.Sprintf("→ Detected Traefik network: %s", net))
+	}
+	return net
+}
+
+func envFileValue(path, key string) string {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	prefix := key + "="
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") || !strings.HasPrefix(line, prefix) {
+			continue
+		}
+		return strings.Trim(strings.TrimSpace(strings.TrimPrefix(line, prefix)), "\"")
+	}
+	return ""
+}
+
+func detectTraefikNetwork(ctx context.Context) string {
+	out, err := runOutput(ctx, "", "docker", "ps", "--filter", "name=traefik", "--format", "{{.ID}}")
+	if err != nil {
+		return ""
+	}
+	for _, id := range strings.Fields(out) {
+		data, err := runOutput(ctx, "", "docker", "inspect", id, "--format", "{{json .NetworkSettings.Networks}}")
+		if err != nil {
+			continue
+		}
+		var networks map[string]any
+		if err := json.Unmarshal([]byte(data), &networks); err != nil {
+			continue
+		}
+		for net := range networks {
+			if net != "bridge" && net != "host" && net != "none" {
+				return net
+			}
+		}
+	}
+	return ""
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
