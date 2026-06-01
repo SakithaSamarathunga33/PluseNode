@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { getSocket } from "@/lib/socket"
+import { TerminalWindow } from "@/components/magicui/terminal"
 
 const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
 
@@ -354,25 +355,27 @@ export default function ProjectDetailPage() {
                 </select>
               </div>
             )}
-            <div
-              ref={logsRef}
-              className="flex-1 overflow-y-auto p-4 font-mono text-xs leading-5"
-              style={{ background: "#0d1117" }}
-            >
-              {logs.length === 0 ? (
-                <p style={{ color: "#6b7280" }}>Waiting for logs…</p>
-              ) : (
-                logs.map((entry, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <span className="select-none shrink-0" style={{ color: "#374151" }}>
-                      {new Date(entry.ts).toLocaleTimeString()}
-                    </span>
-                    <span style={{ color: logColor(entry.stream), wordBreak: "break-all" }}>
-                      {entry.line}
-                    </span>
-                  </div>
-                ))
-              )}
+            <div className="flex-1 min-h-0 p-4">
+              <TerminalWindow
+                className="h-full"
+                bodyRef={logsRef}
+                title={`${activeDep ? activeDep.slice(0, 14) + " — " : ""}pulsenode build`}
+              >
+                {logs.length === 0 ? (
+                  <p style={{ color: "#6b7280" }}>Waiting for logs…</p>
+                ) : (
+                  logs.map((entry, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <span className="select-none shrink-0" style={{ color: "#374151" }}>
+                        {new Date(entry.ts).toLocaleTimeString()}
+                      </span>
+                      <span style={{ color: logColor(entry.stream), wordBreak: "break-all" }}>
+                        {entry.line}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </TerminalWindow>
             </div>
           </div>
         )}

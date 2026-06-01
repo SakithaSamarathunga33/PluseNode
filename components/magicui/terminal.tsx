@@ -170,6 +170,59 @@ export const TypingAnimation = ({
   )
 }
 
+// TerminalWindow renders just the macOS terminal chrome (window frame +
+// traffic-light dots + optional title) around a scrollable body. Unlike
+// `Terminal`, it does no sequencing/typing — use it to wrap live, streaming
+// content (e.g. real-time build logs) while keeping the terminal look.
+interface TerminalWindowProps {
+  children: React.ReactNode
+  title?: React.ReactNode
+  className?: string
+  bodyClassName?: string
+  bodyRef?: React.Ref<HTMLDivElement>
+}
+
+export const TerminalWindow = ({
+  children,
+  title,
+  className,
+  bodyClassName,
+  bodyRef,
+}: TerminalWindowProps) => (
+  <div
+    className={cn("flex flex-col overflow-hidden rounded-xl border", className)}
+    style={{ borderColor: "var(--border)", background: "#0d1117" }}
+  >
+    <div
+      className="flex flex-shrink-0 items-center gap-2 px-4 py-3"
+      style={{ borderBottom: "1px solid var(--border)" }}
+    >
+      <div className="flex flex-row gap-x-2">
+        <div className="h-3 w-3 rounded-full bg-red-500" />
+        <div className="h-3 w-3 rounded-full bg-yellow-500" />
+        <div className="h-3 w-3 rounded-full bg-green-500" />
+      </div>
+      {title && (
+        <div
+          className="ml-2 truncate font-mono text-xs"
+          style={{ color: "var(--fg-4)" }}
+        >
+          {title}
+        </div>
+      )}
+    </div>
+    <div
+      ref={bodyRef}
+      className={cn(
+        "flex-1 overflow-y-auto p-4 font-mono text-xs leading-5",
+        bodyClassName
+      )}
+    >
+      {children}
+    </div>
+  </div>
+)
+
 interface TerminalProps {
   children: React.ReactNode
   className?: string
