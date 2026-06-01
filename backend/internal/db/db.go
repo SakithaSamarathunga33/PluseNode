@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -168,6 +169,19 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS domains (
+  id              TEXT PRIMARY KEY,
+  host            TEXT NOT NULL UNIQUE,
+  is_primary      INTEGER NOT NULL DEFAULT 0,
+  last_pointed    INTEGER,
+  last_proxied    INTEGER NOT NULL DEFAULT 0,
+  last_records    TEXT NOT NULL DEFAULT '[]',
+  last_message    TEXT NOT NULL DEFAULT '',
+  last_error      TEXT NOT NULL DEFAULT '',
+  last_checked_at DATETIME,
+  created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 `)
 	if err != nil {
@@ -826,4 +840,94 @@ ON CONFLICT(id) DO UPDATE SET
 func (d *DB) DeleteUser() error {
 	_, err := d.Exec(`DELETE FROM users`)
 	return err
+}
+
+// ── Domains ───────────────────────────────────────────────────────────────────
+
+type Domain struct {
+	ID            string
+	Host          string
+	IsPrimary     bool
+	LastPointed   *bool // nil = never checked
+	LastProxied   bool
+	LastRecords   string // JSON array of IPs
+	LastMessage   string
+	LastError     string
+	LastCheckedAt *time.Time
+	CreatedAt     time.Time
+}
+
+// UpsertDomain inserts the host if absent and returns its row id (existing or new).
+func (d *DB) UpsertDomain(host string) (string, error) {
+	id := NewID("dom")
+	if _, err := d.Exec(`INSERT INTO domains (id, host) VALUES (?, ?) ON CONFLICT(host) DO NOTHING`, id, host); err != nil {
+		return "", err
+	}
+	var got string
+	if err := d.QueryRow(`SELECT id FROM domains WHERE host=?`, host).Scan(&got); err != nil {
+		return "", err
+	}
+	return got, nil
+}
+
+func (d *DB) ListDomains() ([]Domain, error) {
+	rows, err := d.Query(`SELECT id, host, is_primary, last_pointed, last_proxied, last_records, last_message, last_error, last_checked_at, created_at FROM domains ORDER BY is_primary DESC, created_at ASC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Domain
+	for rows.Next() {
+		var dm Domain
+		var isPrimary, lastProxied int
+		var lastPointed sql.NullInt64
+		var lastChecked sql.NullTime
+		if err := rows.Scan(&dm.ID, &dm.Host, &isPrimary, &lastPointed, &lastProxied, &dm.LastRecords, &dm.LastMessage, &dm.LastError, &lastChecked, &dm.CreatedAt); err != nil {
+			return nil, err
+		}
+		dm.IsPrimary = isPrimary == 1
+		dm.LastProxied = lastProxied == 1
+		if lastPointed.Valid {
+			b := lastPointed.Int64 == 1
+			dm.LastPointed = &b
+		}
+		if lastChecked.Valid {
+			t := lastChecked.Time
+			dm.LastCheckedAt = &t
+		}
+		out = append(out, dm)
+	}
+	return out, rows.Err()
+}
+
+// SetPrimaryDomain makes host the single primary domain.
+func (d *DB) SetPrimaryDomain(host string) error {
+	if _, err := d.Exec(`UPDATE domains SET is_primary=0`); err != nil {
+		return err
+	}
+	_, err := d.Exec(`UPDATE domains SET is_primary=1 WHERE host=?`, host)
+	return err
+}
+
+// UpdateDomainCheck stores the latest DNS-check result for host.
+func (d *DB) UpdateDomainCheck(host string, pointed, proxied bool, records []string, message, errStr string) error {
+	recJSON, _ := json.Marshal(records)
+	_, err := d.Exec(`UPDATE domains SET last_pointed=?, last_proxied=?, last_records=?, last_message=?, last_error=?, last_checked_at=CURRENT_TIMESTAMP WHERE host=?`,
+		boolToInt(pointed), boolToInt(proxied), string(recJSON), message, errStr, host)
+	return err
+}
+
+func (d *DB) DeleteDomain(host string) error {
+	_, err := d.Exec(`DELETE FROM domains WHERE host=?`, host)
+	return err
+}
+
+// PrimaryDomain returns the host of the primary domain, or "" if none.
+func (d *DB) PrimaryDomain() (string, error) {
+	var host string
+	err := d.QueryRow(`SELECT host FROM domains WHERE is_primary=1 LIMIT 1`).Scan(&host)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
+	}
+	return host, err
 }
