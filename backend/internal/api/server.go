@@ -230,10 +230,7 @@ func (s *Server) clientConfig(w http.ResponseWriter, r *http.Request) {
 // and never touches it again, so the env stays frozen at install-time).
 // Falls back to PULSENODE_VERSION env, then "dev".
 func installedVersion() string {
-	workspace := os.Getenv("PULSENODE_WORKSPACE")
-	if workspace == "" {
-		workspace = "/workspace"
-	}
+	workspace := workspaceDir()
 	out, err := exec.Command("git", "-C", workspace,
 		"-c", "safe.directory="+workspace,
 		"describe", "--tags", "--abbrev=0").Output()
@@ -246,6 +243,29 @@ func installedVersion() string {
 	return firstNonEmpty(os.Getenv("PULSENODE_VERSION"), "dev")
 }
 
+func workspaceDir() string {
+	if ws := os.Getenv("PULSENODE_WORKSPACE"); ws != "" {
+		return ws
+	}
+	return "/workspace"
+}
+
+// runningAtLeast reports whether the workspace HEAD is at or ahead of commitSHA
+// (i.e. commitSHA is an ancestor of HEAD). The dev/publish box pushes commits
+// but never pulls the tags CI creates, so its local tags — and thus
+// installedVersion() — lag behind the code it's actually running. Comparing
+// commits instead of local tags lets us recognise it's up to date.
+func runningAtLeast(commitSHA string) bool {
+	if commitSHA == "" {
+		return false
+	}
+	ws := workspaceDir()
+	err := exec.Command("git", "-C", ws,
+		"-c", "safe.directory="+ws,
+		"merge-base", "--is-ancestor", commitSHA, "HEAD").Run()
+	return err == nil
+}
+
 func (s *Server) version(w http.ResponseWriter, r *http.Request) {
 	current := installedVersion()
 
@@ -255,7 +275,7 @@ func (s *Server) version(w http.ResponseWriter, r *http.Request) {
 		Body    string `json:"body"`
 	}
 
-	fetchLatest := func() (tag, url, body string, err error) {
+	fetchLatest := func() (tag, rawTag, url, body string, err error) {
 		client := &http.Client{Timeout: 5 * time.Second}
 		req, _ := http.NewRequest(http.MethodGet, "https://api.github.com/repos/SakithaSamarathunga33/vps/releases/latest", nil)
 		req.Header.Set("Accept", "application/vnd.github+json")
@@ -273,18 +293,55 @@ func (s *Server) version(w http.ResponseWriter, r *http.Request) {
 		if err = json.NewDecoder(resp.Body).Decode(&rel); err != nil {
 			return
 		}
+		rawTag = rel.TagName
 		tag = strings.TrimPrefix(rel.TagName, "v")
 		url = rel.HTMLURL
 		body = rel.Body
 		return
 	}
 
-	latest, releaseURL, changelog, err := fetchLatest()
+	// resolveCommit returns the commit SHA a tag points to (deref'ing annotated
+	// tags), so we can compare the latest release to what HEAD is running.
+	resolveCommit := func(tag string) string {
+		if tag == "" {
+			return ""
+		}
+		client := &http.Client{Timeout: 5 * time.Second}
+		req, _ := http.NewRequest(http.MethodGet, "https://api.github.com/repos/SakithaSamarathunga33/vps/commits/"+tag, nil)
+		req.Header.Set("Accept", "application/vnd.github+json")
+		req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+		resp, err := client.Do(req)
+		if err != nil {
+			return ""
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return ""
+		}
+		var c struct {
+			SHA string `json:"sha"`
+		}
+		if json.NewDecoder(resp.Body).Decode(&c) != nil {
+			return ""
+		}
+		return c.SHA
+	}
+
+	latest, latestRaw, releaseURL, changelog, err := fetchLatest()
 	if err != nil {
 		writeJSON(w, http.StatusOK, map[string]any{
 			"current": current, "latest": nil, "hasUpdate": false, "releaseUrl": nil, "changelog": nil,
 		})
 		return
+	}
+
+	// If the box is actually running code at or ahead of the latest release
+	// (its commit is an ancestor of HEAD), report it as current even when local
+	// tags are stale. Fixes the dev/publish box showing an old version.
+	if latest != "" && current != latest && current != "dev" {
+		if runningAtLeast(resolveCommit(latestRaw)) {
+			current = latest
+		}
 	}
 
 	hasUpdate := latest != "" && latest != current && current != "dev"
