@@ -222,8 +222,14 @@ export default function ProjectDetailPage() {
     router.push("/projects")
   }
 
-  const logColor = (stream: string) => {
-    if (stream === "stderr") return "#f87171"
+  // nixpacks/BuildKit write normal build output to stderr, so colour by content
+  // — red is reserved for actual errors, not the whole stderr stream.
+  const isErrorLine = (line: string) =>
+    line.includes("✕") || line.includes("✖") ||
+    /(^|[^a-z])(error|errors|failed|failure|fatal|panic|exit status [1-9])/i.test(line)
+
+  const logColor = (stream: string, line: string) => {
+    if (isErrorLine(line)) return "#f87171"
     if (stream === "system") return "#a78bfa"
     return "#e2e8f0"
   }
@@ -369,7 +375,7 @@ export default function ProjectDetailPage() {
                       <span className="select-none shrink-0" style={{ color: "#374151" }}>
                         {new Date(entry.ts).toLocaleTimeString()}
                       </span>
-                      <span style={{ color: logColor(entry.stream), wordBreak: "break-all" }}>
+                      <span style={{ color: logColor(entry.stream, entry.line), wordBreak: "break-all" }}>
                         {entry.line}
                       </span>
                     </div>
