@@ -265,13 +265,13 @@
     "semantic_hash": "3dd4a806c36cd80804febe5b14e21cda"
   },
   "/home/sakitha/apps/vps/backend/internal/api/projects_handler.go": {
-    "mtime": 1780668572.1327343,
-    "ast_hash": "9bf4e095b84fa2a963fef55687415aa3",
+    "mtime": 1780130283.9841776,
+    "ast_hash": "6d73966dd2758cfd44c3ca7aefd854ba",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/api/server.go": {
-    "mtime": 1780668611.0469542,
-    "ast_hash": "0ce1369597d9d64d4f7e288e5fdf8aaf",
+    "mtime": 1780301082.9795656,
+    "ast_hash": "b8e12a80952973c9cbf6009478ac9a30",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/api/alerts_handler.go": {
@@ -330,8 +330,8 @@
     "semantic_hash": "7ee5ae7cdde030229311353fa7e2e6b1"
   },
   "/home/sakitha/apps/vps/backend/internal/db/db.go": {
-    "mtime": 1780668394.1207278,
-    "ast_hash": "2bdc052417aef928b59d10c51cd868c0",
+    "mtime": 1780301082.9795656,
+    "ast_hash": "b731c96235552635cc101939196f62d5",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/builder/detect.go": {
@@ -340,13 +340,13 @@
     "semantic_hash": "234a6bc0acfac7f65d03c3a680cfb108"
   },
   "/home/sakitha/apps/vps/backend/internal/builder/builder.go": {
-    "mtime": 1780668514.4314082,
-    "ast_hash": "ff49d6a427f553af963341a73c738cd7",
+    "mtime": 1780290297.052685,
+    "ast_hash": "91f40fc2fe5592a276bfba3424fef256",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/queue/queue.go": {
-    "mtime": 1780668888.7476397,
-    "ast_hash": "fed3c88f6c1b20551b3d5019d5d7c1cf",
+    "mtime": 1780130283.9851775,
+    "ast_hash": "275466f5b99efee3c48f5f5e15f3aa7e",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/auth/middleware.go": {
@@ -405,8 +405,8 @@
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/app/projects/[id]/page.tsx": {
-    "mtime": 1780668788.4580185,
-    "ast_hash": "d3139632e8ef4e51b1f2ce7ea335b53c",
+    "mtime": 1780282181.5240595,
+    "ast_hash": "17c6c7c4d9e7e8e142dd63a5cab6a0e0",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/app/runtime/page.tsx": {
@@ -460,9 +460,9 @@
     "semantic_hash": "78a962ec15f5e69a6642ba063d46ba60"
   },
   "/home/sakitha/apps/vps/app/github/page.tsx": {
-    "mtime": 1780668841.5453484,
-    "ast_hash": "e5b05e80b1236c10561a64a0c61042a3",
-    "semantic_hash": ""
+    "mtime": 1779610034.8773644,
+    "ast_hash": "16465d4c9f6ffa2347a459a62f58ef6c",
+    "semantic_hash": "16465d4c9f6ffa2347a459a62f58ef6c"
   },
   "/home/sakitha/apps/vps/app/alerts/page.tsx": {
     "mtime": 1779605103.8911235,
@@ -690,8 +690,8 @@
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/CLAUDE.md": {
-    "mtime": 1780668926.954874,
-    "ast_hash": "da580fed4a503fd6ee14dc7e918e13e3",
+    "mtime": 1780296618.9105244,
+    "ast_hash": "014336ee9ac0c7b39473f1d8d4593b98",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/pulsenode-login-purple-button.png": {
@@ -720,8 +720,8 @@
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/db/db_test.go": {
-    "mtime": 1780668715.4535606,
-    "ast_hash": "13e1b18420113a22c8194ec179583144",
+    "mtime": 1780301082.9795656,
+    "ast_hash": "b27a79620e86ff9321ee520dae07bea4",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/docs/superpowers/plans/2026-06-01-domain-management.md": {
@@ -737,21 +737,6 @@
   "/home/sakitha/apps/vps/components/ui/select.tsx": {
     "mtime": 1780626848.4416628,
     "ast_hash": "8ae84e7ee977328c064b315a8b72765e",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/backend/internal/api/github_webhook_test.go": {
-    "mtime": 1780668634.2620852,
-    "ast_hash": "94bfbffadad276bda7a92876e5e5b6d0",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/backend/internal/api/github_webhook.go": {
-    "mtime": 1780668595.7328675,
-    "ast_hash": "65d2f07e796891dec7215ed832e39002",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/backend/internal/builder/builder_test.go": {
-    "mtime": 1780668653.4281936,
-    "ast_hash": "4d930023fb602a624daf147460c33103",
     "semantic_hash": ""
   }
 }
