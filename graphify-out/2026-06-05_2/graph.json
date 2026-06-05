@@ -3750,7 +3750,7 @@
       "source_file": "components/dashboard/DatabaseMetricsPanel.tsx",
       "source_location": "L1",
       "id": "components_dashboard_databasemetricspanel_tsx",
-      "community": 9,
+      "community": 27,
       "norm_label": "databasemetricspanel.tsx"
     },
     {
@@ -3759,7 +3759,7 @@
       "source_file": "components/dashboard/DatabaseMetricsPanel.tsx",
       "source_location": "L7",
       "id": "dashboard_databasemetricspanel_metriccard",
-      "community": 9,
+      "community": 27,
       "norm_label": "metriccard()"
     },
     {
@@ -3777,7 +3777,7 @@
       "source_file": "components/dashboard/Pill.tsx",
       "source_location": "L1",
       "id": "components_dashboard_pill_tsx",
-      "community": 21,
+      "community": 11,
       "norm_label": "pill.tsx"
     },
     {
@@ -3786,7 +3786,7 @@
       "source_file": "components/dashboard/Pill.tsx",
       "source_location": "L1",
       "id": "dashboard_pill_pillprops",
-      "community": 21,
+      "community": 11,
       "norm_label": "pillprops"
     },
     {
@@ -3795,7 +3795,7 @@
       "source_file": "components/dashboard/Pill.tsx",
       "source_location": "L8",
       "id": "dashboard_pill_tone_styles",
-      "community": 21,
+      "community": 11,
       "norm_label": "tone_styles"
     },
     {
@@ -3804,7 +3804,7 @@
       "source_file": "components/dashboard/Pill.tsx",
       "source_location": "L17",
       "id": "dashboard_pill_pill",
-      "community": 25,
+      "community": 11,
       "norm_label": "pill()"
     },
     {
@@ -3883,7 +3883,7 @@
       "label": "ENGINES",
       "file_type": "code",
       "source_file": "components/dashboard/CreateDatabaseModal.tsx",
-      "source_location": "L10",
+      "source_location": "L9",
       "id": "dashboard_createdatabasemodal_engines",
       "community": 9,
       "norm_label": "engines"
@@ -3892,7 +3892,7 @@
       "label": "Phase",
       "file_type": "code",
       "source_file": "components/dashboard/CreateDatabaseModal.tsx",
-      "source_location": "L17",
+      "source_location": "L16",
       "id": "dashboard_createdatabasemodal_phase",
       "community": 9,
       "norm_label": "phase"
@@ -3901,7 +3901,7 @@
       "label": "Creds",
       "file_type": "code",
       "source_file": "components/dashboard/CreateDatabaseModal.tsx",
-      "source_location": "L19",
+      "source_location": "L18",
       "id": "dashboard_createdatabasemodal_creds",
       "community": 9,
       "norm_label": "creds"
@@ -3910,7 +3910,7 @@
       "label": "CopyField()",
       "file_type": "code",
       "source_file": "components/dashboard/CreateDatabaseModal.tsx",
-      "source_location": "L27",
+      "source_location": "L26",
       "id": "dashboard_createdatabasemodal_copyfield",
       "community": 9,
       "norm_label": "copyfield()"
@@ -3919,7 +3919,7 @@
       "label": "CreateDatabaseModal()",
       "file_type": "code",
       "source_file": "components/dashboard/CreateDatabaseModal.tsx",
-      "source_location": "L51",
+      "source_location": "L49",
       "id": "dashboard_createdatabasemodal_createdatabasemodal",
       "community": 9,
       "norm_label": "createdatabasemodal()"
@@ -4182,7 +4182,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L1",
       "id": "components_sidebar_appsidebar_tsx",
-      "community": 22,
+      "community": 21,
       "norm_label": "appsidebar.tsx"
     },
     {
@@ -4191,7 +4191,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L22",
       "id": "sidebar_appsidebar_navbadge",
-      "community": 22,
+      "community": 21,
       "norm_label": "navbadge"
     },
     {
@@ -4200,7 +4200,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L23",
       "id": "sidebar_appsidebar_badgecounts",
-      "community": 22,
+      "community": 21,
       "norm_label": "badgecounts"
     },
     {
@@ -4209,7 +4209,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L25",
       "id": "sidebar_appsidebar_navitem",
-      "community": 22,
+      "community": 21,
       "norm_label": "navitem"
     },
     {
@@ -4218,7 +4218,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L33",
       "id": "sidebar_appsidebar_navsection",
-      "community": 22,
+      "community": 21,
       "norm_label": "navsection"
     },
     {
@@ -4227,7 +4227,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L38",
       "id": "sidebar_appsidebar_base_nav_sections",
-      "community": 22,
+      "community": 21,
       "norm_label": "base_nav_sections"
     },
     {
@@ -4236,7 +4236,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L66",
       "id": "sidebar_appsidebar_coolify_item",
-      "community": 22,
+      "community": 21,
       "norm_label": "coolify_item"
     },
     {
@@ -4245,7 +4245,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L68",
       "id": "sidebar_appsidebar_deploy_section",
-      "community": 22,
+      "community": 21,
       "norm_label": "deploy_section"
     },
     {
@@ -4290,7 +4290,7 @@
       "source_file": "components/magicui/sparkles-text.tsx",
       "source_location": "L1",
       "id": "components_magicui_sparkles_text_tsx",
-      "community": 115,
+      "community": 39,
       "norm_label": "sparkles-text.tsx"
     },
     {
@@ -4299,7 +4299,7 @@
       "source_file": "components/magicui/sparkles-text.tsx",
       "source_location": "L5",
       "id": "magicui_sparkles_text_sparkle",
-      "community": 115,
+      "community": 39,
       "norm_label": "sparkle"
     },
     {
@@ -4308,7 +4308,7 @@
       "source_file": "components/magicui/sparkles-text.tsx",
       "source_location": "L7",
       "id": "magicui_sparkles_text_sparklestextprops",
-      "community": 115,
+      "community": 39,
       "norm_label": "sparklestextprops"
     },
     {
@@ -4317,7 +4317,7 @@
       "source_file": "components/magicui/sparkles-text.tsx",
       "source_location": "L14",
       "id": "magicui_sparkles_text_randombetween",
-      "community": 115,
+      "community": 39,
       "norm_label": "randombetween()"
     },
     {
@@ -4326,7 +4326,7 @@
       "source_file": "components/magicui/sparkles-text.tsx",
       "source_location": "L18",
       "id": "magicui_sparkles_text_generatesparkle",
-      "community": 115,
+      "community": 39,
       "norm_label": "generatesparkle()"
     },
     {
@@ -4335,7 +4335,7 @@
       "source_file": "components/magicui/sparkles-text.tsx",
       "source_location": "L29",
       "id": "magicui_sparkles_text_sparklestext",
-      "community": 115,
+      "community": 39,
       "norm_label": "sparklestext()"
     },
     {
@@ -4488,7 +4488,7 @@
       "source_file": "components/magicui/terminal.tsx",
       "source_location": "L185",
       "id": "magicui_terminal_terminalwindow",
-      "community": 109,
+      "community": 28,
       "norm_label": "terminalwindow()"
     },
     {
@@ -4542,7 +4542,7 @@
       "source_file": "components/magicui/meteors.tsx",
       "source_location": "L1",
       "id": "components_magicui_meteors_tsx",
-      "community": 24,
+      "community": 19,
       "norm_label": "meteors.tsx"
     },
     {
@@ -4551,7 +4551,7 @@
       "source_file": "components/magicui/meteors.tsx",
       "source_location": "L4",
       "id": "magicui_meteors_meteorsprops",
-      "community": 24,
+      "community": 19,
       "norm_label": "meteorsprops"
     },
     {
@@ -4569,7 +4569,7 @@
       "source_file": "components/ui/tooltip.tsx",
       "source_location": "L1",
       "id": "components_ui_tooltip_tsx",
-      "community": 118,
+      "community": 19,
       "norm_label": "tooltip.tsx"
     },
     {
@@ -4578,7 +4578,7 @@
       "source_file": "components/ui/tooltip.tsx",
       "source_location": "L7",
       "id": "ui_tooltip_tooltipprovider",
-      "community": 118,
+      "community": 19,
       "norm_label": "tooltipprovider()"
     },
     {
@@ -4587,7 +4587,7 @@
       "source_file": "components/ui/tooltip.tsx",
       "source_location": "L20",
       "id": "ui_tooltip_tooltip",
-      "community": 118,
+      "community": 19,
       "norm_label": "tooltip()"
     },
     {
@@ -4596,7 +4596,7 @@
       "source_file": "components/ui/tooltip.tsx",
       "source_location": "L24",
       "id": "ui_tooltip_tooltiptrigger",
-      "community": 118,
+      "community": 19,
       "norm_label": "tooltiptrigger()"
     },
     {
@@ -4605,7 +4605,7 @@
       "source_file": "components/ui/tooltip.tsx",
       "source_location": "L28",
       "id": "ui_tooltip_tooltipcontent",
-      "community": 118,
+      "community": 19,
       "norm_label": "tooltipcontent()"
     },
     {
@@ -4614,7 +4614,7 @@
       "source_file": "components/ui/separator.tsx",
       "source_location": "L1",
       "id": "components_ui_separator_tsx",
-      "community": 64,
+      "community": 19,
       "norm_label": "separator.tsx"
     },
     {
@@ -4623,7 +4623,7 @@
       "source_file": "components/ui/separator.tsx",
       "source_location": "L7",
       "id": "ui_separator_separator",
-      "community": 64,
+      "community": 19,
       "norm_label": "separator()"
     },
     {
@@ -4812,7 +4812,7 @@
       "source_file": "components/ui/accordion.tsx",
       "source_location": "L1",
       "id": "components_ui_accordion_tsx",
-      "community": 64,
+      "community": 19,
       "norm_label": "accordion.tsx"
     },
     {
@@ -4821,7 +4821,7 @@
       "source_file": "components/ui/accordion.tsx",
       "source_location": "L6",
       "id": "ui_accordion_accordion",
-      "community": 64,
+      "community": 19,
       "norm_label": "accordion()"
     },
     {
@@ -4830,7 +4830,7 @@
       "source_file": "components/ui/accordion.tsx",
       "source_location": "L16",
       "id": "ui_accordion_accordionitem",
-      "community": 64,
+      "community": 19,
       "norm_label": "accordionitem()"
     },
     {
@@ -4839,7 +4839,7 @@
       "source_file": "components/ui/accordion.tsx",
       "source_location": "L26",
       "id": "ui_accordion_accordiontrigger",
-      "community": 64,
+      "community": 19,
       "norm_label": "accordiontrigger()"
     },
     {
@@ -4848,7 +4848,7 @@
       "source_file": "components/ui/accordion.tsx",
       "source_location": "L49",
       "id": "ui_accordion_accordioncontent",
-      "community": 64,
+      "community": 19,
       "norm_label": "accordioncontent()"
     },
     {
@@ -5082,7 +5082,7 @@
       "source_file": "components/ui/alert-dialog.tsx",
       "source_location": "L25",
       "id": "ui_alert_dialog_alertdialogoverlay",
-      "community": 19,
+      "community": 110,
       "norm_label": "alertdialogoverlay()"
     },
     {
@@ -5118,7 +5118,7 @@
       "source_file": "components/ui/alert-dialog.tsx",
       "source_location": "L96",
       "id": "ui_alert_dialog_alertdialogmedia",
-      "community": 19,
+      "community": 110,
       "norm_label": "alertdialogmedia()"
     },
     {
@@ -5262,7 +5262,7 @@
       "source_file": "components/ui/scroll-area.tsx",
       "source_location": "L1",
       "id": "components_ui_scroll_area_tsx",
-      "community": 64,
+      "community": 19,
       "norm_label": "scroll-area.tsx"
     },
     {
@@ -5271,7 +5271,7 @@
       "source_file": "components/ui/scroll-area.tsx",
       "source_location": "L8",
       "id": "ui_scroll_area_scrollarea",
-      "community": 64,
+      "community": 19,
       "norm_label": "scrollarea()"
     },
     {
@@ -5280,7 +5280,7 @@
       "source_file": "components/ui/scroll-area.tsx",
       "source_location": "L31",
       "id": "ui_scroll_area_scrollbar",
-      "community": 64,
+      "community": 19,
       "norm_label": "scrollbar()"
     },
     {
@@ -5307,7 +5307,7 @@
       "source_file": "lib/utils.ts",
       "source_location": "L1",
       "id": "lib_utils_ts",
-      "community": 9,
+      "community": 19,
       "norm_label": "utils.ts"
     },
     {
@@ -5318,15 +5318,6 @@
       "id": "lib_utils_cn",
       "community": 19,
       "norm_label": "cn()"
-    },
-    {
-      "label": "copyText()",
-      "file_type": "code",
-      "source_file": "lib/utils.ts",
-      "source_location": "L12",
-      "id": "lib_utils_copytext",
-      "community": 9,
-      "norm_label": "copytext()"
     },
     {
       "label": "socket.ts",
@@ -5460,7 +5451,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L1",
       "id": "lib_types_ts",
-      "community": 0,
+      "community": 27,
       "norm_label": "types.ts"
     },
     {
@@ -5469,7 +5460,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L1",
       "id": "lib_types_container",
-      "community": 0,
+      "community": 27,
       "norm_label": "container"
     },
     {
@@ -5496,7 +5487,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L33",
       "id": "lib_types_hostinfo",
-      "community": 110,
+      "community": 25,
       "norm_label": "hostinfo"
     },
     {
@@ -5505,7 +5496,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L49",
       "id": "lib_types_process",
-      "community": 26,
+      "community": 64,
       "norm_label": "process"
     },
     {
@@ -5532,7 +5523,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L87",
       "id": "lib_types_database",
-      "community": 0,
+      "community": 27,
       "norm_label": "database"
     },
     {
@@ -5541,7 +5532,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L106",
       "id": "lib_types_dbtable",
-      "community": 0,
+      "community": 27,
       "norm_label": "dbtable"
     },
     {
@@ -5550,7 +5541,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L113",
       "id": "lib_types_slowquery",
-      "community": 0,
+      "community": 27,
       "norm_label": "slowquery"
     },
     {
@@ -5559,7 +5550,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L119",
       "id": "lib_types_dbconnection",
-      "community": 0,
+      "community": 27,
       "norm_label": "dbconnection"
     },
     {
@@ -5568,7 +5559,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L126",
       "id": "lib_types_scan",
-      "community": 12,
+      "community": 0,
       "norm_label": "scan"
     },
     {
@@ -5586,7 +5577,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L148",
       "id": "lib_types_alert",
-      "community": 0,
+      "community": 21,
       "norm_label": "alert"
     },
     {
@@ -5604,7 +5595,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L168",
       "id": "lib_types_coolifymeta",
-      "community": 0,
+      "community": 27,
       "norm_label": "coolifymeta"
     },
     {
@@ -5613,7 +5604,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L175",
       "id": "lib_types_coolifyproject",
-      "community": 0,
+      "community": 27,
       "norm_label": "coolifyproject"
     },
     {
@@ -5622,7 +5613,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L183",
       "id": "lib_types_coolifyapp",
-      "community": 0,
+      "community": 27,
       "norm_label": "coolifyapp"
     },
     {
@@ -5631,7 +5622,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L193",
       "id": "lib_types_coolifydatabase",
-      "community": 0,
+      "community": 27,
       "norm_label": "coolifydatabase"
     },
     {
@@ -5640,7 +5631,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L202",
       "id": "lib_types_coolifyservice",
-      "community": 0,
+      "community": 27,
       "norm_label": "coolifyservice"
     },
     {
@@ -5667,7 +5658,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L232",
       "id": "lib_types_dbmetricitem",
-      "community": 9,
+      "community": 27,
       "norm_label": "dbmetricitem"
     },
     {
@@ -5676,7 +5667,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L238",
       "id": "lib_types_dbmetrics",
-      "community": 9,
+      "community": 27,
       "norm_label": "dbmetrics"
     },
     {
@@ -5685,7 +5676,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L243",
       "id": "lib_types_provisionresult",
-      "community": 0,
+      "community": 27,
       "norm_label": "provisionresult"
     },
     {
@@ -5694,7 +5685,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L252",
       "id": "lib_types_customconnection",
-      "community": 9,
+      "community": 27,
       "norm_label": "customconnection"
     },
     {
@@ -5793,7 +5784,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L20",
       "id": "lib_mock_data_sparks",
-      "community": 110,
+      "community": 0,
       "norm_label": "sparks"
     },
     {
@@ -5802,7 +5793,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L32",
       "id": "lib_mock_data_host",
-      "community": 22,
+      "community": 21,
       "norm_label": "host"
     },
     {
@@ -5811,7 +5802,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L48",
       "id": "lib_mock_data_containers",
-      "community": 110,
+      "community": 25,
       "norm_label": "containers"
     },
     {
@@ -5829,7 +5820,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L78",
       "id": "lib_mock_data_images",
-      "community": 110,
+      "community": 0,
       "norm_label": "images"
     },
     {
@@ -5838,7 +5829,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L91",
       "id": "lib_mock_data_networks",
-      "community": 25,
+      "community": 41,
       "norm_label": "networks"
     },
     {
@@ -5856,7 +5847,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L108",
       "id": "lib_mock_data_scans",
-      "community": 12,
+      "community": 0,
       "norm_label": "scans"
     },
     {
@@ -5874,7 +5865,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L132",
       "id": "lib_mock_data_alerts",
-      "community": 22,
+      "community": 21,
       "norm_label": "alerts"
     },
     {
@@ -6133,7 +6124,7 @@
       "label": ".databaseSchema()",
       "file_type": "code",
       "source_file": "backend/internal/api/database_query_handler.go",
-      "source_location": "L143",
+      "source_location": "L142",
       "id": "api_server_databaseschema",
       "community": 16,
       "norm_label": ".databaseschema()"
@@ -6142,7 +6133,7 @@
       "label": ".databaseQuery()",
       "file_type": "code",
       "source_file": "backend/internal/api/database_query_handler.go",
-      "source_location": "L250",
+      "source_location": "L249",
       "id": "api_server_databasequery",
       "community": 16,
       "norm_label": ".databasequery()"
@@ -6151,7 +6142,7 @@
       "label": "isDestructiveQuery()",
       "file_type": "code",
       "source_file": "backend/internal/api/database_query_handler.go",
-      "source_location": "L309",
+      "source_location": "L308",
       "id": "api_database_query_handler_isdestructivequery",
       "community": 16,
       "norm_label": "isdestructivequery()"
@@ -6160,7 +6151,7 @@
       "label": ".runPostgresQuery()",
       "file_type": "code",
       "source_file": "backend/internal/api/database_query_handler.go",
-      "source_location": "L319",
+      "source_location": "L318",
       "id": "api_server_runpostgresquery",
       "community": 16,
       "norm_label": ".runpostgresquery()"
@@ -6169,7 +6160,7 @@
       "label": ".runMysqlQuery()",
       "file_type": "code",
       "source_file": "backend/internal/api/database_query_handler.go",
-      "source_location": "L337",
+      "source_location": "L336",
       "id": "api_server_runmysqlquery",
       "community": 16,
       "norm_label": ".runmysqlquery()"
@@ -6178,7 +6169,7 @@
       "label": ".runRedisCommand()",
       "file_type": "code",
       "source_file": "backend/internal/api/database_query_handler.go",
-      "source_location": "L354",
+      "source_location": "L353",
       "id": "api_server_runrediscommand",
       "community": 16,
       "norm_label": ".runrediscommand()"
@@ -6187,7 +6178,7 @@
       "label": ".runMongoQuery()",
       "file_type": "code",
       "source_file": "backend/internal/api/database_query_handler.go",
-      "source_location": "L375",
+      "source_location": "L374",
       "id": "api_server_runmongoquery",
       "community": 16,
       "norm_label": ".runmongoquery()"
@@ -6196,7 +6187,7 @@
       "label": "parseCSVResult()",
       "file_type": "code",
       "source_file": "backend/internal/api/database_query_handler.go",
-      "source_location": "L389",
+      "source_location": "L388",
       "id": "api_database_query_handler_parsecsvresult",
       "community": 16,
       "norm_label": "parsecsvresult()"
@@ -6205,7 +6196,7 @@
       "label": "parseTSVResult()",
       "file_type": "code",
       "source_file": "backend/internal/api/database_query_handler.go",
-      "source_location": "L411",
+      "source_location": "L410",
       "id": "api_database_query_handler_parsetsvresult",
       "community": 16,
       "norm_label": "parsetsvresult()"
@@ -6378,7 +6369,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L1",
       "id": "backend_internal_api_update_go",
-      "community": 27,
+      "community": 6,
       "norm_label": "update.go"
     },
     {
@@ -6387,7 +6378,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L15",
       "id": "api_updatestate",
-      "community": 27,
+      "community": 6,
       "norm_label": "updatestate"
     },
     {
@@ -6423,7 +6414,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L55",
       "id": "api_update_updatelog",
-      "community": 27,
+      "community": 6,
       "norm_label": "updatelog()"
     },
     {
@@ -6432,7 +6423,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L61",
       "id": "api_update_updatefail",
-      "community": 27,
+      "community": 6,
       "norm_label": "updatefail()"
     },
     {
@@ -6441,7 +6432,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L70",
       "id": "api_update_loaddotenv",
-      "community": 27,
+      "community": 6,
       "norm_label": "loaddotenv()"
     },
     {
@@ -6450,7 +6441,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L89",
       "id": "api_update_envvarval",
-      "community": 27,
+      "community": 6,
       "norm_label": "envvarval()"
     },
     {
@@ -6459,7 +6450,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L99",
       "id": "api_update_streamcmd",
-      "community": 27,
+      "community": 6,
       "norm_label": "streamcmd()"
     },
     {
@@ -6468,7 +6459,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L103",
       "id": "api_update_streamcmdenv",
-      "community": 27,
+      "community": 6,
       "norm_label": "streamcmdenv()"
     },
     {
@@ -6477,7 +6468,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L126",
       "id": "api_update_resolvecompose",
-      "community": 27,
+      "community": 6,
       "norm_label": "resolvecompose()"
     },
     {
@@ -6486,7 +6477,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L146",
       "id": "api_update_runupdate",
-      "community": 27,
+      "community": 6,
       "norm_label": "runupdate()"
     },
     {
@@ -6495,7 +6486,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L274",
       "id": "api_update_rundetachedcomposeup",
-      "community": 27,
+      "community": 6,
       "norm_label": "rundetachedcomposeup()"
     },
     {
@@ -6504,7 +6495,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L315",
       "id": "api_update_selfimage",
-      "community": 27,
+      "community": 6,
       "norm_label": "selfimage()"
     },
     {
@@ -6513,7 +6504,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L334",
       "id": "api_update_tohostpaths",
-      "community": 27,
+      "community": 6,
       "norm_label": "tohostpaths()"
     },
     {
@@ -7357,7 +7348,7 @@
       "label": "buildConnString()",
       "file_type": "code",
       "source_file": "backend/internal/api/database_handler.go",
-      "source_location": "L314",
+      "source_location": "L311",
       "id": "api_database_handler_buildconnstring",
       "community": 40,
       "norm_label": "buildconnstring()"
@@ -7971,7 +7962,7 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L35",
       "id": "db_db_migrate",
-      "community": 8,
+      "community": 109,
       "norm_label": ".migrate()"
     },
     {
@@ -7980,7 +7971,7 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L200",
       "id": "db_db_addcolumn",
-      "community": 8,
+      "community": 109,
       "norm_label": ".addcolumn()"
     },
     {
@@ -7989,7 +7980,7 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L209",
       "id": "db_db_aeskey",
-      "community": 51,
+      "community": 17,
       "norm_label": "aeskey()"
     },
     {
@@ -10347,7 +10338,7 @@
       "source_file": "app/projects/[id]/page.tsx",
       "source_location": "L1",
       "id": "app_projects_id_page_tsx",
-      "community": 109,
+      "community": 28,
       "norm_label": "page.tsx"
     },
     {
@@ -10356,7 +10347,7 @@
       "source_file": "app/projects/[id]/page.tsx",
       "source_location": "L15",
       "id": "id_page_project",
-      "community": 109,
+      "community": 28,
       "norm_label": "project"
     },
     {
@@ -10365,7 +10356,7 @@
       "source_file": "app/projects/[id]/page.tsx",
       "source_location": "L21",
       "id": "id_page_deployment",
-      "community": 109,
+      "community": 28,
       "norm_label": "deployment"
     },
     {
@@ -10374,7 +10365,7 @@
       "source_file": "app/projects/[id]/page.tsx",
       "source_location": "L26",
       "id": "id_page_logline",
-      "community": 109,
+      "community": 28,
       "norm_label": "logline"
     },
     {
@@ -10383,7 +10374,7 @@
       "source_file": "app/projects/[id]/page.tsx",
       "source_location": "L28",
       "id": "id_page_status_color",
-      "community": 109,
+      "community": 28,
       "norm_label": "status_color"
     },
     {
@@ -10392,7 +10383,7 @@
       "source_file": "app/projects/[id]/page.tsx",
       "source_location": "L33",
       "id": "id_page_field",
-      "community": 109,
+      "community": 28,
       "norm_label": "field()"
     },
     {
@@ -10401,7 +10392,7 @@
       "source_file": "app/projects/[id]/page.tsx",
       "source_location": "L43",
       "id": "id_page_age",
-      "community": 109,
+      "community": 28,
       "norm_label": "age()"
     },
     {
@@ -10410,7 +10401,7 @@
       "source_file": "app/projects/[id]/page.tsx",
       "source_location": "L51",
       "id": "id_page_projectdetailpage",
-      "community": 109,
+      "community": 28,
       "norm_label": "projectdetailpage()"
     },
     {
@@ -10545,7 +10536,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L1",
       "id": "app_containers_page_tsx",
-      "community": 110,
+      "community": 25,
       "norm_label": "page.tsx"
     },
     {
@@ -10554,7 +10545,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L27",
       "id": "containers_page_developericon",
-      "community": 110,
+      "community": 25,
       "norm_label": "developericon"
     },
     {
@@ -10563,7 +10554,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L29",
       "id": "containers_page_image_icons",
-      "community": 110,
+      "community": 25,
       "norm_label": "image_icons"
     },
     {
@@ -10572,7 +10563,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L44",
       "id": "containers_page_imageicon",
-      "community": 110,
+      "community": 25,
       "norm_label": "imageicon()"
     },
     {
@@ -10581,7 +10572,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L51",
       "id": "containers_page_containerhistory",
-      "community": 110,
+      "community": 25,
       "norm_label": "containerhistory"
     },
     {
@@ -10590,7 +10581,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L53",
       "id": "containers_page_pushcapped",
-      "community": 110,
+      "community": 25,
       "norm_label": "pushcapped()"
     },
     {
@@ -10599,7 +10590,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L59",
       "id": "containers_page_minispark",
-      "community": 110,
+      "community": 25,
       "norm_label": "minispark()"
     },
     {
@@ -10608,7 +10599,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L81",
       "id": "containers_page_statcard",
-      "community": 110,
+      "community": 25,
       "norm_label": "statcard()"
     },
     {
@@ -10626,7 +10617,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L207",
       "id": "containers_page_termline",
-      "community": 110,
+      "community": 25,
       "norm_label": "termline"
     },
     {
@@ -10644,7 +10635,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L316",
       "id": "containers_page_removedialog",
-      "community": 110,
+      "community": 25,
       "norm_label": "removedialog()"
     },
     {
@@ -10653,7 +10644,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L368",
       "id": "containers_page_actionbtn",
-      "community": 110,
+      "community": 25,
       "norm_label": "actionbtn()"
     },
     {
@@ -10662,7 +10653,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L399",
       "id": "containers_page_statebadge",
-      "community": 110,
+      "community": 25,
       "norm_label": "statebadge()"
     },
     {
@@ -10840,7 +10831,7 @@
       "label": "TabId",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L40",
+      "source_location": "L39",
       "id": "databases_page_tabid",
       "community": 9,
       "norm_label": "tabid"
@@ -10849,7 +10840,7 @@
       "label": "TabBtn()",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L42",
+      "source_location": "L41",
       "id": "databases_page_tabbtn",
       "community": 9,
       "norm_label": "tabbtn()"
@@ -10858,7 +10849,7 @@
       "label": "ENGINE_COLOR",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L60",
+      "source_location": "L59",
       "id": "databases_page_engine_color",
       "community": 9,
       "norm_label": "engine_color"
@@ -10867,7 +10858,7 @@
       "label": "STATUS_FILTERS",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L69",
+      "source_location": "L68",
       "id": "databases_page_status_filters",
       "community": 9,
       "norm_label": "status_filters"
@@ -10876,7 +10867,7 @@
       "label": "StatusFilter",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L70",
+      "source_location": "L69",
       "id": "databases_page_statusfilter",
       "community": 9,
       "norm_label": "statusfilter"
@@ -10885,7 +10876,7 @@
       "label": "engineColor()",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L72",
+      "source_location": "L71",
       "id": "databases_page_enginecolor",
       "community": 9,
       "norm_label": "enginecolor()"
@@ -10894,7 +10885,7 @@
       "label": "statusTone()",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L76",
+      "source_location": "L75",
       "id": "databases_page_statustone",
       "community": 9,
       "norm_label": "statustone()"
@@ -10903,7 +10894,7 @@
       "label": "triggerBackup()",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L82",
+      "source_location": "L81",
       "id": "databases_page_triggerbackup",
       "community": 9,
       "norm_label": "triggerbackup()"
@@ -10912,7 +10903,7 @@
       "label": "ConnSpark()",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L91",
+      "source_location": "L90",
       "id": "databases_page_connspark",
       "community": 9,
       "norm_label": "connspark()"
@@ -10921,7 +10912,7 @@
       "label": "KpiTile()",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L112",
+      "source_location": "L111",
       "id": "databases_page_kpitile",
       "community": 9,
       "norm_label": "kpitile()"
@@ -10930,7 +10921,7 @@
       "label": "ConnectionStringPanel()",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L139",
+      "source_location": "L138",
       "id": "databases_page_connectionstringpanel",
       "community": 9,
       "norm_label": "connectionstringpanel()"
@@ -10939,7 +10930,7 @@
       "label": "exportResultCsv()",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L210",
+      "source_location": "L195",
       "id": "databases_page_exportresultcsv",
       "community": 9,
       "norm_label": "exportresultcsv()"
@@ -10948,7 +10939,7 @@
       "label": "TableDataModal()",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L221",
+      "source_location": "L206",
       "id": "databases_page_tabledatamodal",
       "community": 9,
       "norm_label": "tabledatamodal()"
@@ -10957,7 +10948,7 @@
       "label": "DbDetails()",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L317",
+      "source_location": "L302",
       "id": "databases_page_dbdetails",
       "community": 9,
       "norm_label": "dbdetails()"
@@ -10966,7 +10957,7 @@
       "label": "DbExpand()",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L484",
+      "source_location": "L469",
       "id": "databases_page_dbexpand",
       "community": 9,
       "norm_label": "dbexpand()"
@@ -10975,7 +10966,7 @@
       "label": "DeleteDialog()",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L520",
+      "source_location": "L505",
       "id": "databases_page_deletedialog",
       "community": 9,
       "norm_label": "deletedialog()"
@@ -10984,7 +10975,7 @@
       "label": "DatabaseRow()",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L572",
+      "source_location": "L557",
       "id": "databases_page_databaserow",
       "community": 9,
       "norm_label": "databaserow()"
@@ -10993,9 +10984,9 @@
       "label": "DatabasesPage()",
       "file_type": "code",
       "source_file": "app/databases/page.tsx",
-      "source_location": "L716",
+      "source_location": "L701",
       "id": "databases_page_databasespage",
-      "community": 25,
+      "community": 9,
       "norm_label": "databasespage()"
     },
     {
@@ -11292,7 +11283,7 @@
       "source_file": "app/processes/page.tsx",
       "source_location": "L343",
       "id": "processes_page_processespage",
-      "community": 25,
+      "community": 11,
       "norm_label": "processespage()"
     },
     {
@@ -11553,7 +11544,7 @@
       "source_file": "app/networks/page.tsx",
       "source_location": "L1",
       "id": "app_networks_page_tsx",
-      "community": 25,
+      "community": 41,
       "norm_label": "page.tsx"
     },
     {
@@ -11562,7 +11553,7 @@
       "source_file": "app/networks/page.tsx",
       "source_location": "L15",
       "id": "networks_page_netchart",
-      "community": 25,
+      "community": 41,
       "norm_label": "netchart()"
     },
     {
@@ -11571,7 +11562,7 @@
       "source_file": "app/networks/page.tsx",
       "source_location": "L28",
       "id": "networks_page_drivertone",
-      "community": 25,
+      "community": 41,
       "norm_label": "drivertone()"
     },
     {
@@ -11580,7 +11571,7 @@
       "source_file": "app/networks/page.tsx",
       "source_location": "L35",
       "id": "networks_page_topologysvg",
-      "community": 25,
+      "community": 41,
       "norm_label": "topologysvg()"
     },
     {
@@ -11589,7 +11580,7 @@
       "source_file": "app/networks/page.tsx",
       "source_location": "L69",
       "id": "networks_page_coolify_containers",
-      "community": 25,
+      "community": 41,
       "norm_label": "coolify_containers"
     },
     {
@@ -11598,7 +11589,7 @@
       "source_file": "app/networks/page.tsx",
       "source_location": "L75",
       "id": "networks_page_pushcapped",
-      "community": 25,
+      "community": 41,
       "norm_label": "pushcapped()"
     },
     {
@@ -14910,7 +14901,7 @@
       "source_file": "lib/api.ts",
       "source_location": "L46",
       "id": "lib_api_pythonapi",
-      "community": 25,
+      "community": 11,
       "norm_label": "pythonapi"
     },
     {
@@ -15248,7 +15239,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 64,
+      "community": 19,
       "norm_label": "@base-ui/react",
       "id": "concept_baseui"
     },
@@ -15274,7 +15265,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 115,
+      "community": 39,
       "norm_label": "css animation",
       "id": "concept_animation_css"
     },
@@ -15300,7 +15291,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 26,
+      "community": 27,
       "norm_label": "mock containers data",
       "id": "lib_mockdata_containers"
     },
@@ -15313,7 +15304,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 26,
+      "community": 64,
       "norm_label": "mock processes data",
       "id": "lib_mockdata_processes"
     },
@@ -15352,7 +15343,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 0,
+      "community": 27,
       "norm_label": "mock databases data",
       "id": "lib_mockdata_databases"
     },
@@ -15365,7 +15356,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 0,
+      "community": 21,
       "norm_label": "mock alerts data",
       "id": "lib_mockdata_alerts"
     },
@@ -15378,7 +15369,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 0,
+      "community": 27,
       "norm_label": "mock coolify_projects data",
       "id": "lib_mockdata_coolifyprojects"
     },
@@ -15508,7 +15499,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 9,
+      "community": 27,
       "norm_label": "databasespage",
       "id": "app_databases_databasespage"
     },
@@ -15573,7 +15564,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 26,
+      "community": 64,
       "norm_label": "processespage",
       "id": "app_processes_processespage"
     },
@@ -15586,7 +15577,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 26,
+      "community": 64,
       "norm_label": "detectsuspicious (security engine)",
       "id": "app_processes_detectsuspicious"
     },
@@ -15638,7 +15629,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 26,
+      "community": 64,
       "norm_label": "suspicious process detection engine",
       "id": "concept_suspicious_detection"
     },
@@ -15651,7 +15642,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 26,
+      "community": 27,
       "norm_label": "mock data fallback pattern (initial state)",
       "id": "concept_mock_fallback"
     },
@@ -15739,7 +15730,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 17,
+      "community": 114,
       "norm_label": "db.manageddatabase struct",
       "id": "db_db_manageddatabase"
     },
@@ -16129,7 +16120,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 17,
+      "community": 114,
       "norm_label": "api.server.provisiondatabase handler",
       "id": "api_database_handler_provisiondatabase"
     },
@@ -16144,7 +16135,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 17,
+      "community": 114,
       "norm_label": "api.server.runprovision async func",
       "id": "api_database_handler_runprovision"
     },
@@ -16204,7 +16195,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 27,
+      "community": 6,
       "norm_label": "api.updatestate struct (global update state)",
       "id": "api_update_updatestate"
     },
@@ -16219,7 +16210,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 27,
+      "community": 6,
       "norm_label": "api.server.systemupdate handler",
       "id": "api_update_systemupdate"
     },
@@ -16322,7 +16313,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 25,
+      "community": 11,
       "norm_label": "processconfirmdialog",
       "id": "processes_page_processconfigdialog"
     },
@@ -22563,28 +22554,6 @@
       "target": "lib_api_nodeapi"
     },
     {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "components/dashboard/CreateDatabaseModal.tsx",
-      "source_location": "L8",
-      "weight": 1.0,
-      "source": "components_dashboard_createdatabasemodal_tsx",
-      "target": "lib_utils_ts",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "components/dashboard/CreateDatabaseModal.tsx",
-      "source_location": "L8",
-      "weight": 1.0,
-      "source": "components_dashboard_createdatabasemodal_tsx",
-      "target": "lib_utils_copytext",
-      "confidence_score": 1.0
-    },
-    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "components/dashboard/CreateDatabaseModal.tsx",
@@ -22644,17 +22613,6 @@
       "confidence_score": 1.0,
       "source": "app_databases_page_tsx",
       "target": "components_dashboard_createdatabasemodal_tsx"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "components/dashboard/CreateDatabaseModal.tsx",
-      "source_location": "L30",
-      "weight": 1.0,
-      "source": "dashboard_createdatabasemodal_copyfield",
-      "target": "lib_utils_copytext",
-      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -27068,16 +27026,6 @@
       "target": "lib_utils_cn"
     },
     {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "lib/utils.ts",
-      "source_location": "L12",
-      "weight": 1.0,
-      "source": "lib_utils_ts",
-      "target": "lib_utils_copytext",
-      "confidence_score": 1.0
-    },
-    {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -27098,17 +27046,6 @@
       "confidence_score": 1.0,
       "source": "app_stats_page_tsx",
       "target": "lib_utils_ts"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/databases/page.tsx",
-      "source_location": "L32",
-      "weight": 1.0,
-      "source": "app_databases_page_tsx",
-      "target": "lib_utils_ts",
-      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -27290,17 +27227,6 @@
       "weight": 0.7,
       "source": "app_processes_processespage",
       "target": "lib_utils_cn"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/databases/page.tsx",
-      "source_location": "L32",
-      "weight": 1.0,
-      "source": "app_databases_page_tsx",
-      "target": "lib_utils_copytext",
-      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -40190,9 +40116,9 @@
       "source_file": "app/databases/page.tsx",
       "source_location": "L195",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "app_databases_page_tsx",
-      "target": "databases_page_exportresultcsv"
+      "target": "databases_page_exportresultcsv",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -40200,9 +40126,9 @@
       "source_file": "app/databases/page.tsx",
       "source_location": "L206",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "app_databases_page_tsx",
-      "target": "databases_page_tabledatamodal"
+      "target": "databases_page_tabledatamodal",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
