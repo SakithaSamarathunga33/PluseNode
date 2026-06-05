@@ -60,8 +60,8 @@
     "semantic_hash": "499e17335431ea093850cde17df2245a"
   },
   "/home/sakitha/apps/vps/components/dashboard/DatabaseQueryEditor.tsx": {
-    "mtime": 1780626902.0909457,
-    "ast_hash": "87860ebf5cd6ad6e60edc46bb3b48973",
+    "mtime": 1780626490.3447945,
+    "ast_hash": "d300e5712545f5d5d71c0e07b5e18602",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/components/dashboard/VulnBar.tsx": {
@@ -485,8 +485,8 @@
     "semantic_hash": "0b4acbbaaf71aa4efc094376718f3741"
   },
   "/home/sakitha/apps/vps/.claude/settings.local.json": {
-    "mtime": 1780626792.0273657,
-    "ast_hash": "9d5e3ebbb9d6cf80073806700f7628b6",
+    "mtime": 1780624406.3121102,
+    "ast_hash": "f51434d13c1c07ea4bd2f3dfe5389f79",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/docker-compose.standalone.yml": {
@@ -732,11 +732,6 @@
   "/home/sakitha/apps/vps/docs/superpowers/specs/2026-06-01-domain-management-design.md": {
     "mtime": 1780298038.1176445,
     "ast_hash": "1c9448dde9ea15474176c02f71f298bf",
-    "semantic_hash": ""
-  },
-  "/home/sakitha/apps/vps/components/ui/select.tsx": {
-    "mtime": 1780626848.4416628,
-    "ast_hash": "8ae84e7ee977328c064b315a8b72765e",
     "semantic_hash": ""
   }
 }
