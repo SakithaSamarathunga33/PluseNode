@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Maximize2, X } from "lucide-react"
+import { Maximize2, Play, X } from "lucide-react"
 import { nodeApi } from "@/lib/api"
+import { Button } from "@/components/ui/button"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import type { ApiError } from "@/lib/api"
 import type { Database, DbSchemaResult, DbQueryResult } from "@/lib/types"
 import {
@@ -285,45 +287,49 @@ export function DatabaseQueryEditor({
 
   return (
     <>
-      <div className="bg-pulseNode-navyLight rounded-xl border border-pn-electric/20 [overflow:clip]">
+      <div className="bg-pulseNode-navyLight rounded-lg border border-pulseNode-border/10 overflow-hidden">
         {/* Header / control bar — database + table pickers */}
-        <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-pulseNode-navy border-b border-pulseNode-border/10">
+        <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 border-b border-pulseNode-border/10">
           <span className="font-semibold text-sm text-helm-fg">{db.name}</span>
 
           {!isRedis && !isMongo && schema.databases.length > 0 && (
-            <label className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-helm-fg3 font-semibold">
-              DB
-              <select
-                value={selectedDatabase}
-                onChange={e => setSelectedDatabase(e.target.value)}
-                className="bg-pulseNode-navyLight border border-pulseNode-border/20 text-helm-fg text-xs normal-case font-normal rounded px-2 py-0.5 cursor-pointer"
-              >
-                {schema.databases.map(d => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-            </label>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">DB</span>
+              <Select value={selectedDatabase} onValueChange={v => setSelectedDatabase((v as string) ?? "")}>
+                <SelectTrigger className="min-w-[120px]">
+                  <SelectValue placeholder="Select…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {schema.databases.map(d => (
+                    <SelectItem key={d} value={d}>{d}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
           {!isRedis && (
-            <label className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-helm-fg3 font-semibold">
-              {isMongo ? "Collection" : "Table"}
-              <select
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">
+                {isMongo ? "Collection" : "Table"}
+              </span>
+              <Select
                 value=""
-                onChange={e => { if (e.target.value) handleTableClick(e.target.value) }}
                 disabled={schema.tables.length === 0}
-                className="bg-pulseNode-navyLight border border-pulseNode-border/20 text-helm-fg text-xs normal-case font-normal rounded px-2 py-0.5 cursor-pointer disabled:opacity-50"
+                onValueChange={v => { if (v) handleTableClick(v as string) }}
               >
-                <option value="">
-                  {schema.tables.length === 0 ? "No tables" : `Select… (${schema.tables.length})`}
-                </option>
-                {schema.tables.map(t => (
-                  <option key={t.name} value={t.name}>
-                    {t.name}{t.rows ? ` · ${t.rows.toLocaleString()} rows` : ""}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <SelectTrigger className="min-w-[150px]">
+                  <SelectValue placeholder={schema.tables.length === 0 ? "No tables" : `Select… (${schema.tables.length})`} />
+                </SelectTrigger>
+                <SelectContent>
+                  {schema.tables.map(t => (
+                    <SelectItem key={t.name} value={t.name}>
+                      {t.name}{t.rows ? ` · ${t.rows.toLocaleString()} rows` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
           <span className={`text-[10px] ${error && !result ? "text-red-400" : "text-green-400"}`}>
@@ -350,26 +356,18 @@ export function DatabaseQueryEditor({
             spellCheck={false}
           />
           {/* Toolbar */}
-          <div className="flex items-center gap-2 px-3 py-2 bg-pulseNode-navy border-t border-pulseNode-border/10 flex-shrink-0">
-            <button
-              onClick={() => runQuery()}
-              disabled={loading}
-              className={`
-                text-xs font-semibold px-3 py-1.5 rounded-md transition-all
-                ${hasQuery && !loading
-                  ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm"
-                  : "bg-pulseNode-border/20 text-helm-fg3 cursor-not-allowed"
-                }
-              `}
-            >
-              {loading ? "Running…" : "▶ Run"}
-            </button>
-            <button
+          <div className="flex items-center gap-2 px-3 py-2 border-t border-pulseNode-border/10 flex-shrink-0">
+            <Button size="sm" onClick={() => runQuery()} disabled={loading || !hasQuery}>
+              <Play size={13} />
+              {loading ? "Running…" : "Run"}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
               onClick={() => { setQuery(""); setResult(null); setError(null) }}
-              className="text-xs text-helm-fg3 hover:text-helm-fg border border-pulseNode-border/20 px-3 py-1.5 rounded-md transition-colors"
             >
               Clear
-            </button>
+            </Button>
             <span className="ml-auto text-[10px] text-helm-fg3">
               {isRedis
                 ? "Redis command"

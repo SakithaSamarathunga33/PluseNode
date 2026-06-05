@@ -174,7 +174,7 @@ function ConnectionStringPanel({ dbName, database }: { dbName: string; database?
   }
 
   return (
-    <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/50">
+    <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navyLight">
       <div className="flex items-center gap-2 border-b border-pulseNode-border/10 px-3 py-2">
         <PlugZap size={13} className="text-pn-electric" />
         <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">Connection string</span>
@@ -183,7 +183,7 @@ function ConnectionStringPanel({ dbName, database }: { dbName: string; database?
         {loading && <span className="text-xs text-helm-fg3">Loading…</span>}
         {!loading && uri && (
           <>
-            <div className="min-w-0 flex-1 overflow-x-auto rounded-md bg-pulseNode-navyLight">
+            <div className="min-w-0 flex-1 overflow-x-auto rounded-md border border-pulseNode-border/15 bg-pulseNode-navy">
               <code className="block whitespace-nowrap px-2 py-1.5 font-mono text-[11px] text-helm-fg">
                 {uri}
               </code>
@@ -358,7 +358,7 @@ function DbDetails({ db }: { db: Database }) {
   return (
     <div className="grid gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)]">
       <div className="space-y-3">
-        <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/40">
+        <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navyLight">
           {/* Header: title, DB selector, count */}
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-pulseNode-border/10 px-3 py-2">
             <div className="flex items-center gap-2">
@@ -433,7 +433,7 @@ function DbDetails({ db }: { db: Database }) {
 
       <div className="space-y-3">
         <ConnectionStringPanel dbName={db.name} database={selectedDb} />
-        <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/40">
+        <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navyLight">
           <div className="flex items-center justify-between border-b border-pulseNode-border/10 px-3 py-2">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">Slow queries</span>
             <span className={`font-mono text-[10px] ${db.slow > 0 ? "text-amber-400" : "text-helm-fg3"}`}>
@@ -704,7 +704,7 @@ function DatabaseRow({
       </tr>
       {expanded && (
         <tr>
-          <td colSpan={10} className="bg-pulseNode-navy/25 p-0">
+          <td colSpan={10} className="bg-pulseNode-navy p-0">
             <DbExpand db={db} tab={tab} onTabChange={setTab} />
           </td>
         </tr>
