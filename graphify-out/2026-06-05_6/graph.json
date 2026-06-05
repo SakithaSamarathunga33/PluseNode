@@ -3813,7 +3813,7 @@
       "source_file": "components/dashboard/DatabaseQueryEditor.tsx",
       "source_location": "L1",
       "id": "components_dashboard_databasequeryeditor_tsx",
-      "community": 110,
+      "community": 34,
       "norm_label": "databasequeryeditor.tsx"
     },
     {
@@ -3822,7 +3822,7 @@
       "source_file": "components/dashboard/DatabaseQueryEditor.tsx",
       "source_location": "L23",
       "id": "dashboard_databasequeryeditor_resulttable",
-      "community": 110,
+      "community": 34,
       "norm_label": "resulttable()"
     },
     {
@@ -3831,7 +3831,7 @@
       "source_file": "components/dashboard/DatabaseQueryEditor.tsx",
       "source_location": "L65",
       "id": "dashboard_databasequeryeditor_queryresult",
-      "community": 110,
+      "community": 34,
       "norm_label": "queryresult()"
     },
     {
@@ -3849,7 +3849,7 @@
       "source_file": "components/dashboard/VulnBar.tsx",
       "source_location": "L1",
       "id": "components_dashboard_vulnbar_tsx",
-      "community": 12,
+      "community": 110,
       "norm_label": "vulnbar.tsx"
     },
     {
@@ -3858,7 +3858,7 @@
       "source_file": "components/dashboard/VulnBar.tsx",
       "source_location": "L1",
       "id": "dashboard_vulnbar_vulns",
-      "community": 12,
+      "community": 110,
       "norm_label": "vulns"
     },
     {
@@ -3867,7 +3867,7 @@
       "source_file": "components/dashboard/VulnBar.tsx",
       "source_location": "L3",
       "id": "dashboard_vulnbar_vulnbar",
-      "community": 12,
+      "community": 110,
       "norm_label": "vulnbar()"
     },
     {
@@ -3930,7 +3930,7 @@
       "source_file": "components/dashboard/UPlotChart.tsx",
       "source_location": "L1",
       "id": "components_dashboard_uplotchart_tsx",
-      "community": 25,
+      "community": 41,
       "norm_label": "uplotchart.tsx"
     },
     {
@@ -3939,7 +3939,7 @@
       "source_file": "components/dashboard/UPlotChart.tsx",
       "source_location": "L7",
       "id": "dashboard_uplotchart_series",
-      "community": 25,
+      "community": 41,
       "norm_label": "series"
     },
     {
@@ -3948,7 +3948,7 @@
       "source_file": "components/dashboard/UPlotChart.tsx",
       "source_location": "L15",
       "id": "dashboard_uplotchart_uplotchartprops",
-      "community": 25,
+      "community": 41,
       "norm_label": "uplotchartprops"
     },
     {
@@ -3957,7 +3957,7 @@
       "source_file": "components/dashboard/UPlotChart.tsx",
       "source_location": "L23",
       "id": "dashboard_uplotchart_resolvecsscolor",
-      "community": 25,
+      "community": 41,
       "norm_label": "resolvecsscolor()"
     },
     {
@@ -3966,7 +3966,7 @@
       "source_file": "components/dashboard/UPlotChart.tsx",
       "source_location": "L33",
       "id": "dashboard_uplotchart_uplotchart",
-      "community": 25,
+      "community": 41,
       "norm_label": "uplotchart()"
     },
     {
@@ -3975,7 +3975,7 @@
       "source_file": "components/dashboard/UPlotChart.tsx",
       "source_location": "L103",
       "id": "dashboard_uplotchart_padseries",
-      "community": 25,
+      "community": 41,
       "norm_label": "padseries()"
     },
     {
@@ -4182,7 +4182,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L1",
       "id": "components_sidebar_appsidebar_tsx",
-      "community": 39,
+      "community": 0,
       "norm_label": "appsidebar.tsx"
     },
     {
@@ -4191,7 +4191,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L22",
       "id": "sidebar_appsidebar_navbadge",
-      "community": 39,
+      "community": 0,
       "norm_label": "navbadge"
     },
     {
@@ -4200,7 +4200,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L23",
       "id": "sidebar_appsidebar_badgecounts",
-      "community": 39,
+      "community": 0,
       "norm_label": "badgecounts"
     },
     {
@@ -4209,7 +4209,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L25",
       "id": "sidebar_appsidebar_navitem",
-      "community": 39,
+      "community": 0,
       "norm_label": "navitem"
     },
     {
@@ -4218,7 +4218,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L33",
       "id": "sidebar_appsidebar_navsection",
-      "community": 39,
+      "community": 0,
       "norm_label": "navsection"
     },
     {
@@ -4227,7 +4227,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L38",
       "id": "sidebar_appsidebar_base_nav_sections",
-      "community": 39,
+      "community": 0,
       "norm_label": "base_nav_sections"
     },
     {
@@ -4236,7 +4236,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L66",
       "id": "sidebar_appsidebar_coolify_item",
-      "community": 39,
+      "community": 0,
       "norm_label": "coolify_item"
     },
     {
@@ -4245,7 +4245,7 @@
       "source_file": "components/sidebar/AppSidebar.tsx",
       "source_location": "L68",
       "id": "sidebar_appsidebar_deploy_section",
-      "community": 39,
+      "community": 0,
       "norm_label": "deploy_section"
     },
     {
@@ -4344,7 +4344,7 @@
       "source_file": "components/magicui/number-ticker.tsx",
       "source_location": "L1",
       "id": "components_magicui_number_ticker_tsx",
-      "community": 39,
+      "community": 22,
       "norm_label": "number-ticker.tsx"
     },
     {
@@ -4353,7 +4353,7 @@
       "source_file": "components/magicui/number-ticker.tsx",
       "source_location": "L5",
       "id": "magicui_number_ticker_numbertickerprops",
-      "community": 39,
+      "community": 22,
       "norm_label": "numbertickerprops"
     },
     {
@@ -4362,7 +4362,7 @@
       "source_file": "components/magicui/number-ticker.tsx",
       "source_location": "L12",
       "id": "magicui_number_ticker_numberticker",
-      "community": 39,
+      "community": 22,
       "norm_label": "numberticker()"
     },
     {
@@ -4569,7 +4569,7 @@
       "source_file": "components/ui/tooltip.tsx",
       "source_location": "L1",
       "id": "components_ui_tooltip_tsx",
-      "community": 41,
+      "community": 109,
       "norm_label": "tooltip.tsx"
     },
     {
@@ -4578,7 +4578,7 @@
       "source_file": "components/ui/tooltip.tsx",
       "source_location": "L7",
       "id": "ui_tooltip_tooltipprovider",
-      "community": 41,
+      "community": 109,
       "norm_label": "tooltipprovider()"
     },
     {
@@ -4587,7 +4587,7 @@
       "source_file": "components/ui/tooltip.tsx",
       "source_location": "L20",
       "id": "ui_tooltip_tooltip",
-      "community": 41,
+      "community": 109,
       "norm_label": "tooltip()"
     },
     {
@@ -4596,7 +4596,7 @@
       "source_file": "components/ui/tooltip.tsx",
       "source_location": "L24",
       "id": "ui_tooltip_tooltiptrigger",
-      "community": 41,
+      "community": 109,
       "norm_label": "tooltiptrigger()"
     },
     {
@@ -4605,7 +4605,7 @@
       "source_file": "components/ui/tooltip.tsx",
       "source_location": "L28",
       "id": "ui_tooltip_tooltipcontent",
-      "community": 41,
+      "community": 109,
       "norm_label": "tooltipcontent()"
     },
     {
@@ -4713,7 +4713,7 @@
       "source_file": "components/ui/select.tsx",
       "source_location": "L1",
       "id": "components_ui_select_tsx",
-      "community": 110,
+      "community": 34,
       "norm_label": "select.tsx"
     },
     {
@@ -4722,7 +4722,7 @@
       "source_file": "components/ui/select.tsx",
       "source_location": "L9",
       "id": "ui_select_select",
-      "community": 110,
+      "community": 34,
       "norm_label": "select()"
     },
     {
@@ -4731,7 +4731,7 @@
       "source_file": "components/ui/select.tsx",
       "source_location": "L13",
       "id": "ui_select_selectvalue",
-      "community": 110,
+      "community": 34,
       "norm_label": "selectvalue()"
     },
     {
@@ -4740,7 +4740,7 @@
       "source_file": "components/ui/select.tsx",
       "source_location": "L17",
       "id": "ui_select_selecttrigger",
-      "community": 110,
+      "community": 34,
       "norm_label": "selecttrigger()"
     },
     {
@@ -4749,7 +4749,7 @@
       "source_file": "components/ui/select.tsx",
       "source_location": "L42",
       "id": "ui_select_selectcontent",
-      "community": 110,
+      "community": 34,
       "norm_label": "selectcontent()"
     },
     {
@@ -4758,7 +4758,7 @@
       "source_file": "components/ui/select.tsx",
       "source_location": "L70",
       "id": "ui_select_selectitem",
-      "community": 110,
+      "community": 34,
       "norm_label": "selectitem()"
     },
     {
@@ -4794,7 +4794,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L1",
       "id": "components_ui_card_tsx",
-      "community": 19,
+      "community": 50,
       "norm_label": "card.tsx"
     },
     {
@@ -4803,7 +4803,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L5",
       "id": "ui_card_card",
-      "community": 19,
+      "community": 50,
       "norm_label": "card()"
     },
     {
@@ -4812,7 +4812,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L23",
       "id": "ui_card_cardheader",
-      "community": 19,
+      "community": 50,
       "norm_label": "cardheader()"
     },
     {
@@ -4821,7 +4821,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L36",
       "id": "ui_card_cardtitle",
-      "community": 19,
+      "community": 50,
       "norm_label": "cardtitle()"
     },
     {
@@ -4830,7 +4830,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L49",
       "id": "ui_card_carddescription",
-      "community": 19,
+      "community": 50,
       "norm_label": "carddescription()"
     },
     {
@@ -4839,7 +4839,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L59",
       "id": "ui_card_cardaction",
-      "community": 19,
+      "community": 50,
       "norm_label": "cardaction()"
     },
     {
@@ -4848,7 +4848,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L72",
       "id": "ui_card_cardcontent",
-      "community": 19,
+      "community": 50,
       "norm_label": "cardcontent()"
     },
     {
@@ -4857,7 +4857,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L82",
       "id": "ui_card_cardfooter",
-      "community": 19,
+      "community": 50,
       "norm_label": "cardfooter()"
     },
     {
@@ -5316,7 +5316,7 @@
       "source_file": "components/ui/scroll-area.tsx",
       "source_location": "L1",
       "id": "components_ui_scroll_area_tsx",
-      "community": 109,
+      "community": 19,
       "norm_label": "scroll-area.tsx"
     },
     {
@@ -5325,7 +5325,7 @@
       "source_file": "components/ui/scroll-area.tsx",
       "source_location": "L8",
       "id": "ui_scroll_area_scrollarea",
-      "community": 109,
+      "community": 19,
       "norm_label": "scrollarea()"
     },
     {
@@ -5334,7 +5334,7 @@
       "source_file": "components/ui/scroll-area.tsx",
       "source_location": "L31",
       "id": "ui_scroll_area_scrollbar",
-      "community": 109,
+      "community": 19,
       "norm_label": "scrollbar()"
     },
     {
@@ -5343,7 +5343,7 @@
       "source_file": "components/ui/input.tsx",
       "source_location": "L1",
       "id": "components_ui_input_tsx",
-      "community": 109,
+      "community": 19,
       "norm_label": "input.tsx"
     },
     {
@@ -5352,7 +5352,7 @@
       "source_file": "components/ui/input.tsx",
       "source_location": "L6",
       "id": "ui_input_input",
-      "community": 109,
+      "community": 19,
       "norm_label": "input()"
     },
     {
@@ -5550,7 +5550,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L33",
       "id": "lib_types_hostinfo",
-      "community": 110,
+      "community": 0,
       "norm_label": "hostinfo"
     },
     {
@@ -5622,7 +5622,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L126",
       "id": "lib_types_scan",
-      "community": 12,
+      "community": 0,
       "norm_label": "scan"
     },
     {
@@ -5703,7 +5703,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L210",
       "id": "lib_types_coolifydeployment",
-      "community": 64,
+      "community": 0,
       "norm_label": "coolifydeployment"
     },
     {
@@ -5757,7 +5757,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L263",
       "id": "lib_types_dbschemaresult",
-      "community": 110,
+      "community": 34,
       "norm_label": "dbschemaresult"
     },
     {
@@ -5766,7 +5766,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L268",
       "id": "lib_types_dbqueryresult",
-      "community": 110,
+      "community": 34,
       "norm_label": "dbqueryresult"
     },
     {
@@ -5874,7 +5874,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L63",
       "id": "lib_mock_data_processes",
-      "community": 0,
+      "community": 11,
       "norm_label": "processes"
     },
     {
@@ -5919,7 +5919,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L121",
       "id": "lib_mock_data_sboms",
-      "community": 0,
+      "community": 22,
       "norm_label": "sboms"
     },
     {
@@ -5928,7 +5928,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L132",
       "id": "lib_mock_data_alerts",
-      "community": 22,
+      "community": 0,
       "norm_label": "alerts"
     },
     {
@@ -5937,7 +5937,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L145",
       "id": "lib_mock_data_alert_rules",
-      "community": 22,
+      "community": 25,
       "norm_label": "alert_rules"
     },
     {
@@ -6700,7 +6700,7 @@
       "label": ".getProject()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L104",
+      "source_location": "L101",
       "id": "api_server_getproject",
       "community": 13,
       "norm_label": ".getproject()"
@@ -6709,7 +6709,7 @@
       "label": ".updateProject()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L118",
+      "source_location": "L115",
       "id": "api_server_updateproject",
       "community": 35,
       "norm_label": ".updateproject()"
@@ -6718,7 +6718,7 @@
       "label": ".deleteProject()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L149",
+      "source_location": "L146",
       "id": "api_server_deleteproject",
       "community": 13,
       "norm_label": ".deleteproject()"
@@ -6727,7 +6727,7 @@
       "label": ".deployProject()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L158",
+      "source_location": "L155",
       "id": "api_server_deployproject",
       "community": 13,
       "norm_label": ".deployproject()"
@@ -6736,7 +6736,7 @@
       "label": ".rollbackDeployment()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L186",
+      "source_location": "L183",
       "id": "api_server_rollbackdeployment",
       "community": 13,
       "norm_label": ".rollbackdeployment()"
@@ -6745,7 +6745,7 @@
       "label": ".listDeployments()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L225",
+      "source_location": "L222",
       "id": "api_server_listdeployments",
       "community": 13,
       "norm_label": ".listdeployments()"
@@ -6754,7 +6754,7 @@
       "label": ".getDeploymentLogs()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L238",
+      "source_location": "L235",
       "id": "api_server_getdeploymentlogs",
       "community": 13,
       "norm_label": ".getdeploymentlogs()"
@@ -6763,7 +6763,7 @@
       "label": ".streamDeploymentLogs()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L257",
+      "source_location": "L254",
       "id": "api_server_streamdeploymentlogs",
       "community": 13,
       "norm_label": ".streamdeploymentlogs()"
@@ -6835,7 +6835,7 @@
       "label": ".health()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L231",
+      "source_location": "L229",
       "id": "api_server_health",
       "community": 6,
       "norm_label": ".health()"
@@ -6844,7 +6844,7 @@
       "label": ".clientConfig()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L238",
+      "source_location": "L236",
       "id": "api_server_clientconfig",
       "community": 6,
       "norm_label": ".clientconfig()"
@@ -6853,7 +6853,7 @@
       "label": "installedVersion()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L250",
+      "source_location": "L248",
       "id": "api_server_installedversion",
       "community": 6,
       "norm_label": "installedversion()"
@@ -6862,7 +6862,7 @@
       "label": "workspaceDir()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L264",
+      "source_location": "L262",
       "id": "api_server_workspacedir",
       "community": 6,
       "norm_label": "workspacedir()"
@@ -6871,7 +6871,7 @@
       "label": "runningAtLeast()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L276",
+      "source_location": "L274",
       "id": "api_server_runningatleast",
       "community": 6,
       "norm_label": "runningatleast()"
@@ -6880,7 +6880,7 @@
       "label": ".version()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L287",
+      "source_location": "L285",
       "id": "api_server_version",
       "community": 6,
       "norm_label": ".version()"
@@ -6889,7 +6889,7 @@
       "label": "notImplemented()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L371",
+      "source_location": "L369",
       "id": "api_server_notimplemented",
       "community": 6,
       "norm_label": "notimplemented()"
@@ -6898,7 +6898,7 @@
       "label": "emptyList()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L375",
+      "source_location": "L373",
       "id": "api_server_emptylist",
       "community": 6,
       "norm_label": "emptylist()"
@@ -6907,16 +6907,16 @@
       "label": "signalHandler()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L379",
+      "source_location": "L377",
       "id": "api_server_signalhandler",
-      "community": 50,
+      "community": 13,
       "norm_label": "signalhandler()"
     },
     {
       "label": "firstNonEmpty()",
       "file_type": "code",
       "source_file": "backend/internal/api/server.go",
-      "source_location": "L394",
+      "source_location": "L392",
       "id": "api_server_firstnonempty",
       "community": 6,
       "norm_label": "firstnonempty()"
@@ -7348,7 +7348,7 @@
       "label": "Server",
       "file_type": "code",
       "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L25",
+      "source_location": "L21",
       "id": "backend_internal_api_github_webhook_go_api_server",
       "community": 21,
       "norm_label": "server"
@@ -7357,52 +7357,16 @@
       "label": ".getOrCreateWebhookSecret()",
       "file_type": "code",
       "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L25",
+      "source_location": "L21",
       "id": "api_server_getorcreatewebhooksecret",
       "community": 21,
       "norm_label": ".getorcreatewebhooksecret()"
     },
     {
-      "label": ".webhookTargetURL()",
-      "file_type": "code",
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L47",
-      "id": "api_server_webhooktargeturl",
-      "community": 21,
-      "norm_label": ".webhooktargeturl()"
-    },
-    {
-      "label": ".installProjectWebhook()",
-      "file_type": "code",
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L58",
-      "id": "api_server_installprojectwebhook",
-      "community": 21,
-      "norm_label": ".installprojectwebhook()"
-    },
-    {
-      "label": ".getProjectWebhook()",
-      "file_type": "code",
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L87",
-      "id": "api_server_getprojectwebhook",
-      "community": 21,
-      "norm_label": ".getprojectwebhook()"
-    },
-    {
-      "label": ".installProjectWebhookHandler()",
-      "file_type": "code",
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L111",
-      "id": "api_server_installprojectwebhookhandler",
-      "community": 21,
-      "norm_label": ".installprojectwebhookhandler()"
-    },
-    {
       "label": ".githubWebhookInfo()",
       "file_type": "code",
       "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L132",
+      "source_location": "L43",
       "id": "api_server_githubwebhookinfo",
       "community": 21,
       "norm_label": ".githubwebhookinfo()"
@@ -7411,7 +7375,7 @@
       "label": ".githubWebhook()",
       "file_type": "code",
       "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L150",
+      "source_location": "L61",
       "id": "api_server_githubwebhook",
       "community": 21,
       "norm_label": ".githubwebhook()"
@@ -7420,7 +7384,7 @@
       "label": "validSignature()",
       "file_type": "code",
       "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L234",
+      "source_location": "L145",
       "id": "api_github_webhook_validsignature",
       "community": 21,
       "norm_label": "validsignature()"
@@ -7429,7 +7393,7 @@
       "label": "splitFullName()",
       "file_type": "code",
       "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L248",
+      "source_location": "L159",
       "id": "api_github_webhook_splitfullname",
       "community": 21,
       "norm_label": "splitfullname()"
@@ -7438,7 +7402,7 @@
       "label": "firstLine()",
       "file_type": "code",
       "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L256",
+      "source_location": "L167",
       "id": "api_github_webhook_firstline",
       "community": 21,
       "norm_label": "firstline()"
@@ -9852,7 +9816,7 @@
       "source_file": "backend/internal/security/security.go",
       "source_location": "L1",
       "id": "backend_internal_security_security_go",
-      "community": 34,
+      "community": 6,
       "norm_label": "security.go"
     },
     {
@@ -9861,7 +9825,7 @@
       "source_file": "backend/internal/security/security.go",
       "source_location": "L15",
       "id": "security_service",
-      "community": 34,
+      "community": 6,
       "norm_label": "service"
     },
     {
@@ -9870,7 +9834,7 @@
       "source_file": "backend/internal/security/security.go",
       "source_location": "L19",
       "id": "security_security_new",
-      "community": 34,
+      "community": 6,
       "norm_label": "new()"
     },
     {
@@ -9879,7 +9843,7 @@
       "source_file": "backend/internal/security/security.go",
       "source_location": "L28",
       "id": "security_service_scans",
-      "community": 34,
+      "community": 6,
       "norm_label": ".scans()"
     },
     {
@@ -9888,7 +9852,7 @@
       "source_file": "backend/internal/security/security.go",
       "source_location": "L32",
       "id": "security_service_sboms",
-      "community": 34,
+      "community": 6,
       "norm_label": ".sboms()"
     },
     {
@@ -9897,7 +9861,7 @@
       "source_file": "backend/internal/security/security.go",
       "source_location": "L36",
       "id": "security_service_scan",
-      "community": 34,
+      "community": 6,
       "norm_label": ".scan()"
     },
     {
@@ -9906,7 +9870,7 @@
       "source_file": "backend/internal/security/security.go",
       "source_location": "L93",
       "id": "security_service_sbom",
-      "community": 34,
+      "community": 6,
       "norm_label": ".sbom()"
     },
     {
@@ -9915,7 +9879,7 @@
       "source_file": "backend/internal/security/security.go",
       "source_location": "L112",
       "id": "security_service_readlist",
-      "community": 34,
+      "community": 6,
       "norm_label": ".readlist()"
     },
     {
@@ -9924,7 +9888,7 @@
       "source_file": "backend/internal/security/security.go",
       "source_location": "L124",
       "id": "security_service_prepend",
-      "community": 34,
+      "community": 6,
       "norm_label": ".prepend()"
     },
     {
@@ -9933,7 +9897,7 @@
       "source_file": "backend/internal/security/security.go",
       "source_location": "L134",
       "id": "security_security_mockscans",
-      "community": 34,
+      "community": 6,
       "norm_label": "mockscans()"
     },
     {
@@ -9942,7 +9906,7 @@
       "source_file": "backend/internal/security/security.go",
       "source_location": "L138",
       "id": "security_security_mocksboms",
-      "community": 34,
+      "community": 6,
       "norm_label": "mocksboms()"
     },
     {
@@ -10068,7 +10032,7 @@
       "source_file": "backend/internal/proc/collector.go",
       "source_location": "L192",
       "id": "proc_collector_signal",
-      "community": 50,
+      "community": 13,
       "norm_label": "signal()"
     },
     {
@@ -10354,7 +10318,7 @@
       "label": "Client",
       "file_type": "code",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L17",
+      "source_location": "L15",
       "id": "github_client",
       "community": 6,
       "norm_label": "client"
@@ -10363,7 +10327,7 @@
       "label": "NewClient()",
       "file_type": "code",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L22",
+      "source_location": "L20",
       "id": "github_github_newclient",
       "community": 46,
       "norm_label": "newclient()"
@@ -10372,61 +10336,16 @@
       "label": ".get()",
       "file_type": "code",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L26",
+      "source_location": "L24",
       "id": "github_client_get",
       "community": 6,
       "norm_label": ".get()"
     },
     {
-      "label": ".post()",
-      "file_type": "code",
-      "source_file": "backend/internal/github/github.go",
-      "source_location": "L45",
-      "id": "github_client_post",
-      "community": 6,
-      "norm_label": ".post()"
-    },
-    {
-      "label": "Hook",
-      "file_type": "code",
-      "source_file": "backend/internal/github/github.go",
-      "source_location": "L72",
-      "id": "github_hook",
-      "community": 6,
-      "norm_label": "hook"
-    },
-    {
-      "label": ".listHooks()",
-      "file_type": "code",
-      "source_file": "backend/internal/github/github.go",
-      "source_location": "L80",
-      "id": "github_client_listhooks",
-      "community": 6,
-      "norm_label": ".listhooks()"
-    },
-    {
-      "label": ".HasWebhook()",
-      "file_type": "code",
-      "source_file": "backend/internal/github/github.go",
-      "source_location": "L87",
-      "id": "github_client_haswebhook",
-      "community": 6,
-      "norm_label": ".haswebhook()"
-    },
-    {
-      "label": ".EnsureWebhook()",
-      "file_type": "code",
-      "source_file": "backend/internal/github/github.go",
-      "source_location": "L104",
-      "id": "github_client_ensurewebhook",
-      "community": 6,
-      "norm_label": ".ensurewebhook()"
-    },
-    {
       "label": "User",
       "file_type": "code",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L131",
+      "source_location": "L45",
       "id": "github_user",
       "community": 6,
       "norm_label": "user"
@@ -10435,7 +10354,7 @@
       "label": ".CurrentUser()",
       "file_type": "code",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L137",
+      "source_location": "L51",
       "id": "github_client_currentuser",
       "community": 6,
       "norm_label": ".currentuser()"
@@ -10444,7 +10363,7 @@
       "label": "Repo",
       "file_type": "code",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L144",
+      "source_location": "L58",
       "id": "github_repo",
       "community": 6,
       "norm_label": "repo"
@@ -10453,7 +10372,7 @@
       "label": ".ListRepos()",
       "file_type": "code",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L154",
+      "source_location": "L68",
       "id": "github_client_listrepos",
       "community": 6,
       "norm_label": ".listrepos()"
@@ -10462,7 +10381,7 @@
       "label": ".ListBranches()",
       "file_type": "code",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L175",
+      "source_location": "L89",
       "id": "github_client_listbranches",
       "community": 6,
       "norm_label": ".listbranches()"
@@ -10471,7 +10390,7 @@
       "label": ".GetBranchHead()",
       "file_type": "code",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L188",
+      "source_location": "L102",
       "id": "github_client_getbranchhead",
       "community": 6,
       "norm_label": ".getbranchhead()"
@@ -10480,16 +10399,16 @@
       "label": "ParseOwnerRepo()",
       "file_type": "code",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L210",
+      "source_location": "L124",
       "id": "github_github_parseownerrepo",
-      "community": 21,
+      "community": 6,
       "norm_label": "parseownerrepo()"
     },
     {
       "label": "AuthorisedCloneURL()",
       "file_type": "code",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L228",
+      "source_location": "L142",
       "id": "github_github_authorisedcloneurl",
       "community": 6,
       "norm_label": "authorisedcloneurl()"
@@ -10498,7 +10417,7 @@
       "label": "AuthURL()",
       "file_type": "code",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L242",
+      "source_location": "L156",
       "id": "github_github_authurl",
       "community": 6,
       "norm_label": "authurl()"
@@ -10507,7 +10426,7 @@
       "label": "ExchangeCode()",
       "file_type": "code",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L251",
+      "source_location": "L165",
       "id": "github_github_exchangecode",
       "community": 6,
       "norm_label": "exchangecode()"
@@ -10783,19 +10702,10 @@
       "norm_label": "logline"
     },
     {
-      "label": "WebhookStatus",
-      "file_type": "code",
-      "source_file": "app/projects/[id]/page.tsx",
-      "source_location": "L27",
-      "id": "id_page_webhookstatus",
-      "community": 28,
-      "norm_label": "webhookstatus"
-    },
-    {
       "label": "STATUS_COLOR",
       "file_type": "code",
       "source_file": "app/projects/[id]/page.tsx",
-      "source_location": "L29",
+      "source_location": "L28",
       "id": "id_page_status_color",
       "community": 28,
       "norm_label": "status_color"
@@ -10804,7 +10714,7 @@
       "label": "Field()",
       "file_type": "code",
       "source_file": "app/projects/[id]/page.tsx",
-      "source_location": "L34",
+      "source_location": "L33",
       "id": "id_page_field",
       "community": 28,
       "norm_label": "field()"
@@ -10813,7 +10723,7 @@
       "label": "age()",
       "file_type": "code",
       "source_file": "app/projects/[id]/page.tsx",
-      "source_location": "L44",
+      "source_location": "L43",
       "id": "id_page_age",
       "community": 28,
       "norm_label": "age()"
@@ -10822,7 +10732,7 @@
       "label": "ProjectDetailPage()",
       "file_type": "code",
       "source_file": "app/projects/[id]/page.tsx",
-      "source_location": "L52",
+      "source_location": "L51",
       "id": "id_page_projectdetailpage",
       "community": 28,
       "norm_label": "projectdetailpage()"
@@ -10896,7 +10806,7 @@
       "source_file": "app/sbom-history/page.tsx",
       "source_location": "L1",
       "id": "app_sbom_history_page_tsx",
-      "community": 0,
+      "community": 22,
       "norm_label": "page.tsx"
     },
     {
@@ -10905,7 +10815,7 @@
       "source_file": "app/sbom-history/page.tsx",
       "source_location": "L19",
       "id": "sbom_history_page_filterchip",
-      "community": 0,
+      "community": 22,
       "norm_label": "filterchip()"
     },
     {
@@ -10914,7 +10824,7 @@
       "source_file": "app/sbom-history/page.tsx",
       "source_location": "L29",
       "id": "sbom_history_page_formatbadge",
-      "community": 0,
+      "community": 22,
       "norm_label": "formatbadge()"
     },
     {
@@ -10923,7 +10833,7 @@
       "source_file": "app/sbom-history/page.tsx",
       "source_location": "L45",
       "id": "sbom_history_page_ecosystem_colors",
-      "community": 0,
+      "community": 22,
       "norm_label": "ecosystem_colors"
     },
     {
@@ -10932,7 +10842,7 @@
       "source_file": "app/sbom-history/page.tsx",
       "source_location": "L52",
       "id": "sbom_history_page_ecosystem_labels",
-      "community": 0,
+      "community": 22,
       "norm_label": "ecosystem_labels"
     },
     {
@@ -10941,7 +10851,7 @@
       "source_file": "app/sbom-history/page.tsx",
       "source_location": "L59",
       "id": "sbom_history_page_ecosystembar",
-      "community": 0,
+      "community": 22,
       "norm_label": "ecosystembar()"
     },
     {
@@ -10950,7 +10860,7 @@
       "source_file": "app/sbom-history/page.tsx",
       "source_location": "L98",
       "id": "sbom_history_page_sbomhistorypage",
-      "community": 0,
+      "community": 22,
       "norm_label": "sbomhistorypage()"
     },
     {
@@ -10959,7 +10869,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L1",
       "id": "app_containers_page_tsx",
-      "community": 25,
+      "community": 110,
       "norm_label": "page.tsx"
     },
     {
@@ -10968,7 +10878,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L27",
       "id": "containers_page_developericon",
-      "community": 25,
+      "community": 110,
       "norm_label": "developericon"
     },
     {
@@ -10977,7 +10887,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L29",
       "id": "containers_page_image_icons",
-      "community": 25,
+      "community": 110,
       "norm_label": "image_icons"
     },
     {
@@ -10986,7 +10896,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L44",
       "id": "containers_page_imageicon",
-      "community": 25,
+      "community": 110,
       "norm_label": "imageicon()"
     },
     {
@@ -10995,7 +10905,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L51",
       "id": "containers_page_containerhistory",
-      "community": 25,
+      "community": 110,
       "norm_label": "containerhistory"
     },
     {
@@ -11004,7 +10914,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L53",
       "id": "containers_page_pushcapped",
-      "community": 25,
+      "community": 110,
       "norm_label": "pushcapped()"
     },
     {
@@ -11013,7 +10923,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L59",
       "id": "containers_page_minispark",
-      "community": 25,
+      "community": 110,
       "norm_label": "minispark()"
     },
     {
@@ -11022,7 +10932,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L81",
       "id": "containers_page_statcard",
-      "community": 25,
+      "community": 110,
       "norm_label": "statcard()"
     },
     {
@@ -11040,7 +10950,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L207",
       "id": "containers_page_termline",
-      "community": 25,
+      "community": 110,
       "norm_label": "termline"
     },
     {
@@ -11067,7 +10977,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L368",
       "id": "containers_page_actionbtn",
-      "community": 25,
+      "community": 110,
       "norm_label": "actionbtn()"
     },
     {
@@ -11076,7 +10986,7 @@
       "source_file": "app/containers/page.tsx",
       "source_location": "L399",
       "id": "containers_page_statebadge",
-      "community": 25,
+      "community": 110,
       "norm_label": "statebadge()"
     },
     {
@@ -11814,7 +11724,7 @@
       "source_file": "app/alerts/page.tsx",
       "source_location": "L1",
       "id": "app_alerts_page_tsx",
-      "community": 22,
+      "community": 25,
       "norm_label": "page.tsx"
     },
     {
@@ -11823,7 +11733,7 @@
       "source_file": "app/alerts/page.tsx",
       "source_location": "L20",
       "id": "alerts_page_filterchip",
-      "community": 22,
+      "community": 25,
       "norm_label": "filterchip()"
     },
     {
@@ -11832,7 +11742,7 @@
       "source_file": "app/alerts/page.tsx",
       "source_location": "L30",
       "id": "alerts_page_sevicon",
-      "community": 22,
+      "community": 25,
       "norm_label": "sevicon()"
     },
     {
@@ -11841,7 +11751,7 @@
       "source_file": "app/alerts/page.tsx",
       "source_location": "L41",
       "id": "alerts_page_statepill",
-      "community": 22,
+      "community": 25,
       "norm_label": "statepill()"
     },
     {
@@ -11850,7 +11760,7 @@
       "source_file": "app/alerts/page.tsx",
       "source_location": "L50",
       "id": "alerts_page_toggleswitch",
-      "community": 22,
+      "community": 25,
       "norm_label": "toggleswitch()"
     },
     {
@@ -11859,7 +11769,7 @@
       "source_file": "app/alerts/page.tsx",
       "source_location": "L67",
       "id": "alerts_page_channel_cards",
-      "community": 22,
+      "community": 25,
       "norm_label": "channel_cards"
     },
     {
@@ -11868,7 +11778,7 @@
       "source_file": "app/alerts/page.tsx",
       "source_location": "L73",
       "id": "alerts_page_mock_new_alert",
-      "community": 22,
+      "community": 25,
       "norm_label": "mock_new_alert"
     },
     {
@@ -11877,7 +11787,7 @@
       "source_file": "app/alerts/page.tsx",
       "source_location": "L78",
       "id": "alerts_page_tabs",
-      "community": 22,
+      "community": 25,
       "norm_label": "tabs"
     },
     {
@@ -11886,7 +11796,7 @@
       "source_file": "app/alerts/page.tsx",
       "source_location": "L79",
       "id": "alerts_page_tab",
-      "community": 22,
+      "community": 25,
       "norm_label": "tab"
     },
     {
@@ -11895,7 +11805,7 @@
       "source_file": "app/alerts/page.tsx",
       "source_location": "L83",
       "id": "alerts_page_alertspage",
-      "community": 22,
+      "community": 25,
       "norm_label": "alertspage()"
     },
     {
@@ -12208,7 +12118,7 @@
       "label": "Version display (`installedVersion()` / `version()` in `backend/internal/api/server.go`)",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L32",
+      "source_location": "L31",
       "id": "vps_claude_version_display_installedversion_version_in_backend_internal_api_server_go",
       "community": 111,
       "norm_label": "version display (`installedversion()` / `version()` in `backend/internal/api/server.go`)"
@@ -12217,7 +12127,7 @@
       "label": "Domain DNS checker (`app/domain/page.tsx` \u2194 `backend/internal/api/domain_handler.go`)",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L35",
+      "source_location": "L34",
       "id": "vps_claude_domain_dns_checker_app_domain_page_tsx_backend_internal_api_domain_handler_go",
       "community": 111,
       "norm_label": "domain dns checker (`app/domain/page.tsx` \u2194 `backend/internal/api/domain_handler.go`)"
@@ -12226,7 +12136,7 @@
       "label": "Local dev / verify",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L38",
+      "source_location": "L37",
       "id": "vps_claude_local_dev_verify",
       "community": 111,
       "norm_label": "local dev / verify"
@@ -12235,7 +12145,7 @@
       "label": "CLAUDE.md",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L43",
+      "source_location": "L42",
       "id": "vps_claude_claude_md",
       "community": 111,
       "norm_label": "claude.md"
@@ -12244,7 +12154,7 @@
       "label": "1. Think Before Coding",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L49",
+      "source_location": "L48",
       "id": "vps_claude_1_think_before_coding",
       "community": 111,
       "norm_label": "1. think before coding"
@@ -12253,7 +12163,7 @@
       "label": "2. Simplicity First",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L59",
+      "source_location": "L58",
       "id": "vps_claude_2_simplicity_first",
       "community": 111,
       "norm_label": "2. simplicity first"
@@ -12262,7 +12172,7 @@
       "label": "3. Surgical Changes",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L71",
+      "source_location": "L70",
       "id": "vps_claude_3_surgical_changes",
       "community": 111,
       "norm_label": "3. surgical changes"
@@ -12271,7 +12181,7 @@
       "label": "4. Goal-Driven Execution",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L87",
+      "source_location": "L86",
       "id": "vps_claude_4_goal_driven_execution",
       "community": 111,
       "norm_label": "4. goal-driven execution"
@@ -12280,7 +12190,7 @@
       "label": "code:block1 (1. [Step] \u2192 verify: [check])",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L97",
+      "source_location": "L96",
       "id": "vps_claude_codeblock_1",
       "community": 111,
       "norm_label": "code:block1 (1. [step] \u2192 verify: [check])"
@@ -15350,7 +15260,7 @@
       "file_type": "code",
       "source_file": "components/dashboard/DatabaseQueryEditor.tsx",
       "source_location": "L21",
-      "community": 110,
+      "community": 34,
       "norm_label": "schemasidebar()",
       "id": "dashboard_databasequeryeditor_schemasidebar"
     },
@@ -15719,7 +15629,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 39,
+      "community": 22,
       "norm_label": "requestanimationframe",
       "id": "concept_requestanimationframe"
     },
@@ -27753,9 +27663,9 @@
       "source_file": "app/github/page.tsx",
       "source_location": "L7",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "app_github_page_tsx",
-      "target": "lib_utils_ts"
+      "target": "lib_utils_ts",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -27945,9 +27855,9 @@
       "source_file": "app/github/page.tsx",
       "source_location": "L7",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "app_github_page_tsx",
-      "target": "lib_utils_copytext"
+      "target": "lib_utils_copytext",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -31635,9 +31545,9 @@
       "source_file": "backend/internal/api/projects_handler.go",
       "source_location": "L183",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_projects_handler_go_api_server",
-      "target": "api_server_rollbackdeployment"
+      "target": "api_server_rollbackdeployment",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -32781,9 +32691,9 @@
       "source_file": "backend/internal/api/github_webhook_test.go",
       "source_location": "L10",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_github_webhook_test_go",
-      "target": "api_github_webhook_test_sign"
+      "target": "api_github_webhook_test_sign",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -32791,9 +32701,9 @@
       "source_file": "backend/internal/api/github_webhook_test.go",
       "source_location": "L16",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_github_webhook_test_go",
-      "target": "api_github_webhook_test_testvalidsignature"
+      "target": "api_github_webhook_test_testvalidsignature",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -32801,9 +32711,9 @@
       "source_file": "backend/internal/api/github_webhook_test.go",
       "source_location": "L44",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_github_webhook_test_go",
-      "target": "api_github_webhook_test_testsplitfullname"
+      "target": "api_github_webhook_test_testsplitfullname",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -32811,9 +32721,9 @@
       "source_file": "backend/internal/api/github_webhook_test.go",
       "source_location": "L64",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_github_webhook_test_go",
-      "target": "api_github_webhook_test_testfirstline"
+      "target": "api_github_webhook_test_testfirstline",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -32822,9 +32732,9 @@
       "source_file": "backend/internal/api/github_webhook_test.go",
       "source_location": "L19",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_github_webhook_test_testvalidsignature",
-      "target": "api_github_webhook_test_sign"
+      "target": "api_github_webhook_test_sign",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -33547,9 +33457,9 @@
       "source_file": "backend/internal/api/github_webhook.go",
       "source_location": "L145",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_github_webhook_go",
-      "target": "api_github_webhook_validsignature"
+      "target": "api_github_webhook_validsignature",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -33557,9 +33467,9 @@
       "source_file": "backend/internal/api/github_webhook.go",
       "source_location": "L159",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_github_webhook_go",
-      "target": "api_github_webhook_splitfullname"
+      "target": "api_github_webhook_splitfullname",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -33567,9 +33477,9 @@
       "source_file": "backend/internal/api/github_webhook.go",
       "source_location": "L167",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_github_webhook_go",
-      "target": "api_github_webhook_firstline"
+      "target": "api_github_webhook_firstline",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -33577,48 +33487,8 @@
       "source_file": "backend/internal/api/github_webhook.go",
       "source_location": "L21",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_github_webhook_go_api_server",
-      "target": "api_server_getorcreatewebhooksecret"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L47",
-      "weight": 1.0,
-      "source": "backend_internal_api_github_webhook_go_api_server",
-      "target": "api_server_webhooktargeturl",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L58",
-      "weight": 1.0,
-      "source": "backend_internal_api_github_webhook_go_api_server",
-      "target": "api_server_installprojectwebhook",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L87",
-      "weight": 1.0,
-      "source": "backend_internal_api_github_webhook_go_api_server",
-      "target": "api_server_getprojectwebhook",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L111",
-      "weight": 1.0,
-      "source": "backend_internal_api_github_webhook_go_api_server",
-      "target": "api_server_installprojectwebhookhandler",
+      "target": "api_server_getorcreatewebhooksecret",
       "confidence_score": 1.0
     },
     {
@@ -33627,9 +33497,9 @@
       "source_file": "backend/internal/api/github_webhook.go",
       "source_location": "L43",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_github_webhook_go_api_server",
-      "target": "api_server_githubwebhookinfo"
+      "target": "api_server_githubwebhookinfo",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -33637,19 +33507,8 @@
       "source_file": "backend/internal/api/github_webhook.go",
       "source_location": "L61",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_github_webhook_go_api_server",
-      "target": "api_server_githubwebhook"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L71",
-      "weight": 1.0,
-      "source": "api_server_installprojectwebhook",
-      "target": "api_server_getorcreatewebhooksecret",
+      "target": "api_server_githubwebhook",
       "confidence_score": 1.0
     },
     {
@@ -33659,9 +33518,9 @@
       "source_file": "backend/internal/api/github_webhook.go",
       "source_location": "L44",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_githubwebhookinfo",
-      "target": "api_server_getorcreatewebhooksecret"
+      "target": "api_server_getorcreatewebhooksecret",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -33670,9 +33529,9 @@
       "source_file": "backend/internal/api/github_webhook.go",
       "source_location": "L68",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_githubwebhook",
-      "target": "api_server_getorcreatewebhooksecret"
+      "target": "api_server_getorcreatewebhooksecret",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -33684,127 +33543,6 @@
       "weight": 1.0,
       "source": "api_server_getorcreatewebhooksecret",
       "target": "api_hijackedconn_read"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L59",
-      "weight": 1.0,
-      "source": "api_server_installprojectwebhook",
-      "target": "api_server_webhooktargeturl",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L93",
-      "weight": 1.0,
-      "source": "api_server_getprojectwebhook",
-      "target": "api_server_webhooktargeturl",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L120",
-      "weight": 1.0,
-      "source": "api_server_installprojectwebhookhandler",
-      "target": "api_server_webhooktargeturl",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L48",
-      "weight": 1.0,
-      "source": "api_server_webhooktargeturl",
-      "target": "proc_collector_getenv"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L117",
-      "weight": 1.0,
-      "source": "api_server_installprojectwebhookhandler",
-      "target": "api_server_installprojectwebhook",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L63",
-      "weight": 1.0,
-      "source": "api_server_installprojectwebhook",
-      "target": "github_github_parseownerrepo"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L75",
-      "weight": 1.0,
-      "source": "api_server_installprojectwebhook",
-      "target": "github_github_newclient"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L90",
-      "weight": 1.0,
-      "source": "api_server_getprojectwebhook",
-      "target": "api_http_writejson"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L95",
-      "weight": 1.0,
-      "source": "api_server_getprojectwebhook",
-      "target": "github_github_parseownerrepo"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L99",
-      "weight": 1.0,
-      "source": "api_server_getprojectwebhook",
-      "target": "github_github_newclient"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "backend/internal/api/github_webhook.go",
-      "source_location": "L114",
-      "weight": 1.0,
-      "source": "api_server_installprojectwebhookhandler",
-      "target": "api_http_writejson"
     },
     {
       "relation": "calls",
@@ -33835,9 +33573,9 @@
       "source_file": "backend/internal/api/github_webhook.go",
       "source_location": "L73",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_githubwebhook",
-      "target": "api_github_webhook_validsignature"
+      "target": "api_github_webhook_validsignature",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -33846,9 +33584,9 @@
       "source_file": "backend/internal/api/github_webhook.go",
       "source_location": "L110",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_githubwebhook",
-      "target": "api_github_webhook_splitfullname"
+      "target": "api_github_webhook_splitfullname",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -33857,9 +33595,9 @@
       "source_file": "backend/internal/api/github_webhook.go",
       "source_location": "L132",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "api_server_githubwebhook",
-      "target": "api_github_webhook_firstline"
+      "target": "api_github_webhook_firstline",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -35738,9 +35476,9 @@
       "source_file": "backend/internal/db/db_test.go",
       "source_location": "L97",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_db_db_test_go",
-      "target": "db_db_test_testsettingsroundtrip"
+      "target": "db_db_test_testsettingsroundtrip",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -35748,9 +35486,9 @@
       "source_file": "backend/internal/db/db_test.go",
       "source_location": "L117",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_db_db_test_go",
-      "target": "db_db_test_testdeploymentimagetagroundtrip"
+      "target": "db_db_test_testdeploymentimagetagroundtrip",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -35803,9 +35541,9 @@
       "source_file": "backend/internal/db/db_test.go",
       "source_location": "L98",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db_test_testsettingsroundtrip",
-      "target": "db_db_test_newtestdb"
+      "target": "db_db_test_newtestdb",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -35814,9 +35552,9 @@
       "source_file": "backend/internal/db/db_test.go",
       "source_location": "L118",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db_test_testdeploymentimagetagroundtrip",
-      "target": "db_db_test_newtestdb"
+      "target": "db_db_test_newtestdb",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -35925,9 +35663,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L430",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_db_db_go",
-      "target": "db_db_nullable"
+      "target": "db_db_nullable",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -35945,9 +35683,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L487",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_db_db_go",
-      "target": "db_db_scandeployment"
+      "target": "db_db_scandeployment",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -36135,9 +35873,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L440",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db",
-      "target": "db_db_getsetting"
+      "target": "db_db_getsetting",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -36145,9 +35883,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L450",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db",
-      "target": "db_db_setsetting"
+      "target": "db_db_setsetting",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -36205,9 +35943,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L527",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db",
-      "target": "db_db_updatedeploymentimage"
+      "target": "db_db_updatedeploymentimage",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -36839,9 +36577,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L494",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db_createdeployment",
-      "target": "db_db_nullable"
+      "target": "db_db_nullable",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -36850,9 +36588,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L507",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db_listdeployments",
-      "target": "db_db_scandeployment"
+      "target": "db_db_scandeployment",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -36861,9 +36599,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L535",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db_getdeploymentbyid",
-      "target": "db_db_scandeployment"
+      "target": "db_db_scandeployment",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -36872,9 +36610,9 @@
       "source_file": "backend/internal/db/db.go",
       "source_location": "L553",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "db_db_getqueueddeployments",
-      "target": "db_db_scandeployment"
+      "target": "db_db_scandeployment",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -36998,9 +36736,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L127",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_builder_builder_go",
-      "target": "builder_builder_runfromimage"
+      "target": "builder_builder_runfromimage",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -37008,9 +36746,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L146",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_builder_builder_go",
-      "target": "builder_builder_shortid"
+      "target": "builder_builder_shortid",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -37048,9 +36786,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L383",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_builder_builder_go",
-      "target": "builder_containerstate"
+      "target": "builder_containerstate",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -37058,9 +36796,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L390",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_builder_builder_go",
-      "target": "builder_builder_inspectstate"
+      "target": "builder_builder_inspectstate",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -37168,9 +36906,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L271",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_config",
-      "target": "builder_config_deploycontainer"
+      "target": "builder_config_deploycontainer",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -37178,9 +36916,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L329",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_config",
-      "target": "builder_config_removeoldcontainers"
+      "target": "builder_config_removeoldcontainers",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -37188,9 +36926,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L349",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_config",
-      "target": "builder_config_waithealthy"
+      "target": "builder_config_waithealthy",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -37304,9 +37042,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L96",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_builder_run",
-      "target": "builder_builder_shortid"
+      "target": "builder_builder_shortid",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37418,9 +37156,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L128",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_builder_runfromimage",
-      "target": "builder_config_log"
+      "target": "builder_config_log",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37429,9 +37167,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L130",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_builder_runfromimage",
-      "target": "builder_builder_runsilent"
+      "target": "builder_builder_runsilent",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37440,9 +37178,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L137",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_builder_runfromimage",
-      "target": "builder_config_deploycontainer"
+      "target": "builder_config_deploycontainer",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37451,9 +37189,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L137",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_builder_runfromimage",
-      "target": "builder_builder_sanitizename"
+      "target": "builder_builder_sanitizename",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37561,9 +37299,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L216",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_config_builddockerfile",
-      "target": "builder_config_deploycontainer"
+      "target": "builder_config_deploycontainer",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37627,9 +37365,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L236",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_config_buildnixpacks",
-      "target": "builder_config_deploycontainer"
+      "target": "builder_config_deploycontainer",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37671,9 +37409,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L275",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_config_deploycontainer",
-      "target": "builder_config_resolvetraefiknetwork"
+      "target": "builder_config_resolvetraefiknetwork",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37682,9 +37420,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L301",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_config_deploycontainer",
-      "target": "builder_config_log"
+      "target": "builder_config_log",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37693,9 +37431,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L302",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_config_deploycontainer",
-      "target": "builder_builder_runoutput"
+      "target": "builder_builder_runoutput",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37704,9 +37442,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L304",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_config_deploycontainer",
-      "target": "builder_builder_runsilent"
+      "target": "builder_builder_runsilent",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37715,9 +37453,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L314",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_config_deploycontainer",
-      "target": "builder_config_waithealthy"
+      "target": "builder_config_waithealthy",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37726,9 +37464,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L321",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_config_deploycontainer",
-      "target": "builder_config_removeoldcontainers"
+      "target": "builder_config_removeoldcontainers",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37737,9 +37475,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L331",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_config_removeoldcontainers",
-      "target": "builder_builder_runoutput"
+      "target": "builder_builder_runoutput",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37748,9 +37486,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L337",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_config_removeoldcontainers",
-      "target": "builder_builder_runsilent"
+      "target": "builder_builder_runsilent",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37759,9 +37497,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L358",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_config_waithealthy",
-      "target": "builder_builder_inspectstate"
+      "target": "builder_builder_inspectstate",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37770,9 +37508,9 @@
       "source_file": "backend/internal/builder/builder.go",
       "source_location": "L391",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "builder_builder_inspectstate",
-      "target": "builder_builder_runoutput"
+      "target": "builder_builder_runoutput",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -37912,9 +37650,9 @@
       "source_file": "backend/internal/builder/builder_test.go",
       "source_location": "L5",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_builder_builder_test_go",
-      "target": "builder_builder_test_testshortid"
+      "target": "builder_builder_test_testshortid",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -37922,9 +37660,9 @@
       "source_file": "backend/internal/builder/builder_test.go",
       "source_location": "L19",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_builder_builder_test_go",
-      "target": "builder_builder_test_testsanitizename"
+      "target": "builder_builder_test_testsanitizename",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -40502,16 +40240,6 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L72",
-      "weight": 1.0,
-      "source": "backend_internal_github_github_go",
-      "target": "github_hook",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/github/github.go",
       "source_location": "L45",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -40582,46 +40310,6 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/internal/github/github.go",
-      "source_location": "L45",
-      "weight": 1.0,
-      "source": "github_client",
-      "target": "github_client_post",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/github/github.go",
-      "source_location": "L80",
-      "weight": 1.0,
-      "source": "github_client",
-      "target": "github_client_listhooks",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/github/github.go",
-      "source_location": "L87",
-      "weight": 1.0,
-      "source": "github_client",
-      "target": "github_client_haswebhook",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/github/github.go",
-      "source_location": "L104",
-      "weight": 1.0,
-      "source": "github_client",
-      "target": "github_client_ensurewebhook",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/github/github.go",
       "source_location": "L51",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -40657,17 +40345,6 @@
       "confidence_score": 1.0,
       "source": "github_client",
       "target": "github_client_getbranchhead"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/github/github.go",
-      "source_location": "L82",
-      "weight": 1.0,
-      "source": "github_client_listhooks",
-      "target": "github_client_get",
-      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -40712,39 +40389,6 @@
       "confidence_score": 1.0,
       "source": "github_client_getbranchhead",
       "target": "github_client_get"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/github/github.go",
-      "source_location": "L123",
-      "weight": 1.0,
-      "source": "github_client_ensurewebhook",
-      "target": "github_client_post",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/github/github.go",
-      "source_location": "L88",
-      "weight": 1.0,
-      "source": "github_client_haswebhook",
-      "target": "github_client_listhooks",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/internal/github/github.go",
-      "source_location": "L105",
-      "weight": 1.0,
-      "source": "github_client_ensurewebhook",
-      "target": "github_client_haswebhook",
-      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -41029,16 +40673,6 @@
       "confidence_score": 1.0,
       "source": "app_projects_id_page_tsx",
       "target": "id_page_logline"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/projects/[id]/page.tsx",
-      "source_location": "L27",
-      "weight": 1.0,
-      "source": "app_projects_id_page_tsx",
-      "target": "id_page_webhookstatus",
-      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -43035,9 +42669,9 @@
       "source_file": "CLAUDE.md",
       "source_location": "L26",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "vps_claude_architecture_notes",
-      "target": "vps_claude_deployment_pipeline_webhooks_rollback_zero_downtime_backend_internal_builder_builder_go_internal_queue_queue_go"
+      "target": "vps_claude_deployment_pipeline_webhooks_rollback_zero_downtime_backend_internal_builder_builder_go_internal_queue_queue_go",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -48384,5 +48018,5 @@
       "source_file": "tailwind.config.ts"
     }
   ],
-  "built_at_commit": "4c36177538329fe4a5eb5eeee5fff30ea9ddf54a"
+  "built_at_commit": "0278e56a1c2a92a81c39b0247e93b477d76cfbd3"
 }
