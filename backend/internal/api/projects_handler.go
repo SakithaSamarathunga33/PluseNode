@@ -177,6 +177,48 @@ func (s *Server) deployProject(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusAccepted, map[string]string{"deploymentId": dep.ID})
 }
 
+// rollbackDeployment redeploys the image a previous successful deployment
+// produced, without rebuilding. Only deployments that recorded an image tag
+// (Dockerfile/Nixpacks builds) can be rolled back to.
+func (s *Server) rollbackDeployment(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	depID := chi.URLParam(r, "depID")
+
+	proj, err := s.db.GetProject(id)
+	if err != nil || proj == nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "project not found"})
+		return
+	}
+	target, err := s.db.GetDeploymentByID(depID)
+	if err != nil || target == nil || target.ProjectID != id {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "deployment not found"})
+		return
+	}
+	if target.ImageTag == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "this deployment has no rollback image (only Dockerfile/Nixpacks builds can be rolled back)"})
+		return
+	}
+
+	dep := &db.Deployment{
+		ID:        db.NewID("dep"),
+		ProjectID: id,
+		Status:    "queued",
+		Trigger:   "rollback",
+		ImageTag:  target.ImageTag,
+		CommitSHA: target.CommitSHA,
+		CommitMsg: target.CommitMsg,
+	}
+	if err := s.db.CreateDeployment(dep); err != nil {
+		writeError(w, err)
+		return
+	}
+	_ = s.db.UpdateDeploymentCommit(dep.ID, target.CommitSHA, target.CommitMsg)
+	_ = s.db.UpdateProjectStatus(id, "building", "")
+	s.queue.Enqueue(dep.ID)
+
+	writeJSON(w, http.StatusAccepted, map[string]string{"deploymentId": dep.ID})
+}
+
 func (s *Server) listDeployments(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	deps, err := s.db.ListDeployments(id)

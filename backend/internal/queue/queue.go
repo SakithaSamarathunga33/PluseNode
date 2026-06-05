@@ -92,20 +92,31 @@ func (q *Queue) runDeployment(depID string) {
 		token = acct.AccessToken
 	}
 
-	res, buildErr := builder.Run(ctx, builder.Config{
-		DeploymentID: depID,
-		ProjectID:    proj.ID,
-		ProjectName:  proj.Name,
-		RepoURL:      github.AuthorisedCloneURL(proj.RepoURL, token),
-		Branch:       proj.Branch,
-		Method:       builder.Method(proj.BuildMethod),
-		BuildCommand: proj.BuildCommand,
-		Port:         proj.Port,
-		Domain:       proj.Domain,
-		EnvVars:      proj.EnvVars,
-		TraefikNet:   os.Getenv("TRAEFIK_NETWORK"),
-		Log:          emit,
-	})
+	cfg := builder.Config{
+		DeploymentID:    depID,
+		ProjectID:       proj.ID,
+		ProjectName:     proj.Name,
+		RepoURL:         github.AuthorisedCloneURL(proj.RepoURL, token),
+		Branch:          proj.Branch,
+		Method:          builder.Method(proj.BuildMethod),
+		BuildCommand:    proj.BuildCommand,
+		Port:            proj.Port,
+		Domain:          proj.Domain,
+		EnvVars:         proj.EnvVars,
+		TraefikNet:      os.Getenv("TRAEFIK_NETWORK"),
+		PrevContainerID: proj.ContainerID,
+		Log:             emit,
+	}
+
+	// A rollback redeploys a previously-built image instead of cloning/building.
+	var res builder.Result
+	var buildErr error
+	if dep.Trigger == "rollback" && dep.ImageTag != "" {
+		res, buildErr = builder.RunFromImage(ctx, cfg, dep.ImageTag)
+		res.CommitSHA, res.CommitMsg = dep.CommitSHA, dep.CommitMsg // carried from the target deploy
+	} else {
+		res, buildErr = builder.Run(ctx, cfg)
+	}
 
 	// Record the commit that was built (even on failure, for history/diagnostics).
 	if res.CommitSHA != "" {
@@ -116,10 +127,15 @@ func (q *Queue) runDeployment(depID string) {
 	if buildErr != nil {
 		emit("system", "✕ Build failed: "+buildErr.Error())
 		_ = q.db.UpdateDeploymentStatus(depID, "failed", &now, &finishedAt)
-		_ = q.db.UpdateProjectStatus(proj.ID, "failed", "")
+		// Zero-downtime: the previous container is still serving on a failed
+		// deploy, so keep the project pointed at it instead of clearing the ref.
+		_ = q.db.UpdateProjectStatus(proj.ID, "failed", proj.ContainerID)
 		return
 	}
 
+	if res.ImageTag != "" {
+		_ = q.db.UpdateDeploymentImage(depID, res.ImageTag)
+	}
 	_ = q.db.UpdateDeploymentStatus(depID, "success", &now, &finishedAt)
 	_ = q.db.UpdateProjectStatus(proj.ID, "running", res.ContainerID)
 	// Seed/refresh the baseline commit so the poller only fires on newer commits.

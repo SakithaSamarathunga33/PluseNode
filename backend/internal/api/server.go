@@ -84,6 +84,8 @@ func (s *Server) Routes() http.Handler {
 	r.Post("/api/ws/containers/resize", s.containerShellResize)
 
 	r.Get("/api/github/callback", s.githubCallback)
+	// GitHub push webhook — public, authenticated by HMAC signature (see handler).
+	r.Post("/api/github/webhook", s.githubWebhook)
 
 	r.Get("/api/auth/status", s.authStatus)
 	r.Post("/api/auth/login", s.authLogin)
@@ -131,6 +133,7 @@ func (s *Server) Routes() http.Handler {
 		r.Get("/github/branches", s.githubBranches)
 		r.Get("/github/oauth-settings", s.githubOAuthSettings)
 		r.Post("/github/oauth-settings", s.githubSaveOAuthSettings)
+		r.Get("/github/webhook-info", s.githubWebhookInfo)
 
 		// Domain settings
 		r.Get("/domain/settings", s.domainSettings)
@@ -153,6 +156,7 @@ func (s *Server) Routes() http.Handler {
 		r.Delete("/projects/{id}", s.deleteProject)
 		r.Post("/projects/{id}/deploy", s.deployProject)
 		r.Get("/projects/{id}/deployments", s.listDeployments)
+		r.Post("/projects/{id}/deployments/{depID}/rollback", s.rollbackDeployment)
 		r.Get("/projects/{id}/deployments/{depID}/logs", s.getDeploymentLogs)
 
 		// Managed databases (PulseNode-provisioned)

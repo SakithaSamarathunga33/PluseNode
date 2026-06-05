@@ -29,6 +29,7 @@ type Config struct {
 	Domain       string
 	EnvVars      string // JSON {"KEY":"VALUE"}
 	TraefikNet   string
+	PrevContainerID string // previous running container, removed after the new one is healthy
 	Log          LogFunc
 }
 
@@ -37,7 +38,16 @@ type Result struct {
 	ContainerID string
 	CommitSHA   string // full SHA of the built commit
 	CommitMsg   string // first line of the commit message
+	ImageTag    string // docker image:tag produced (empty for compose); enables rollback
 }
+
+// healthTimeout is how long a new container has to become healthy before the
+// deploy is considered failed and rolled back. stableWindow is how long a
+// container without its own HEALTHCHECK must stay up to be deemed healthy.
+const (
+	healthTimeout = 90 * time.Second
+	stableWindow  = 6 * time.Second
+)
 
 // Run clones the repo, builds, and starts the container.
 // Returns the running container and the commit that was built.
@@ -79,18 +89,26 @@ func Run(ctx context.Context, cfg Config) (Result, error) {
 	}
 
 	slug := sanitizeName(cfg.ProjectName)
-	imageName := fmt.Sprintf("pn-%s", slug)
-	containerName := fmt.Sprintf("pn-%s", slug)
+	// Tag the image per-deploy (pn-<slug>:<shortSHA>) so a previous image stays
+	// available for rollback instead of being overwritten each build.
+	verTag := shortSHA(commitSHA)
+	if verTag == "" {
+		verTag = shortID(cfg.DeploymentID)
+	}
+	imageRef := fmt.Sprintf("pn-%s:%s", slug, verTag)
 
 	// 4. Build & run
-	var containerID string
+	res := Result{CommitSHA: commitSHA, CommitMsg: commitMsg}
 	switch method {
 	case MethodCompose:
-		containerID, err = cfg.buildCompose(ctx, tmpDir, containerName, envMap)
+		// Compose manages its own images/services; no single image to tag or roll back.
+		res.ContainerID, err = cfg.buildCompose(ctx, tmpDir, fmt.Sprintf("pn-%s", slug), envMap)
 	case MethodDockerfile:
-		containerID, err = cfg.buildDockerfile(ctx, tmpDir, imageName, containerName, envMap)
+		res.ContainerID, err = cfg.buildDockerfile(ctx, tmpDir, imageRef, slug, envMap)
+		res.ImageTag = imageRef
 	case MethodNixpacks:
-		containerID, err = cfg.buildNixpacks(ctx, tmpDir, imageName, containerName, envMap)
+		res.ContainerID, err = cfg.buildNixpacks(ctx, tmpDir, imageRef, slug, envMap)
+		res.ImageTag = imageRef
 	default:
 		return Result{}, fmt.Errorf("unknown build method: %s", method)
 	}
@@ -98,9 +116,41 @@ func Run(ctx context.Context, cfg Config) (Result, error) {
 		return Result{}, err
 	}
 
-	cfg.log("system", fmt.Sprintf("✓ Container running: %s", containerID[:min(12, len(containerID))]))
+	cfg.log("system", fmt.Sprintf("✓ Container healthy: %s", res.ContainerID[:min(12, len(res.ContainerID))]))
 	cfg.log("system", fmt.Sprintf("✓ Live at https://%s", cfg.Domain))
-	return Result{ContainerID: containerID, CommitSHA: commitSHA, CommitMsg: commitMsg}, nil
+	return res, nil
+}
+
+// RunFromImage redeploys a previously-built image (rollback) without cloning or
+// rebuilding. The image must still exist locally. It uses the same zero-downtime
+// swap + health gate as a normal deploy.
+func RunFromImage(ctx context.Context, cfg Config, imageRef string) (Result, error) {
+	cfg.log("system", "=== PulseNode Rollback Started ===")
+	cfg.log("system", "→ Redeploying image "+imageRef)
+	if err := runSilent(ctx, "docker", "image", "inspect", imageRef); err != nil {
+		return Result{}, fmt.Errorf("image %s is no longer available locally (it may have been pruned)", imageRef)
+	}
+	envMap := map[string]string{}
+	if cfg.EnvVars != "" && cfg.EnvVars != "{}" {
+		_ = json.Unmarshal([]byte(cfg.EnvVars), &envMap)
+	}
+	cid, err := cfg.deployContainer(ctx, imageRef, sanitizeName(cfg.ProjectName), envMap)
+	if err != nil {
+		return Result{}, err
+	}
+	cfg.log("system", fmt.Sprintf("✓ Rolled back. Live at https://%s", cfg.Domain))
+	return Result{ContainerID: cid, ImageTag: imageRef}, nil
+}
+
+// shortID returns the trailing 8 chars of a deployment id (after the prefix).
+func shortID(id string) string {
+	if i := strings.LastIndex(id, "_"); i >= 0 && i+1 < len(id) {
+		id = id[i+1:]
+	}
+	if len(id) > 8 {
+		return id[len(id)-8:]
+	}
+	return id
 }
 
 // shortSHA returns the first 7 characters of a commit SHA.
@@ -158,12 +208,12 @@ func (cfg Config) buildCompose(ctx context.Context, dir, containerName string, e
 	return ids[0][:min(12, len(ids[0]))], nil
 }
 
-func (cfg Config) buildDockerfile(ctx context.Context, dir, imageName, containerName string, envMap map[string]string) (string, error) {
+func (cfg Config) buildDockerfile(ctx context.Context, dir, imageRef, slug string, envMap map[string]string) (string, error) {
 	cfg.log("system", "→ Building Docker image…")
-	if err := cfg.run(ctx, dir, "docker", "build", "-t", imageName, "."); err != nil {
+	if err := cfg.run(ctx, dir, "docker", "build", "-t", imageRef, "."); err != nil {
 		return "", fmt.Errorf("docker build: %w", err)
 	}
-	return cfg.runContainer(ctx, imageName, containerName, envMap)
+	return cfg.deployContainer(ctx, imageRef, slug, envMap)
 }
 
 // defaultNodeVersion is injected for Node projects that don't pin their own
@@ -171,9 +221,9 @@ func (cfg Config) buildDockerfile(ctx context.Context, dir, imageName, container
 // frameworks (e.g. Next.js 16 requires Node >= 20.9.0).
 const defaultNodeVersion = "20"
 
-func (cfg Config) buildNixpacks(ctx context.Context, dir, imageName, containerName string, envMap map[string]string) (string, error) {
+func (cfg Config) buildNixpacks(ctx context.Context, dir, imageRef, slug string, envMap map[string]string) (string, error) {
 	cfg.log("system", "→ Building with Nixpacks (this may take a few minutes)…")
-	args := []string{"build", dir, "--name", imageName}
+	args := []string{"build", dir, "--name", imageRef}
 	// NIXPACKS_NODE_VERSION overrides engines.node/.nvmrc, so only inject a
 	// default when the project hasn't pinned a version itself.
 	if isNodeProject(dir) && !pinsNodeVersion(dir) {
@@ -183,7 +233,7 @@ func (cfg Config) buildNixpacks(ctx context.Context, dir, imageName, containerNa
 	if err := cfg.run(ctx, dir, "nixpacks", args...); err != nil {
 		return "", fmt.Errorf("nixpacks build: %w", err)
 	}
-	return cfg.runContainer(ctx, imageName, containerName, envMap)
+	return cfg.deployContainer(ctx, imageRef, slug, envMap)
 }
 
 // isNodeProject reports whether the build directory contains a package.json.
@@ -213,13 +263,12 @@ func pinsNodeVersion(dir string) bool {
 	return strings.TrimSpace(pkg.Engines.Node) != ""
 }
 
-func (cfg Config) runContainer(ctx context.Context, imageName, containerName string, envMap map[string]string) (string, error) {
-	// Stop and remove existing container with the same name
-	_ = runSilent(ctx, "docker", "rm", "-f", containerName)
-
-	args := []string{"run", "-d", "--name", containerName, "--restart", "unless-stopped"}
-
-	// Traefik labels
+// deployContainer starts a NEW container from imageRef under a unique name,
+// waits for it to become healthy, and only then removes the project's previous
+// container(s) — so a failed deploy never takes down the running version
+// (zero-downtime). Both containers carry identical Traefik router/service labels,
+// so Traefik load-balances across them during the brief overlap.
+func (cfg Config) deployContainer(ctx context.Context, imageRef, slug string, envMap map[string]string) (string, error) {
 	id := cfg.ProjectID
 	domain := cfg.Domain
 	port := fmt.Sprintf("%d", cfg.Port)
@@ -227,9 +276,13 @@ func (cfg Config) runContainer(ctx context.Context, imageName, containerName str
 	if traefikNet == "" {
 		return "", fmt.Errorf("TRAEFIK_NETWORK is not configured and no Traefik Docker network could be detected")
 	}
+
+	newName := fmt.Sprintf("pn-%s-%d", slug, time.Now().Unix())
+	args := []string{"run", "-d", "--name", newName, "--restart", "unless-stopped"}
 	args = append(args, "--network", traefikNet)
 	args = append(args,
 		"--label", "traefik.enable=true",
+		"--label", fmt.Sprintf("pulsenode.project=%s", id),
 		"--label", fmt.Sprintf("traefik.http.routers.pn-%s.rule=Host(`%s`)", id, domain),
 		"--label", fmt.Sprintf("traefik.http.routers.pn-%s.entrypoints=websecure", id),
 		"--label", fmt.Sprintf("traefik.http.routers.pn-%s.tls.certresolver=letsencrypt", id),
@@ -237,26 +290,120 @@ func (cfg Config) runContainer(ctx context.Context, imageName, containerName str
 		"--label", fmt.Sprintf("traefik.docker.network=%s", traefikNet),
 	)
 
-	// Env vars
 	if _, ok := envMap["PORT"]; !ok {
 		args = append(args, "-e", "PORT="+port)
 	}
 	for k, v := range envMap {
 		args = append(args, "-e", fmt.Sprintf("%s=%s", k, v))
 	}
+	args = append(args, imageRef)
 
-	args = append(args, imageName)
-
-	cfg.log("system", "→ Starting container…")
+	cfg.log("system", "→ Starting new container…")
 	out, err := runOutput(ctx, "", "docker", args...)
 	if err != nil {
+		_ = runSilent(ctx, "docker", "rm", "-f", newName)
 		return "", fmt.Errorf("docker run: %w", err)
 	}
 	cid := strings.TrimSpace(out)
 	if len(cid) > 12 {
 		cid = cid[:12]
 	}
+
+	// Health gate — keep the old version serving until the new one is proven healthy.
+	cfg.log("system", "→ Waiting for the new container to become healthy…")
+	if err := cfg.waitHealthy(ctx, newName); err != nil {
+		cfg.log("system", "✕ New container failed its health check — keeping the previous version running")
+		_ = runSilent(ctx, "docker", "rm", "-f", newName)
+		return "", fmt.Errorf("health check failed: %w", err)
+	}
+	cfg.log("system", "✓ New container is healthy — switching traffic over")
+
+	cfg.removeOldContainers(ctx, id, cid)
 	return cid, nil
+}
+
+// removeOldContainers removes every container for this project except keepID:
+// the new-style ones (matched by the pulsenode.project label) and the previous
+// container recorded by the caller (covers containers from the old naming scheme
+// that predate the label).
+func (cfg Config) removeOldContainers(ctx context.Context, projectID, keepID string) {
+	seen := map[string]bool{keepID: true}
+	out, _ := runOutput(ctx, "", "docker", "ps", "-aq", "--filter", "label=pulsenode.project="+projectID)
+	for _, oldID := range strings.Fields(out) {
+		if seen[oldID] || strings.HasPrefix(keepID, oldID) || strings.HasPrefix(oldID, keepID) {
+			continue
+		}
+		seen[oldID] = true
+		_ = runSilent(ctx, "docker", "rm", "-f", oldID)
+	}
+	if prev := strings.TrimSpace(cfg.PrevContainerID); prev != "" && !seen[prev] &&
+		!strings.HasPrefix(keepID, prev) && !strings.HasPrefix(prev, keepID) {
+		_ = runSilent(ctx, "docker", "rm", "-f", prev)
+	}
+}
+
+// waitHealthy blocks until the container reports healthy, fails, or healthTimeout
+// elapses. If the image defines a HEALTHCHECK its status is authoritative;
+// otherwise the container is considered healthy once it has stayed up (not
+// exited, not restarting) for stableWindow.
+func (cfg Config) waitHealthy(ctx context.Context, name string) error {
+	deadline := time.Now().Add(healthTimeout)
+	var stableSince time.Time
+	for time.Now().Before(deadline) {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+		st := inspectState(ctx, name)
+		switch {
+		case st.health == "healthy":
+			return nil
+		case st.health == "unhealthy":
+			return fmt.Errorf("container reported unhealthy")
+		case st.health != "": // "starting" — image healthcheck still running
+			stableSince = time.Time{}
+		case st.status == "exited" || st.status == "dead":
+			return fmt.Errorf("container exited (code %d)", st.exitCode)
+		case st.running && !st.restarting:
+			if stableSince.IsZero() {
+				stableSince = time.Now()
+			}
+			if time.Since(stableSince) >= stableWindow {
+				return nil
+			}
+		default:
+			stableSince = time.Time{}
+		}
+		time.Sleep(1500 * time.Millisecond)
+	}
+	return fmt.Errorf("timed out after %s", healthTimeout)
+}
+
+type containerState struct {
+	running, restarting bool
+	status              string
+	exitCode            int
+	health              string
+}
+
+func inspectState(ctx context.Context, name string) containerState {
+	out, err := runOutput(ctx, "", "docker", "inspect", "-f",
+		"{{.State.Running}}|{{.State.Restarting}}|{{.State.Status}}|{{.State.ExitCode}}|{{if .State.Health}}{{.State.Health.Status}}{{end}}", name)
+	var st containerState
+	if err != nil {
+		return st
+	}
+	parts := strings.SplitN(strings.TrimSpace(out), "|", 5)
+	if len(parts) != 5 {
+		return st
+	}
+	st.running = parts[0] == "true"
+	st.restarting = parts[1] == "true"
+	st.status = parts[2]
+	fmt.Sscanf(parts[3], "%d", &st.exitCode)
+	st.health = parts[4]
+	return st
 }
 
 func (cfg Config) composeOverlay(net string) string {

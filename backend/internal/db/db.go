@@ -192,6 +192,9 @@ CREATE TABLE IF NOT EXISTS domains (
 	// EXISTS won't add columns to a table that already exists).
 	d.addColumn("projects", "auto_deploy", "INTEGER NOT NULL DEFAULT 1")
 	d.addColumn("projects", "last_commit_sha", "TEXT")
+	// image_tag records the Docker image a deployment produced, so a later
+	// deployment can be rolled back to it without rebuilding.
+	d.addColumn("deployments", "image_tag", "TEXT")
 	return nil
 }
 
@@ -422,6 +425,35 @@ func boolToInt(b bool) int {
 	return 0
 }
 
+// nullable returns nil for an empty string so the column stores NULL instead of
+// an empty string (keeps COALESCE/IS NULL checks meaningful).
+func nullable(s string) any {
+	if s == "" {
+		return nil
+	}
+	return s
+}
+
+// ── Settings (key/value) ──────────────────────────────────────────────────────
+
+// GetSetting returns the value for key, or "" if unset.
+func (d *DB) GetSetting(key string) (string, error) {
+	var v string
+	err := d.QueryRow(`SELECT value FROM settings WHERE key=?`, key).Scan(&v)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
+	}
+	return v, err
+}
+
+// SetSetting upserts a key/value pair.
+func (d *DB) SetSetting(key, value string) error {
+	_, err := d.Exec(`
+INSERT INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP`, key, value)
+	return err
+}
+
 func (d *DB) DeleteProject(id string) error {
 	_, err := d.Exec(`DELETE FROM deployment_logs WHERE deployment_id IN (SELECT id FROM deployments WHERE project_id=?)`, id)
 	if err != nil {
@@ -444,20 +476,27 @@ type Deployment struct {
 	Trigger    string
 	CommitSHA  string
 	CommitMsg  string
+	ImageTag   string
 	StartedAt  *time.Time
 	FinishedAt *time.Time
 	CreatedAt  time.Time
 }
 
+const deploymentCols = `id, project_id, status, trigger, COALESCE(commit_sha,''), COALESCE(commit_msg,''), COALESCE(image_tag,''), started_at, finished_at, created_at`
+
+func scanDeployment(s interface{ Scan(...any) error }, dep *Deployment) error {
+	return s.Scan(&dep.ID, &dep.ProjectID, &dep.Status, &dep.Trigger, &dep.CommitSHA, &dep.CommitMsg, &dep.ImageTag, &dep.StartedAt, &dep.FinishedAt, &dep.CreatedAt)
+}
+
 func (d *DB) CreateDeployment(dep *Deployment) error {
 	_, err := d.Exec(`
-INSERT INTO deployments (id, project_id, status, trigger) VALUES (?, ?, ?, ?)`,
-		dep.ID, dep.ProjectID, dep.Status, dep.Trigger)
+INSERT INTO deployments (id, project_id, status, trigger, image_tag) VALUES (?, ?, ?, ?, ?)`,
+		dep.ID, dep.ProjectID, dep.Status, dep.Trigger, nullable(dep.ImageTag))
 	return err
 }
 
 func (d *DB) ListDeployments(projectID string) ([]Deployment, error) {
-	rows, err := d.Query(`SELECT id, project_id, status, trigger, COALESCE(commit_sha,''), COALESCE(commit_msg,''), started_at, finished_at, created_at FROM deployments WHERE project_id=? ORDER BY created_at DESC LIMIT 20`, projectID)
+	rows, err := d.Query(`SELECT `+deploymentCols+` FROM deployments WHERE project_id=? ORDER BY created_at DESC LIMIT 20`, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -465,7 +504,7 @@ func (d *DB) ListDeployments(projectID string) ([]Deployment, error) {
 	var out []Deployment
 	for rows.Next() {
 		var dep Deployment
-		if err := rows.Scan(&dep.ID, &dep.ProjectID, &dep.Status, &dep.Trigger, &dep.CommitSHA, &dep.CommitMsg, &dep.StartedAt, &dep.FinishedAt, &dep.CreatedAt); err != nil {
+		if err := scanDeployment(rows, &dep); err != nil {
 			return nil, err
 		}
 		out = append(out, dep)
@@ -484,10 +523,16 @@ func (d *DB) UpdateDeploymentCommit(id, sha, msg string) error {
 	return err
 }
 
+// UpdateDeploymentImage records the Docker image tag a deployment produced.
+func (d *DB) UpdateDeploymentImage(id, imageTag string) error {
+	_, err := d.Exec(`UPDATE deployments SET image_tag=? WHERE id=?`, imageTag, id)
+	return err
+}
+
 func (d *DB) GetDeploymentByID(id string) (*Deployment, error) {
-	row := d.QueryRow(`SELECT id, project_id, status, trigger, COALESCE(commit_sha,''), COALESCE(commit_msg,''), started_at, finished_at, created_at FROM deployments WHERE id=?`, id)
+	row := d.QueryRow(`SELECT `+deploymentCols+` FROM deployments WHERE id=?`, id)
 	var dep Deployment
-	if err := row.Scan(&dep.ID, &dep.ProjectID, &dep.Status, &dep.Trigger, &dep.CommitSHA, &dep.CommitMsg, &dep.StartedAt, &dep.FinishedAt, &dep.CreatedAt); err != nil {
+	if err := scanDeployment(row, &dep); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
@@ -497,7 +542,7 @@ func (d *DB) GetDeploymentByID(id string) (*Deployment, error) {
 }
 
 func (d *DB) GetQueuedDeployments() ([]Deployment, error) {
-	rows, err := d.Query(`SELECT id, project_id, status, trigger, COALESCE(commit_sha,''), COALESCE(commit_msg,''), started_at, finished_at, created_at FROM deployments WHERE status IN ('queued','building') ORDER BY created_at ASC`)
+	rows, err := d.Query(`SELECT ` + deploymentCols + ` FROM deployments WHERE status IN ('queued','building') ORDER BY created_at ASC`)
 	if err != nil {
 		return nil, err
 	}
@@ -505,7 +550,7 @@ func (d *DB) GetQueuedDeployments() ([]Deployment, error) {
 	var out []Deployment
 	for rows.Next() {
 		var dep Deployment
-		if err := rows.Scan(&dep.ID, &dep.ProjectID, &dep.Status, &dep.Trigger, &dep.CommitSHA, &dep.CommitMsg, &dep.StartedAt, &dep.FinishedAt, &dep.CreatedAt); err != nil {
+		if err := scanDeployment(rows, &dep); err != nil {
 			return nil, err
 		}
 		out = append(out, dep)

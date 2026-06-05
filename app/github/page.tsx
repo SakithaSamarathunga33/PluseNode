@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Key, Unlink, RefreshCw, ExternalLink, ChevronRight, Shield } from "lucide-react"
+import { Key, Unlink, RefreshCw, ExternalLink, ChevronRight, Shield, Webhook, Copy, Check, Eye, EyeOff } from "lucide-react"
 import { GitHubDark } from "developer-icons"
 import Link from "next/link"
+import { copyText } from "@/lib/utils"
 
 const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
 
@@ -24,6 +25,10 @@ export default function GitHubPage() {
   const [oauthSaving, setOauthSaving]     = useState(false)
   const [oauthSaved, setOauthSaved]       = useState(false)
 
+  const [webhookSecret, setWebhookSecret] = useState("")
+  const [showSecret, setShowSecret]       = useState(false)
+  const [copied, setCopied]               = useState<string | null>(null)
+
   const fetchAccount = useCallback(async () => {
     try {
       const r = await fetch(`${GO_API}/api/github/account`)
@@ -40,11 +45,27 @@ export default function GitHubPage() {
     } catch { setOAuthSettings(null) }
   }, [])
 
+  const fetchWebhook = useCallback(async () => {
+    try {
+      const r = await fetch(`${GO_API}/api/github/webhook-info`)
+      const d = await r.json()
+      setWebhookSecret(d.secret ?? "")
+    } catch { /* ignore */ }
+  }, [])
+
   useEffect(() => {
-    Promise.all([fetchAccount(), fetchOAuthSettings()]).finally(() => setLoading(false))
+    Promise.all([fetchAccount(), fetchOAuthSettings(), fetchWebhook()]).finally(() => setLoading(false))
     const params = new URLSearchParams(window.location.search)
     if (params.get("connected") === "1") window.history.replaceState({}, "", "/github")
-  }, [fetchAccount, fetchOAuthSettings])
+  }, [fetchAccount, fetchOAuthSettings, fetchWebhook])
+
+  const copy = async (value: string, key: string) => {
+    if (await copyText(value)) {
+      setCopied(key)
+      setTimeout(() => setCopied(c => (c === key ? null : c)), 1600)
+    }
+  }
+  const webhookUrl = typeof window !== "undefined" ? `${window.location.origin}${GO_API}/api/github/webhook` : ""
 
   const connectOAuth = async () => {
     const r = await fetch(`${GO_API}/api/github/auth-url`)
@@ -273,6 +294,55 @@ export default function GitHubPage() {
               <li>4. You&apos;re redirected back and connected</li>
             </ul>
           </div>
+        </div>
+      </div>
+
+      {/* Webhooks — instant auto-deploy on push */}
+      <div className="space-y-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--fg-3)" }}>
+          Deploy Webhook
+        </h2>
+        <div className="rounded-xl p-5 space-y-4" style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
+          <div className="flex items-center gap-2">
+            <Webhook size={16} style={{ color: "var(--fg)" }} />
+            <p className="font-medium text-sm" style={{ color: "var(--fg)" }}>Instant deploys on push</p>
+          </div>
+          <p className="text-xs" style={{ color: "var(--fg-3)" }}>
+            Add this webhook to each repo (<span className="font-mono">Settings → Webhooks → Add webhook</span>) so
+            PulseNode redeploys auto-deploy projects the moment you push — no waiting for the branch poller.
+          </p>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>Payload URL</label>
+              <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: "var(--bg-3)", border: "1px solid var(--border)" }}>
+                <code className="flex-1 text-xs font-mono truncate" style={{ color: "var(--fg)" }}>{webhookUrl}</code>
+                <button onClick={() => copy(webhookUrl, "url")} title="Copy" className="flex-shrink-0" style={{ color: "var(--fg-3)" }}>
+                  {copied === "url" ? <Check size={13} style={{ color: "var(--ok)" }} /> : <Copy size={13} />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>Secret</label>
+              <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: "var(--bg-3)", border: "1px solid var(--border)" }}>
+                <code className="flex-1 text-xs font-mono truncate" style={{ color: "var(--fg)" }}>
+                  {webhookSecret ? (showSecret ? webhookSecret : "•".repeat(24)) : "—"}
+                </code>
+                <button onClick={() => setShowSecret(s => !s)} title={showSecret ? "Hide" : "Reveal"} className="flex-shrink-0" style={{ color: "var(--fg-3)" }}>
+                  {showSecret ? <EyeOff size={13} /> : <Eye size={13} />}
+                </button>
+                <button onClick={() => copy(webhookSecret, "secret")} title="Copy" className="flex-shrink-0" style={{ color: "var(--fg-3)" }}>
+                  {copied === "secret" ? <Check size={13} style={{ color: "var(--ok)" }} /> : <Copy size={13} />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <ul className="text-xs space-y-1" style={{ color: "var(--fg-3)" }}>
+            <li>• Content type: <code className="px-1 rounded" style={{ background: "var(--bg-3)" }}>application/json</code></li>
+            <li>• Events: <span style={{ color: "var(--fg)" }}>Just the push event</span></li>
+            <li>• The poller stays on as a fallback, so webhooks are optional but faster.</li>
+          </ul>
         </div>
       </div>
     </div>

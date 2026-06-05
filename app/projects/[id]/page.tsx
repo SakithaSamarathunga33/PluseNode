@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, type ReactNode } from "react"
 import { useParams, useRouter } from "next/navigation"
 import {
   RefreshCw, Play, Trash2, Globe, GitBranch, Circle, Clock,
-  ChevronLeft, Terminal, History, Settings2, ExternalLink, Check, Save, Zap,
+  ChevronLeft, Terminal, History, Settings2, ExternalLink, Check, Save, Zap, RotateCcw,
 } from "lucide-react"
 import Link from "next/link"
 import { getSocket } from "@/lib/socket"
@@ -20,7 +20,7 @@ type Project = {
 }
 type Deployment = {
   ID: string; Status: string; Trigger: string
-  CommitSHA: string; CommitMsg: string
+  CommitSHA: string; CommitMsg: string; ImageTag: string
   StartedAt: string | null; FinishedAt: string | null; CreatedAt: string
 }
 type LogLine = { stream: string; line: string; ts: string }
@@ -59,6 +59,7 @@ export default function ProjectDetailPage() {
   const [tab, setTab]                   = useState<"logs" | "history" | "settings">("settings")
   const [loading, setLoading]           = useState(true)
   const [deploying, setDeploying]       = useState(false)
+  const [rolling, setRolling]           = useState<string | null>(null)
   const [deleting, setDeleting]         = useState(false)
   const logsRef                         = useRef<HTMLDivElement>(null)
   const activeDepRef                    = useRef<string | null>(null)
@@ -166,6 +167,24 @@ export default function ProjectDetailPage() {
         fetchProject()
       }
     } finally { setDeploying(false) }
+  }
+
+  const rollback = async (dep: Deployment) => {
+    const label = dep.CommitSHA ? dep.CommitSHA.slice(0, 7) : dep.ID.slice(0, 10)
+    if (!confirm(`Roll back to ${label}? This redeploys that build's image with zero downtime.`)) return
+    setRolling(dep.ID)
+    try {
+      const r = await fetch(`${GO_API}/api/projects/${id}/deployments/${dep.ID}/rollback`, { method: "POST" })
+      const d = await r.json()
+      if (r.ok) {
+        await fetchDeployments()
+        setActiveDep(d.deploymentId)
+        setTab("logs")
+        fetchProject()
+      } else {
+        alert(d.error ?? "Rollback failed")
+      }
+    } finally { setRolling(null) }
   }
 
   const parseEnvVars = (text: string): Record<string, string> => {
@@ -392,13 +411,13 @@ export default function ProjectDetailPage() {
             {deployments.length === 0 ? (
               <p className="text-sm" style={{ color: "var(--fg-3)" }}>No deployments yet.</p>
             ) : deployments.map(dep => (
-              <button
+              <div
                 key={dep.ID}
                 onClick={() => { setActiveDep(dep.ID); setTab("logs") }}
-                className="w-full rounded-xl p-4 text-left transition-colors hover:opacity-80"
+                className="w-full rounded-xl p-4 text-left transition-colors hover:opacity-80 cursor-pointer"
                 style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <span
                     className="flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full capitalize"
                     style={{
@@ -409,17 +428,31 @@ export default function ProjectDetailPage() {
                     <Circle size={6} fill="currentColor" />
                     {dep.Status}
                   </span>
-                  <span className="text-xs" style={{ color: "var(--fg-4)" }}>
-                    <Clock size={10} className="inline mr-1" />
-                    {age(dep.CreatedAt)}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    {dep.Status === "success" && dep.ImageTag && (
+                      <button
+                        onClick={e => { e.stopPropagation(); rollback(dep) }}
+                        disabled={rolling !== null}
+                        title="Redeploy this build's image (zero-downtime)"
+                        className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-md font-medium disabled:opacity-50"
+                        style={{ background: "var(--bg-3)", color: "var(--acc)", border: "1px solid var(--border)" }}
+                      >
+                        <RotateCcw size={11} className={rolling === dep.ID ? "animate-spin" : ""} />
+                        {rolling === dep.ID ? "Rolling…" : "Rollback"}
+                      </button>
+                    )}
+                    <span className="text-xs whitespace-nowrap" style={{ color: "var(--fg-4)" }}>
+                      <Clock size={10} className="inline mr-1" />
+                      {age(dep.CreatedAt)}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 mt-2">
                   <span
                     className="text-[10px] px-1.5 py-0.5 rounded font-medium capitalize"
                     style={{ background: "var(--bg-3)", color: dep.Trigger === "auto" ? "var(--acc)" : "var(--fg-3)" }}
                   >
-                    {dep.Trigger === "auto" ? "⚡ auto" : dep.Trigger}
+                    {dep.Trigger === "auto" ? "⚡ auto" : dep.Trigger === "rollback" ? "⟲ rollback" : dep.Trigger}
                   </span>
                   {dep.CommitSHA && (
                     <span className="text-xs font-mono" style={{ color: "var(--fg-3)" }}>
@@ -430,7 +463,7 @@ export default function ProjectDetailPage() {
                 {dep.CommitMsg && (
                   <p className="text-xs mt-1 truncate" style={{ color: "var(--fg)" }}>{dep.CommitMsg}</p>
                 )}
-              </button>
+              </div>
             ))}
           </div>
         )}
