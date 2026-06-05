@@ -136,7 +136,8 @@ func (s *Server) databaseConnectionString(w http.ResponseWriter, r *http.Request
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]string{"connectionString": buildConnString(mdb)})
+	dbParam := r.URL.Query().Get("database")
+	writeJSON(w, http.StatusOK, map[string]string{"connectionString": buildConnString(mdb, dbParam)})
 }
 
 func (s *Server) databaseSchema(w http.ResponseWriter, r *http.Request) {

@@ -208,7 +208,7 @@ func (s *Server) getManagedDBCredentials(w http.ResponseWriter, r *http.Request)
 		"password":          m.Password,
 		"db_name":           m.DBName,
 		"host_port":         m.HostPort,
-		"connection_string": buildConnString(m),
+		"connection_string": buildConnString(m, ""),
 	})
 }
 
@@ -308,14 +308,20 @@ func randHex(n int) string {
 	return hex.EncodeToString(b)
 }
 
-func buildConnString(m *dbpkg.ManagedDatabase) string {
+// buildConnString builds a connection URI for m. If dbName is non-empty it
+// overrides the default database/schema in the URI (so the string follows the
+// database the user selected in the cluster); redis ignores it.
+func buildConnString(m *dbpkg.ManagedDatabase, dbName string) string {
+	if dbName == "" {
+		dbName = m.DBName
+	}
 	switch m.Engine {
 	case "postgres":
-		return fmt.Sprintf("postgresql://%s:%s@localhost:%d/%s", m.Username, m.Password, m.HostPort, m.DBName)
+		return fmt.Sprintf("postgresql://%s:%s@localhost:%d/%s", m.Username, m.Password, m.HostPort, dbName)
 	case "mysql":
-		return fmt.Sprintf("mysql://%s:%s@localhost:%d/%s", m.Username, m.Password, m.HostPort, m.DBName)
+		return fmt.Sprintf("mysql://%s:%s@localhost:%d/%s", m.Username, m.Password, m.HostPort, dbName)
 	case "mongodb":
-		return fmt.Sprintf("mongodb://%s:%s@localhost:%d/%s", m.Username, m.Password, m.HostPort, m.DBName)
+		return fmt.Sprintf("mongodb://%s:%s@localhost:%d/%s", m.Username, m.Password, m.HostPort, dbName)
 	case "redis":
 		return fmt.Sprintf("redis://localhost:%d", m.HostPort)
 	default:

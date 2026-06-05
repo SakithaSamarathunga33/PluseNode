@@ -5,6 +5,7 @@ import { createPortal } from "react-dom"
 import { Loader2 } from "lucide-react"
 import { DbIcon } from "@/components/dashboard/DbIcon"
 import { nodeApi } from "@/lib/api"
+import { copyText } from "@/lib/utils"
 
 const ENGINES = [
   { id: "postgres", label: "PostgreSQL", desc: "Relational · postgres:16-alpine" },
@@ -25,8 +26,9 @@ interface Creds {
 
 function CopyField({ label, value }: { label: string; value: string }) {
   const [copied, setCopied] = useState(false)
-  function copy() {
-    navigator.clipboard.writeText(value)
+  async function copy() {
+    const ok = await copyText(value)
+    if (!ok) return
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }

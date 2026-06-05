@@ -18,8 +18,10 @@ import {
   PlugZap,
   Plus,
   Search,
+  Table2,
   TerminalSquare,
   Trash2,
+  X,
 } from "lucide-react"
 import {
   AlertDialog, AlertDialogContent, AlertDialogHeader,
@@ -27,6 +29,7 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog"
 import { nodeApi, pythonApi, API_BASE } from "@/lib/api"
+import { copyText } from "@/lib/utils"
 import type { CustomConnection, Database, DbMetrics, DbQueryResult, DbSchemaResult } from "@/lib/types"
 import { DatabaseQueryEditor, ResultTable } from "@/components/dashboard/DatabaseQueryEditor"
 import { DatabaseMetricsPanel } from "@/components/dashboard/DatabaseMetricsPanel"
@@ -133,15 +136,17 @@ function KpiTile({
   )
 }
 
-function ConnectionStringPanel({ dbName }: { dbName: string }) {
+function ConnectionStringPanel({ dbName, database }: { dbName: string; database?: string }) {
   const [uri, setUri] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [copyFailed, setCopyFailed] = useState(false)
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    fetch(`${API_BASE}/api/database/${encodeURIComponent(dbName)}/connection-string`)
+    const qs = database ? `?database=${encodeURIComponent(database)}` : ""
+    fetch(`${API_BASE}/api/database/${encodeURIComponent(dbName)}/connection-string${qs}`)
       .then(res => res.json())
       .then(data => {
         if (!cancelled) setUri(data.connectionString || null)
@@ -153,13 +158,19 @@ function ConnectionStringPanel({ dbName }: { dbName: string }) {
         if (!cancelled) setLoading(false)
       })
     return () => { cancelled = true }
-  }, [dbName])
+  }, [dbName, database])
 
-  function copy() {
+  async function copy() {
     if (!uri) return
-    navigator.clipboard.writeText(uri)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1600)
+    const ok = await copyText(uri)
+    if (ok) {
+      setCopied(true)
+      setCopyFailed(false)
+      setTimeout(() => setCopied(false), 1600)
+    } else {
+      setCopyFailed(true)
+      setTimeout(() => setCopyFailed(false), 2600)
+    }
   }
 
   return (
@@ -177,8 +188,14 @@ function ConnectionStringPanel({ dbName }: { dbName: string }) {
                 {uri}
               </code>
             </div>
-            <button onClick={copy} className="pn-icon-btn flex-shrink-0" title="Copy" aria-label="Copy connection string">
-              {copied ? <Check size={13} /> : <Copy size={13} />}
+            <button
+              onClick={copy}
+              className="pn-icon-btn flex-shrink-0"
+              title={copyFailed ? "Copy failed — select the text and copy manually" : "Copy"}
+              aria-label="Copy connection string"
+              style={copyFailed ? { color: "var(--bad)" } : copied ? { color: "var(--ok)" } : undefined}
+            >
+              {copied ? <Check size={13} /> : copyFailed ? <X size={13} /> : <Copy size={13} />}
             </button>
           </>
         )}
@@ -188,15 +205,122 @@ function ConnectionStringPanel({ dbName }: { dbName: string }) {
   )
 }
 
+// ── TableDataModal — read-only data viewer (SELECT * first 100 rows) ───────────
+
+function exportResultCsv(result: DbQueryResult, name: string) {
+  const esc = (v: unknown) => JSON.stringify(v ?? "")
+  const header = result.columns.map(esc).join(",")
+  const body   = result.rows.map(r => r.map(esc).join(",")).join("\n")
+  const blob   = new Blob([header + "\n" + body], { type: "text/csv" })
+  const url    = URL.createObjectURL(blob)
+  const a      = document.createElement("a")
+  a.href = url; a.download = `${name}.csv`; a.click()
+  URL.revokeObjectURL(url)
+}
+
+function TableDataModal({ db, database, table, onClose }: {
+  db: Database; database: string; table: string; onClose: () => void
+}) {
+  const [result,  setResult]  = useState<DbQueryResult | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error,   setError]   = useState<string | null>(null)
+
+  useEffect(() => {
+    const q = db.engine === "redis"   ? "KEYS *"
+             : db.engine === "mongodb" ? `${table} {}`
+             : `SELECT * FROM ${table} LIMIT 100;`
+    let cancelled = false
+    setLoading(true); setError(null); setResult(null)
+    nodeApi.post<DbQueryResult>(`/api/database/${db.name}/query`, {
+      query: q, database: database || undefined, force: false,
+    })
+      .then(res => { if (!cancelled) setResult(res) })
+      .catch((err: unknown) => { if (!cancelled) setError((err as { message?: string })?.message || "Query failed") })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [db.name, db.engine, database, table])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="flex max-h-[85vh] min-w-[360px] max-w-[92vw] flex-col overflow-hidden rounded-2xl border border-pulseNode-border/20 bg-pulseNode-navyLight shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex flex-shrink-0 items-center gap-3 border-b border-pulseNode-border/10 bg-pulseNode-navy px-5 py-3">
+          <span className="grid size-8 flex-shrink-0 place-items-center rounded-lg border border-pulseNode-border/20 bg-pulseNode-navyLight">
+            <Table2 size={16} className="text-pn-electric" />
+          </span>
+          <div className="min-w-0">
+            <div className="truncate font-mono text-sm font-semibold text-helm-fg">{table}</div>
+            <div className="truncate text-[10px] text-helm-fg3">{database ? `${database} · ` : ""}{db.name}</div>
+          </div>
+          {result && (
+            <span className="ml-1 rounded bg-pulseNode-border/20 px-1.5 py-0.5 font-mono text-[10px] text-helm-fg3">
+              {result.rowCount} row{result.rowCount !== 1 ? "s" : ""} · {result.columns.length} col{result.columns.length !== 1 ? "s" : ""} · {result.durationMs}ms
+            </span>
+          )}
+          <div className="ml-auto flex items-center gap-2">
+            {result && result.columns.length > 0 && (
+              <button
+                onClick={() => exportResultCsv(result, table)}
+                className="rounded-md border border-pulseNode-border/20 px-2.5 py-1 text-[11px] text-helm-fg3 transition-colors hover:text-helm-fg"
+              >
+                Export CSV
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="pn-icon-btn"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* Body — sizes to the table's columns (capped), scrolls both axes */}
+        <div className="flex min-h-0 flex-col">
+          {loading && (
+            <div className="flex h-40 min-w-[420px] items-center justify-center text-xs text-helm-fg3">Loading rows…</div>
+          )}
+          {error && !loading && (
+            <div className="m-4 flex min-w-[380px] items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-3">
+              <span className="flex-shrink-0 text-red-400">✕</span>
+              <p className="break-all font-mono text-xs text-red-400">{error}</p>
+            </div>
+          )}
+          {result && !loading && (
+            result.columns.length === 0 ? (
+              <div className="flex h-40 min-w-[420px] items-center justify-center text-xs text-helm-fg3">No rows to display.</div>
+            ) : (
+              <ResultTable result={result} scrollClassName="w-max max-w-[92vw] max-h-[calc(85vh-3.5rem)]" />
+            )
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── DbDetails — overview: browse all tables, click to view data ───────────────
+
 function DbDetails({ db }: { db: Database }) {
-  const [dbs,          setDbs]          = useState<string[]>([])
-  const [selectedDb,   setSelectedDb]   = useState("")
-  const [tables,       setTables]       = useState<Array<{ name: string; rows: number }>>([])
-  const [loading,      setLoading]      = useState(true)
-  const [inlineResult, setInlineResult] = useState<DbQueryResult | null>(null)
-  const [inlineLoading, setInlineLoading] = useState(false)
-  const [inlineError,  setInlineError]  = useState<string | null>(null)
-  const [activeTable,  setActiveTable]  = useState<string | null>(null)
+  const [dbs,        setDbs]        = useState<string[]>([])
+  const [selectedDb, setSelectedDb] = useState("")
+  const [tables,     setTables]     = useState<Array<{ name: string; rows: number }>>([])
+  const [loading,    setLoading]    = useState(true)
+  const [filter,     setFilter]     = useState("")
+  const [openTable,  setOpenTable]  = useState<string | null>(null)
 
   // Fetch databases list on mount
   useEffect(() => {
@@ -220,49 +344,33 @@ function DbDetails({ db }: { db: Database }) {
       .finally(() => setLoading(false))
   }, [db.name, selectedDb])
 
-  async function handleTableClick(tableName: string) {
-    const q = db.engine === "redis"   ? "KEYS *"
-             : db.engine === "mongodb" ? `${tableName} {}`
-             : `SELECT * FROM ${tableName} LIMIT 100;`
-    setActiveTable(tableName)
-    setInlineResult(null)
-    setInlineError(null)
-    setInlineLoading(true)
-    try {
-      const res = await nodeApi.post<DbQueryResult>(`/api/database/${db.name}/query`, {
-        query: q,
-        database: selectedDb || undefined,
-        force: false,
-      })
-      setInlineResult(res)
-    } catch (err: unknown) {
-      setInlineError((err as { message?: string })?.message || "Query failed")
-    } finally {
-      setInlineLoading(false)
-    }
-  }
-
   // Merge size info from Python if available (Python has totalSize/indexSize, schema API has rows)
   const displayTables = tables.map(t => {
     const pyRow = db.tables?.find(p => p.name === t.name)
     return { ...t, totalSize: pyRow?.totalSize, indexSize: pyRow?.indexSize }
   })
 
-  const hasSize = displayTables.some(t => t.totalSize)
+  const needle = filter.trim().toLowerCase()
+  const visibleTables = needle
+    ? displayTables.filter(t => t.name.toLowerCase().includes(needle))
+    : displayTables
 
   return (
     <div className="grid gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)]">
       <div className="space-y-3">
         <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/40">
-          {/* Header with optional DB selector */}
-          <div className="flex items-center justify-between gap-2 border-b border-pulseNode-border/10 px-3 py-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">Tables</span>
+          {/* Header: title, DB selector, count */}
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-pulseNode-border/10 px-3 py-2">
+            <div className="flex items-center gap-2">
+              <Table2 size={13} className="text-pn-electric" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">Tables</span>
+            </div>
             <div className="flex items-center gap-2">
               {dbs.length > 1 && (
                 <select
                   value={selectedDb}
                   onChange={e => setSelectedDb(e.target.value)}
-                  className="bg-pulseNode-navy border border-pulseNode-border/20 text-helm-fg text-[10px] rounded px-1.5 py-0.5 cursor-pointer"
+                  className="cursor-pointer rounded border border-pulseNode-border/20 bg-pulseNode-navy px-1.5 py-0.5 text-[10px] text-helm-fg"
                 >
                   {dbs.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
@@ -271,36 +379,48 @@ function DbDetails({ db }: { db: Database }) {
             </div>
           </div>
 
+          {/* Filter */}
+          {!loading && displayTables.length > 0 && (
+            <div className="border-b border-pulseNode-border/10 px-3 py-2">
+              <div className="flex items-center gap-2 rounded-md border border-pulseNode-border/15 bg-pulseNode-navy px-2 py-1.5">
+                <Search size={12} className="flex-shrink-0 text-helm-fg3" />
+                <input
+                  value={filter}
+                  onChange={e => setFilter(e.target.value)}
+                  placeholder="Filter tables…"
+                  className="min-w-0 flex-1 bg-transparent text-xs text-helm-fg outline-none placeholder:text-helm-fg3/50"
+                />
+              </div>
+            </div>
+          )}
+
           {loading && <p className="px-3 py-4 text-xs text-helm-fg3">Loading tables…</p>}
 
-          {!loading && displayTables.length > 0 && (
-            <div className="relative max-h-48 overflow-y-auto">
-              <table className="pn-table w-full">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th className="right">Rows</th>
-                    {hasSize && <th className="right">Total</th>}
-                    {hasSize && <th className="right">Index</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayTables.map(t => (
-                    <tr
-                      key={t.name}
-                      onClick={() => handleTableClick(t.name)}
-                      className={`cursor-pointer hover:bg-pn-electric/5 ${activeTable === t.name ? "bg-pn-electric/10" : ""}`}
-                      title={`Query: SELECT * FROM ${t.name} LIMIT 100`}
-                    >
-                      <td className="mono-cell">{t.name}</td>
-                      <td className="right dim">{t.rows.toLocaleString()}</td>
-                      {hasSize && <td className="right dim">{t.totalSize ?? "—"}</td>}
-                      {hasSize && <td className="right dim">{t.indexSize ?? "—"}</td>}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {!loading && visibleTables.length > 0 && (
+            <div className="max-h-80 divide-y divide-pulseNode-border/5 overflow-y-auto">
+              {visibleTables.map(t => (
+                <button
+                  key={t.name}
+                  onClick={() => setOpenTable(t.name)}
+                  className="group flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-pn-electric/5"
+                  title={`View data · SELECT * FROM ${t.name} LIMIT 100`}
+                >
+                  <Table2 size={14} className="flex-shrink-0 text-helm-fg3 group-hover:text-pn-electric" />
+                  <span className="min-w-0 flex-1 truncate font-mono text-xs text-helm-fg">{t.name}</span>
+                  <span className="flex-shrink-0 font-mono text-[10px] tabular-nums text-helm-fg3">
+                    {t.rows.toLocaleString()} rows
+                  </span>
+                  {t.totalSize && (
+                    <span className="hidden flex-shrink-0 font-mono text-[10px] text-helm-fg4 sm:inline">{t.totalSize}</span>
+                  )}
+                  <ChevronRight size={13} className="flex-shrink-0 text-helm-fg4 opacity-0 transition-opacity group-hover:opacity-100" />
+                </button>
+              ))}
             </div>
+          )}
+
+          {!loading && displayTables.length > 0 && visibleTables.length === 0 && (
+            <p className="px-3 py-4 text-xs text-helm-fg3">No tables match “{filter}”.</p>
           )}
 
           {!loading && displayTables.length === 0 && (
@@ -309,39 +429,10 @@ function DbDetails({ db }: { db: Database }) {
             </p>
           )}
         </div>
-
-        {/* Inline query results */}
-        {inlineLoading && (
-          <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/40 px-3 py-4 text-xs text-helm-fg3">
-            Running query…
-          </div>
-        )}
-        {inlineError && !inlineLoading && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-3 flex items-start gap-2">
-            <span className="text-red-400 flex-shrink-0">✕</span>
-            <p className="text-xs font-mono text-red-400 break-all">{inlineError}</p>
-          </div>
-        )}
-        {inlineResult && !inlineLoading && (
-          <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/40 overflow-hidden">
-            <div className="flex items-center gap-2 px-3 py-1.5 border-b border-pulseNode-border/10 bg-pulseNode-navy/60">
-              <span className="text-[10px] font-semibold text-helm-fg3 uppercase tracking-wider">{activeTable}</span>
-              <span className="text-pulseNode-border/30">·</span>
-              <span className="text-[10px] text-green-400">{inlineResult.rowCount} row{inlineResult.rowCount !== 1 ? "s" : ""}</span>
-              <span className="text-pulseNode-border/30">·</span>
-              <span className="text-[10px] text-helm-fg3">{inlineResult.durationMs}ms</span>
-              <button
-                onClick={() => { setInlineResult(null); setActiveTable(null) }}
-                className="ml-auto text-[10px] text-helm-fg3 hover:text-helm-fg"
-              >✕</button>
-            </div>
-            <ResultTable result={inlineResult} />
-          </div>
-        )}
       </div>
 
       <div className="space-y-3">
-        <ConnectionStringPanel dbName={db.name} />
+        <ConnectionStringPanel dbName={db.name} database={selectedDb} />
         <div className="rounded-lg border border-pulseNode-border/10 bg-pulseNode-navy/40">
           <div className="flex items-center justify-between border-b border-pulseNode-border/10 px-3 py-2">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-helm-fg3">Slow queries</span>
@@ -375,6 +466,15 @@ function DbDetails({ db }: { db: Database }) {
           )}
         </div>
       </div>
+
+      {openTable && (
+        <TableDataModal
+          db={db}
+          database={selectedDb}
+          table={openTable}
+          onClose={() => setOpenTable(null)}
+        />
+      )}
     </div>
   )
 }

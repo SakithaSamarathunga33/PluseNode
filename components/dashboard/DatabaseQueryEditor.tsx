@@ -16,96 +16,12 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
 
-// ── SchemaSidebar ─────────────────────────────────────────────────────────────
-
-function SchemaSidebar({
-  tables,
-  engine,
-  onTableClick,
-  onCreateDb,
-}: {
-  tables: Array<{ name: string; rows: number }>
-  engine: string
-  onTableClick: (name: string) => void
-  onCreateDb: (name: string) => void
-}) {
-  const [newDbName, setNewDbName] = useState("")
-  const [creating,  setCreating]  = useState(false)
-  const supportsCreate = engine === "postgres" || engine === "mysql"
-
-  async function handleCreate() {
-    const name = newDbName.trim()
-    if (!name) return
-    setCreating(true)
-    try {
-      await onCreateDb(name)
-      setNewDbName("")
-    } finally {
-      setCreating(false)
-    }
-  }
-
-  return (
-    <div className="w-[180px] flex-shrink-0 bg-pulseNode-navy border-r border-pulseNode-border/10 flex flex-col">
-      {/* Create database form */}
-      {supportsCreate && (
-        <div className="px-2 pt-2 pb-1.5 border-b border-pulseNode-border/10">
-          <div className="text-[9px] uppercase tracking-wider text-helm-fg3 mb-1.5 font-semibold px-1">
-            New Database
-          </div>
-          <div className="flex gap-1">
-            <input
-              value={newDbName}
-              onChange={e => setNewDbName(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleCreate()}
-              placeholder="db_name"
-              className="flex-1 min-w-0 bg-pulseNode-navyLight border border-pulseNode-border/20 text-helm-fg text-[10px] font-mono rounded px-1.5 py-1 outline-none focus:border-pn-electric/50 placeholder:text-helm-fg3/40"
-            />
-            <button
-              onClick={handleCreate}
-              disabled={!newDbName.trim() || creating}
-              className="flex-shrink-0 bg-emerald-600 hover:bg-emerald-500 disabled:bg-pulseNode-border/20 disabled:text-helm-fg3 text-white text-[10px] font-bold px-1.5 py-1 rounded transition-colors"
-            >
-              {creating ? "…" : "+"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Tables list */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="sticky top-0 bg-pulseNode-navy px-3 py-1.5 text-[10px] uppercase tracking-wider text-helm-fg3 font-semibold border-b border-pulseNode-border/10">
-          Tables · {tables.length}
-        </div>
-        {tables.length === 0 ? (
-          <p className="px-3 py-3 text-[10px] text-helm-fg3">No tables found</p>
-        ) : (
-          <div className="py-1">
-            {tables.map(t => (
-              <button
-                key={t.name}
-                onClick={() => onTableClick(t.name)}
-                title="Click to SELECT * from this table"
-                className="w-full text-left px-3 py-1 text-[11px] font-mono text-helm-fg3 hover:text-pn-electric hover:bg-pulseNode-border/10 flex items-center justify-between gap-2 transition-colors"
-              >
-                <span className="truncate">{t.name}</span>
-                <span className="text-[10px] text-helm-fg3 flex-shrink-0 tabular-nums">
-                  {t.rows.toLocaleString()}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
 // ── ResultTable ───────────────────────────────────────────────────────────────
 
-export function ResultTable({ result, fullscreen = false }: { result: DbQueryResult; fullscreen?: boolean }) {
+export function ResultTable({ result, fullscreen = false, scrollClassName }: { result: DbQueryResult; fullscreen?: boolean; scrollClassName?: string }) {
+  const scroll = scrollClassName ?? (fullscreen ? "max-h-[calc(100vh-120px)]" : "max-h-64")
   return (
-    <div className={`overflow-auto ${fullscreen ? "max-h-[calc(100vh-120px)]" : "max-h-64"}`}>
+    <div className={`overflow-auto ${scroll}`}>
       <table className="text-[11px] border-collapse" style={{ tableLayout: "auto", whiteSpace: "nowrap" }}>
         <thead>
           <tr className="bg-pulseNode-navyLight sticky top-0 z-10">
@@ -332,20 +248,6 @@ export function DatabaseQueryEditor({
     [query, db.name, selectedDatabase, hasQuery] // eslint-disable-line react-hooks/exhaustive-deps
   )
 
-  async function handleCreateDb(name: string) {
-    setError(null)
-    try {
-      await nodeApi.post(`/api/database/${db.name}/query`, {
-        query: `CREATE DATABASE ${name};`,
-        force: false,
-      })
-      // Refresh database list
-      loadSchema()
-    } catch (err: unknown) {
-      setError((err as ApiError).message || "Failed to create database")
-    }
-  }
-
   async function handleTableClick(tableName: string) {
     const q = isRedis ? "KEYS *"
             : isMongo ? `${tableName} {}`
@@ -384,23 +286,46 @@ export function DatabaseQueryEditor({
   return (
     <>
       <div className="bg-pulseNode-navyLight rounded-xl border border-pn-electric/20 [overflow:clip]">
-        {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-2.5 bg-pulseNode-navy border-b border-pulseNode-border/10">
+        {/* Header / control bar — database + table pickers */}
+        <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-pulseNode-navy border-b border-pulseNode-border/10">
           <span className="font-semibold text-sm text-helm-fg">{db.name}</span>
+
           {!isRedis && !isMongo && schema.databases.length > 0 && (
-            <>
-              <span className="text-pulseNode-border/30">|</span>
+            <label className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-helm-fg3 font-semibold">
+              DB
               <select
                 value={selectedDatabase}
                 onChange={e => setSelectedDatabase(e.target.value)}
-                className="bg-pulseNode-navyLight border border-pulseNode-border/20 text-helm-fg text-xs rounded px-2 py-0.5 cursor-pointer"
+                className="bg-pulseNode-navyLight border border-pulseNode-border/20 text-helm-fg text-xs normal-case font-normal rounded px-2 py-0.5 cursor-pointer"
               >
                 {schema.databases.map(d => (
                   <option key={d} value={d}>{d}</option>
                 ))}
               </select>
-            </>
+            </label>
           )}
+
+          {!isRedis && (
+            <label className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-helm-fg3 font-semibold">
+              {isMongo ? "Collection" : "Table"}
+              <select
+                value=""
+                onChange={e => { if (e.target.value) handleTableClick(e.target.value) }}
+                disabled={schema.tables.length === 0}
+                className="bg-pulseNode-navyLight border border-pulseNode-border/20 text-helm-fg text-xs normal-case font-normal rounded px-2 py-0.5 cursor-pointer disabled:opacity-50"
+              >
+                <option value="">
+                  {schema.tables.length === 0 ? "No tables" : `Select… (${schema.tables.length})`}
+                </option>
+                {schema.tables.map(t => (
+                  <option key={t.name} value={t.name}>
+                    {t.name}{t.rows ? ` · ${t.rows.toLocaleString()} rows` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
           <span className={`text-[10px] ${error && !result ? "text-red-400" : "text-green-400"}`}>
             {error && !result ? "● error" : "● connected"}
           </span>
@@ -413,54 +338,45 @@ export function DatabaseQueryEditor({
           </button>
         </div>
 
-        {/* Body: sidebar + editor — fixed height so sidebar overflow-y-auto actually scrolls */}
-        <div className="flex h-80">
-          <SchemaSidebar
-            tables={schema.tables}
-            engine={db.engine}
-            onTableClick={handleTableClick}
-            onCreateDb={handleCreateDb}
+        {/* Body: full-width editor */}
+        <div className="flex flex-col h-72">
+          <textarea
+            ref={textareaRef}
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            className="flex-1 bg-pulseNode-navy font-mono text-xs text-helm-fg p-3 resize-none outline-none placeholder:text-helm-fg3/40 min-h-0"
+            spellCheck={false}
           />
-
-          <div className="flex-1 flex flex-col min-w-0">
-            <textarea
-              ref={textareaRef}
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={placeholder}
-              className="flex-1 bg-pulseNode-navy font-mono text-xs text-helm-fg p-3 resize-none outline-none placeholder:text-helm-fg3/40 min-h-0"
-              spellCheck={false}
-            />
-            {/* Toolbar */}
-            <div className="flex items-center gap-2 px-3 py-2 bg-pulseNode-navy border-t border-pulseNode-border/10 flex-shrink-0">
-              <button
-                onClick={() => runQuery()}
-                disabled={loading}
-                className={`
-                  text-xs font-semibold px-3 py-1.5 rounded-md transition-all
-                  ${hasQuery && !loading
-                    ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm"
-                    : "bg-pulseNode-border/20 text-helm-fg3 cursor-not-allowed"
-                  }
-                `}
-              >
-                {loading ? "Running…" : "▶ Run"}
-              </button>
-              <button
-                onClick={() => { setQuery(""); setResult(null); setError(null) }}
-                className="text-xs text-helm-fg3 hover:text-helm-fg border border-pulseNode-border/20 px-3 py-1.5 rounded-md transition-colors"
-              >
-                Clear
-              </button>
-              <span className="ml-auto text-[10px] text-helm-fg3">
-                {isRedis
-                  ? "Redis command"
-                  : isMongo
-                  ? "collection {filter}"
-                  : "Ctrl+↵ to run · 100 row limit"}
-              </span>
-            </div>
+          {/* Toolbar */}
+          <div className="flex items-center gap-2 px-3 py-2 bg-pulseNode-navy border-t border-pulseNode-border/10 flex-shrink-0">
+            <button
+              onClick={() => runQuery()}
+              disabled={loading}
+              className={`
+                text-xs font-semibold px-3 py-1.5 rounded-md transition-all
+                ${hasQuery && !loading
+                  ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm"
+                  : "bg-pulseNode-border/20 text-helm-fg3 cursor-not-allowed"
+                }
+              `}
+            >
+              {loading ? "Running…" : "▶ Run"}
+            </button>
+            <button
+              onClick={() => { setQuery(""); setResult(null); setError(null) }}
+              className="text-xs text-helm-fg3 hover:text-helm-fg border border-pulseNode-border/20 px-3 py-1.5 rounded-md transition-colors"
+            >
+              Clear
+            </button>
+            <span className="ml-auto text-[10px] text-helm-fg3">
+              {isRedis
+                ? "Redis command"
+                : isMongo
+                ? "collection {filter}"
+                : "Ctrl+↵ to run · 100 row limit"}
+            </span>
           </div>
         </div>
 
