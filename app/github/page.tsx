@@ -308,8 +308,9 @@ export default function GitHubPage() {
             <p className="font-medium text-sm" style={{ color: "var(--fg)" }}>Instant deploys on push</p>
           </div>
           <p className="text-xs" style={{ color: "var(--fg-3)" }}>
-            Add this webhook to each repo (<span className="font-mono">Settings → Webhooks → Add webhook</span>) so
-            PulseNode redeploys auto-deploy projects the moment you push — no waiting for the branch poller.
+            PulseNode <span style={{ color: "var(--fg)" }}>installs this webhook automatically</span> on a repo when you
+            create a project from it. Use the details below only to add it by hand (e.g. if the token lacked admin rights)
+            — <span className="font-mono">Settings → Webhooks → Add webhook</span>.
           </p>
 
           <div className="grid gap-3 md:grid-cols-2">

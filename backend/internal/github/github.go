@@ -1,8 +1,10 @@
 package github
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -38,6 +40,90 @@ func (c *Client) get(path string, out any) error {
 		return fmt.Errorf("github api %s: %d", path, resp.StatusCode)
 	}
 	return json.NewDecoder(resp.Body).Decode(out)
+}
+
+func (c *Client) post(path string, in any) error {
+	data, err := json.Marshal(in)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest(http.MethodPost, apiBase+path, bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.token)
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		b, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
+		return fmt.Errorf("github api %s: %d %s", path, resp.StatusCode, strings.TrimSpace(string(b)))
+	}
+	return nil
+}
+
+// ── Webhooks ──────────────────────────────────────────────────────────────────
+
+type Hook struct {
+	ID     int64 `json:"id"`
+	Active bool  `json:"active"`
+	Config struct {
+		URL string `json:"url"`
+	} `json:"config"`
+}
+
+func (c *Client) listHooks(owner, repo string) ([]Hook, error) {
+	var hooks []Hook
+	err := c.get(fmt.Sprintf("/repos/%s/%s/hooks?per_page=100", owner, repo), &hooks)
+	return hooks, err
+}
+
+// HasWebhook reports whether a hook delivering to hookURL already exists on the repo.
+func (c *Client) HasWebhook(owner, repo, hookURL string) (bool, error) {
+	hooks, err := c.listHooks(owner, repo)
+	if err != nil {
+		return false, err
+	}
+	for _, h := range hooks {
+		if strings.EqualFold(h.Config.URL, hookURL) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// EnsureWebhook creates a push webhook delivering to hookURL if one isn't already
+// present. Returns created=true only when a new hook was added (idempotent).
+// Requires the token to have admin rights on the repo (the `repo` OAuth scope or
+// a PAT with `admin:repo_hook`).
+func (c *Client) EnsureWebhook(owner, repo, hookURL, secret string) (created bool, err error) {
+	exists, err := c.HasWebhook(owner, repo, hookURL)
+	if err != nil {
+		return false, err
+	}
+	if exists {
+		return false, nil
+	}
+	body := map[string]any{
+		"name":   "web",
+		"active": true,
+		"events": []string{"push"},
+		"config": map[string]string{
+			"url":          hookURL,
+			"content_type": "json",
+			"secret":       secret,
+			"insecure_ssl": "0",
+		},
+	}
+	if err := c.post(fmt.Sprintf("/repos/%s/%s/hooks", owner, repo), body); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // ── User ──────────────────────────────────────────────────────────────────────

@@ -95,6 +95,9 @@ func (s *Server) createProject(w http.ResponseWriter, r *http.Request) {
 		writeError(w, err)
 		return
 	}
+	// Auto-install the push webhook on the repo (best-effort) so auto-deploy is
+	// instant without the user adding it by hand. Surfaced via GET …/webhook.
+	_, _ = s.installProjectWebhook(proj)
 	writeJSON(w, http.StatusCreated, proj)
 }
 

@@ -158,6 +158,8 @@ func (s *Server) Routes() http.Handler {
 		r.Get("/projects/{id}/deployments", s.listDeployments)
 		r.Post("/projects/{id}/deployments/{depID}/rollback", s.rollbackDeployment)
 		r.Get("/projects/{id}/deployments/{depID}/logs", s.getDeploymentLogs)
+		r.Get("/projects/{id}/webhook", s.getProjectWebhook)
+		r.Post("/projects/{id}/webhook", s.installProjectWebhookHandler)
 
 		// Managed databases (PulseNode-provisioned)
 		r.Get("/databases/managed", s.listManagedDatabases)

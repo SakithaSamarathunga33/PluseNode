@@ -6,9 +6,13 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/go-chi/chi/v5"
 
 	"pulsenode/backend/internal/db"
 	"pulsenode/backend/internal/github"
@@ -35,6 +39,91 @@ func (s *Server) getOrCreateWebhookSecret() (string, error) {
 		return "", err
 	}
 	return secret, nil
+}
+
+// webhookTargetURL is the public URL GitHub should deliver push events to. It
+// mirrors the OAuth-callback derivation (NEXT_PUBLIC_ORIGIN + the /go Caddy
+// prefix). Empty when the origin isn't configured.
+func (s *Server) webhookTargetURL() string {
+	origin := strings.TrimRight(os.Getenv("NEXT_PUBLIC_ORIGIN"), "/")
+	if origin == "" {
+		return ""
+	}
+	return origin + "/go/api/github/webhook"
+}
+
+// installProjectWebhook best-effort registers the push webhook on a project's
+// repo using the connected GitHub token, so users don't have to add it by hand.
+// Returns a short status: installed | exists | skipped | error.
+func (s *Server) installProjectWebhook(proj *db.Project) (string, error) {
+	hookURL := s.webhookTargetURL()
+	if hookURL == "" {
+		return "skipped", fmt.Errorf("NEXT_PUBLIC_ORIGIN is not configured")
+	}
+	owner, repo, ok := github.ParseOwnerRepo(proj.RepoURL)
+	if !ok {
+		return "skipped", fmt.Errorf("not a GitHub repository")
+	}
+	acct, _ := s.db.GetGitHubAccount()
+	if acct == nil {
+		return "skipped", fmt.Errorf("GitHub account not connected")
+	}
+	secret, err := s.getOrCreateWebhookSecret()
+	if err != nil {
+		return "error", err
+	}
+	created, err := github.NewClient(acct.AccessToken).EnsureWebhook(owner, repo, hookURL, secret)
+	if err != nil {
+		return "error", err
+	}
+	if created {
+		return "installed", nil
+	}
+	return "exists", nil
+}
+
+// getProjectWebhook reports whether the auto-deploy push webhook is installed on
+// the project's repo.
+func (s *Server) getProjectWebhook(w http.ResponseWriter, r *http.Request) {
+	proj, err := s.db.GetProject(chi.URLParam(r, "id"))
+	if err != nil || proj == nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "project not found"})
+		return
+	}
+	hookURL := s.webhookTargetURL()
+	resp := map[string]any{"url": hookURL, "installed": false, "supported": false}
+	owner, repo, ok := github.ParseOwnerRepo(proj.RepoURL)
+	acct, _ := s.db.GetGitHubAccount()
+	if ok && acct != nil && hookURL != "" {
+		resp["supported"] = true
+		has, err := github.NewClient(acct.AccessToken).HasWebhook(owner, repo, hookURL)
+		if err != nil {
+			resp["error"] = err.Error()
+		} else {
+			resp["installed"] = has
+		}
+	}
+	writeJSON(w, http.StatusOK, resp)
+}
+
+// installProjectWebhookHandler (re)installs the webhook on demand — for projects
+// created before GitHub was connected, or to repair a missing/removed hook.
+func (s *Server) installProjectWebhookHandler(w http.ResponseWriter, r *http.Request) {
+	proj, err := s.db.GetProject(chi.URLParam(r, "id"))
+	if err != nil || proj == nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "project not found"})
+		return
+	}
+	status, err := s.installProjectWebhook(proj)
+	resp := map[string]any{
+		"status":    status,
+		"url":       s.webhookTargetURL(),
+		"installed": status == "installed" || status == "exists",
+	}
+	if err != nil {
+		resp["error"] = err.Error()
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 // githubWebhookInfo returns the secret the user must configure on the GitHub

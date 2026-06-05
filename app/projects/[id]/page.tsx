@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, type ReactNode } from "react"
 import { useParams, useRouter } from "next/navigation"
 import {
   RefreshCw, Play, Trash2, Globe, GitBranch, Circle, Clock,
-  ChevronLeft, Terminal, History, Settings2, ExternalLink, Check, Save, Zap, RotateCcw,
+  ChevronLeft, Terminal, History, Settings2, ExternalLink, Check, Save, Zap, RotateCcw, Webhook,
 } from "lucide-react"
 import Link from "next/link"
 import { getSocket } from "@/lib/socket"
@@ -24,6 +24,7 @@ type Deployment = {
   StartedAt: string | null; FinishedAt: string | null; CreatedAt: string
 }
 type LogLine = { stream: string; line: string; ts: string }
+type WebhookStatus = { installed: boolean; supported: boolean; url: string; error?: string }
 
 const STATUS_COLOR: Record<string, string> = {
   running: "var(--ok)", building: "var(--acc)",
@@ -61,6 +62,8 @@ export default function ProjectDetailPage() {
   const [deploying, setDeploying]       = useState(false)
   const [rolling, setRolling]           = useState<string | null>(null)
   const [deleting, setDeleting]         = useState(false)
+  const [webhook, setWebhook]           = useState<WebhookStatus | null>(null)
+  const [installingHook, setInstallingHook] = useState(false)
   const logsRef                         = useRef<HTMLDivElement>(null)
   const activeDepRef                    = useRef<string | null>(null)
 
@@ -96,9 +99,16 @@ export default function ProjectDetailPage() {
     } catch { /* ignore */ }
   }, [id])
 
+  const fetchWebhook = useCallback(async () => {
+    try {
+      const r = await fetch(`${GO_API}/api/projects/${id}/webhook`)
+      if (r.ok) setWebhook(await r.json())
+    } catch { /* ignore */ }
+  }, [id])
+
   useEffect(() => {
-    Promise.all([fetchProject(), fetchDeployments()]).finally(() => setLoading(false))
-  }, [fetchProject, fetchDeployments])
+    Promise.all([fetchProject(), fetchDeployments(), fetchWebhook()]).finally(() => setLoading(false))
+  }, [fetchProject, fetchDeployments, fetchWebhook])
 
   // Populate the settings form once the project (by ID) is loaded — keyed on ID
   // so background status refreshes don't clobber in-progress edits.
@@ -167,6 +177,16 @@ export default function ProjectDetailPage() {
         fetchProject()
       }
     } finally { setDeploying(false) }
+  }
+
+  const installHook = async () => {
+    setInstallingHook(true)
+    try {
+      const r = await fetch(`${GO_API}/api/projects/${id}/webhook`, { method: "POST" })
+      const d = await r.json()
+      if (d.error && !d.installed) alert(d.error)
+      await fetchWebhook()
+    } finally { setInstallingHook(false) }
   }
 
   const rollback = async (dep: Deployment) => {
@@ -484,6 +504,47 @@ export default function ProjectDetailPage() {
                     <span className="font-mono text-xs truncate" style={{ color: "var(--fg)" }}>{row.value}</span>
                   </div>
                 ))}
+              </div>
+
+              {/* Auto-deploy webhook */}
+              <div className="rounded-xl p-5 space-y-3" style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Webhook size={15} style={{ color: "var(--acc)" }} />
+                    <p className="text-sm font-medium" style={{ color: "var(--fg)" }}>Auto-deploy webhook</p>
+                  </div>
+                  {webhook?.supported && (
+                    <span className="flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full"
+                      style={{
+                        background: (webhook.installed ? "var(--ok)" : "var(--warn)") + "20",
+                        color: webhook.installed ? "var(--ok)" : "var(--warn)",
+                      }}>
+                      <Circle size={6} fill="currentColor" />
+                      {webhook.installed ? "Installed" : "Not installed"}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px]" style={{ color: "var(--fg-4)" }}>
+                  {webhook?.supported
+                    ? "Installed automatically on your repo so pushes deploy instantly. The branch poller stays on as a fallback."
+                    : "Connect GitHub (and set NEXT_PUBLIC_ORIGIN) to auto-install a push webhook for instant deploys."}
+                </p>
+                {webhook?.error && <p className="text-[11px]" style={{ color: "var(--err)" }}>{webhook.error}</p>}
+                {webhook?.supported && (
+                  <button
+                    onClick={installHook}
+                    disabled={installingHook}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium disabled:opacity-60"
+                    style={webhook.installed
+                      ? { background: "var(--bg-3)", color: "var(--fg-3)", border: "1px solid var(--border)" }
+                      : { background: "var(--acc)", color: "#fff" }}
+                  >
+                    {installingHook
+                      ? <RefreshCw size={13} className="animate-spin" />
+                      : <Webhook size={13} />}
+                    {installingHook ? "Working…" : webhook.installed ? "Re-check / repair" : "Install webhook"}
+                  </button>
+                )}
               </div>
 
               {/* Editable config */}
