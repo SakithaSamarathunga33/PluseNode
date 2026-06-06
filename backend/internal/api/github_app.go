@@ -12,6 +12,48 @@ import (
 	"pulsenode/backend/internal/github"
 )
 
+// SeedGitHubAppFromEnv seeds GitHub App settings from environment variables on
+// first run. This lets the server admin pre-configure the App so users only
+// need to click "Install" — no manual form entry needed.
+// Only writes keys that aren't already in the DB; a UI save always wins.
+// GITHUB_APP_PRIVATE_KEY_FILE takes a file path (avoids multi-line env var
+// issues); GITHUB_APP_PRIVATE_KEY can be used as a fallback inline value.
+func (s *Server) SeedGitHubAppFromEnv() {
+	pairs := []struct{ key, envName string }{
+		{"github_app_id", "GITHUB_APP_ID"},
+		{"github_app_slug", "GITHUB_APP_SLUG"},
+		{"github_app_webhook_secret", "GITHUB_APP_WEBHOOK_SECRET"},
+	}
+	for _, p := range pairs {
+		val := os.Getenv(p.envName)
+		if val == "" {
+			continue
+		}
+		existing, _ := s.db.GetSetting(p.key)
+		if existing != "" {
+			continue
+		}
+		_ = s.db.SetSetting(p.key, val)
+	}
+
+	// Private key: prefer a file path so newlines are preserved exactly.
+	existing, _ := s.db.GetSetting("github_app_private_key")
+	if existing == "" {
+		var pemData string
+		if file := os.Getenv("GITHUB_APP_PRIVATE_KEY_FILE"); file != "" {
+			if b, err := os.ReadFile(file); err == nil {
+				pemData = strings.TrimSpace(string(b))
+			}
+		}
+		if pemData == "" {
+			pemData = strings.TrimSpace(os.Getenv("GITHUB_APP_PRIVATE_KEY"))
+		}
+		if pemData != "" {
+			_ = s.db.SetSetting("github_app_private_key", pemData)
+		}
+	}
+}
+
 // ── App settings ──────────────────────────────────────────────────────────────
 
 func (s *Server) githubAppSettings(w http.ResponseWriter, r *http.Request) {
