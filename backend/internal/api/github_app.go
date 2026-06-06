@@ -115,6 +115,56 @@ func (s *Server) githubAppCallback(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, origin+"/github?app_installed=1", http.StatusFound)
 }
 
+// githubAppRegister is a JSON endpoint called by the frontend callback page
+// after GitHub redirects the user to /github/app/callback. Unlike
+// githubAppCallback (which does a server-side redirect), this returns JSON so
+// the Next.js page can show a status message and then navigate programmatically.
+func (s *Server) githubAppRegister(w http.ResponseWriter, r *http.Request) {
+	action := r.URL.Query().Get("setup_action")
+	rawID := r.URL.Query().Get("installation_id")
+
+	if action == "delete" {
+		if id, err := strconv.ParseInt(rawID, 10, 64); err == nil && id != 0 {
+			_ = s.db.DeleteAppInstallationByInstallID(id)
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "action": "deleted"})
+		return
+	}
+
+	installationID, err := strconv.ParseInt(rawID, 10, 64)
+	if err != nil || installationID == 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "missing installation_id"})
+		return
+	}
+
+	appID, _ := s.db.GetSetting("github_app_id")
+	pkPEM, _ := s.db.GetSetting("github_app_private_key")
+	if appID == "" || pkPEM == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "GitHub App not configured"})
+		return
+	}
+
+	appClient, err := github.NewAppClient(appID, pkPEM)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "key error: " + err.Error()})
+		return
+	}
+	inst, err := appClient.GetInstallation(installationID)
+	if err != nil {
+		writeJSON(w, http.StatusBadGateway, map[string]string{"error": "github api: " + err.Error()})
+		return
+	}
+	if err := s.db.UpsertAppInstallation(inst.ID, inst.Account.Login, inst.Account.Type); err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"ok":           true,
+		"accountLogin": inst.Account.Login,
+		"accountType":  inst.Account.Type,
+	})
+}
+
 // ── Installations CRUD ────────────────────────────────────────────────────────
 
 func (s *Server) listAppInstallations(w http.ResponseWriter, r *http.Request) {

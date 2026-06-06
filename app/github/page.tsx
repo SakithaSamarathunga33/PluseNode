@@ -115,7 +115,7 @@ export default function GitHubPage() {
     }
   }
   const webhookUrl = typeof window !== "undefined" ? `${window.location.origin}${GO_API}/api/github/webhook` : ""
-  const appCallbackURL = typeof window !== "undefined" ? `${window.location.origin}/go/api/github/app/callback` : ""
+  const appCallbackURL = typeof window !== "undefined" ? `${window.location.origin}/github/app/callback` : ""
 
   const saveAppSettings = async () => {
     setAppSaving(true); setAppSaveError("")
