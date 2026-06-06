@@ -138,7 +138,12 @@ export default function GitHubPage() {
   const installApp = async () => {
     const r = await fetch(`${GO_API}/api/github/app/install-url`)
     const d = await r.json()
-    if (d.url) window.location.href = d.url
+    if (d.url) {
+      // Encode the current instance's origin so the callback page can relay
+      // back here when the GitHub App's Setup URL points to a different instance.
+      const state = btoa(window.location.origin)
+      window.location.href = `${d.url}?state=${encodeURIComponent(state)}`
+    }
   }
 
   const removeInstallation = async (id: number) => {

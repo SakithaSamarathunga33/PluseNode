@@ -15,6 +15,28 @@ function CallbackInner() {
   useEffect(() => {
     const installationId = searchParams.get("installation_id")
     const action = searchParams.get("setup_action")
+    const state = searchParams.get("state")
+
+    // If state encodes a different origin (user was on a different PulseNode
+    // instance when they clicked Install), relay them there so their instance
+    // registers the installation — not this one.
+    if (state) {
+      try {
+        const originFromState = atob(state)
+        if (
+          originFromState &&
+          /^https?:\/\//.test(originFromState) &&
+          originFromState !== window.location.origin
+        ) {
+          const relay = new URLSearchParams()
+          if (installationId) relay.set("installation_id", installationId)
+          if (action) relay.set("setup_action", action)
+          // No state forwarded — avoids relay loops
+          window.location.href = `${originFromState}/github/app/callback?${relay}`
+          return
+        }
+      } catch { /* invalid base64 — fall through to local handling */ }
+    }
 
     if (!installationId && action !== "delete") {
       setStatus("error")
