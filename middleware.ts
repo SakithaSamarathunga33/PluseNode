@@ -9,8 +9,10 @@ const GO_API_INTERNAL = process.env.GO_API_INTERNAL ?? process.env.NEXT_PUBLIC_G
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Never gate the login page itself.
-  if (pathname.startsWith("/login")) {
+  // Never gate the login page or the GitHub App install callback.
+  // The callback is a public relay (GitHub redirects here after installation)
+  // and must be accessible without a session.
+  if (pathname.startsWith("/login") || pathname.startsWith("/github/app/callback")) {
     return NextResponse.next()
   }
 
