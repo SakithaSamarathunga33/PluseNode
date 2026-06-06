@@ -407,7 +407,7 @@ export default function GitHubPage() {
               <div className="flex items-center gap-2">
                 <Puzzle size={16} style={{ color: "var(--fg)" }} />
                 <p className="font-medium text-sm" style={{ color: "var(--fg)" }}>Installations</p>
-                {appSettings?.configured && (
+                {appSettings?.slug && appInstallations.length > 0 && (
                   <button onClick={installApp}
                     className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
                     style={{ background: "var(--acc)", color: "#fff" }}>
@@ -416,7 +416,7 @@ export default function GitHubPage() {
                 )}
               </div>
 
-              {!appSettings?.configured ? (
+              {!appSettings?.slug ? (
                 <p className="text-xs" style={{ color: "var(--fg-3)" }}>
                   Configure your GitHub App on the right, then click <strong>Install App</strong> to grant access to repos.
                   Once installed, PulseNode receives push webhooks automatically for every repo — no per-repo hook setup needed.
@@ -459,10 +459,16 @@ export default function GitHubPage() {
               <div className="flex items-center gap-2">
                 <Shield size={16} style={{ color: "var(--fg)" }} />
                 <p className="font-medium text-sm" style={{ color: "var(--fg)" }}>GitHub App Settings</p>
-                {appSettings?.configured && (
+                {appSettings?.slug && (
                   <span className="ml-auto flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
-                    style={{ background: "color-mix(in srgb, var(--ok) 15%, transparent)", color: "var(--ok)" }}>
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--ok)" }} /> Configured
+                    style={{
+                      background: appSettings.configured
+                        ? "color-mix(in srgb, var(--ok) 15%, transparent)"
+                        : "color-mix(in srgb, var(--warn) 15%, transparent)",
+                      color: appSettings.configured ? "var(--ok)" : "var(--warn)",
+                    }}>
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: appSettings.configured ? "var(--ok)" : "var(--warn)" }} />
+                    {appSettings.configured ? "Configured" : "Partial — key missing"}
                   </span>
                 )}
               </div>
