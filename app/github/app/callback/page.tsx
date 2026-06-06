@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { RefreshCw, CheckCircle, XCircle } from "lucide-react"
 
 const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
 
-export default function GitHubAppCallbackPage() {
+function CallbackInner() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [status, setStatus] = useState<"loading" | "ok" | "error">("loading")
@@ -73,5 +73,17 @@ export default function GitHubAppCallbackPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function GitHubAppCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-1)" }}>
+        <RefreshCw size={32} className="animate-spin" style={{ color: "var(--acc)" }} />
+      </div>
+    }>
+      <CallbackInner />
+    </Suspense>
   )
 }
