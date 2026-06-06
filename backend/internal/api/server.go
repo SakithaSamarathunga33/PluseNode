@@ -86,6 +86,8 @@ func (s *Server) Routes() http.Handler {
 	r.Get("/api/github/callback", s.githubCallback)
 	// GitHub push webhook — public, authenticated by HMAC signature (see handler).
 	r.Post("/api/github/webhook", s.githubWebhook)
+	// GitHub App installation callback — GitHub redirects here after install/uninstall.
+	r.Get("/api/github/app/callback", s.githubAppCallback)
 
 	r.Get("/api/auth/status", s.authStatus)
 	r.Post("/api/auth/login", s.authLogin)
@@ -134,6 +136,14 @@ func (s *Server) Routes() http.Handler {
 		r.Get("/github/oauth-settings", s.githubOAuthSettings)
 		r.Post("/github/oauth-settings", s.githubSaveOAuthSettings)
 		r.Get("/github/webhook-info", s.githubWebhookInfo)
+
+		// GitHub App
+		r.Get("/github/app/settings", s.githubAppSettings)
+		r.Post("/github/app/settings", s.githubAppSaveSettings)
+		r.Get("/github/app/install-url", s.githubAppInstallURL)
+		r.Get("/github/app/installations", s.listAppInstallations)
+		r.Delete("/github/app/installations/{id}", s.deleteAppInstallation)
+		r.Get("/github/app/repos", s.githubAppRepos)
 
 		// Domain settings
 		r.Get("/domain/settings", s.domainSettings)

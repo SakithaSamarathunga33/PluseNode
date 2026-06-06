@@ -159,7 +159,11 @@ func (s *Server) githubWebhook(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "webhook secret unavailable"})
 		return
 	}
-	if !validSignature(secret, r.Header.Get("X-Hub-Signature-256"), body) {
+	// Also accept events signed with the GitHub App webhook secret so both
+	// per-repo hooks and GitHub App installations share the same endpoint.
+	appSecret, _ := s.db.GetSetting("github_app_webhook_secret")
+	sigHeader := r.Header.Get("X-Hub-Signature-256")
+	if !validSignature(secret, sigHeader, body) && !validSignature(appSecret, sigHeader, body) {
 		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid signature"})
 		return
 	}

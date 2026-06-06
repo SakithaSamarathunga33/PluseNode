@@ -163,6 +163,14 @@ CREATE TABLE IF NOT EXISTS oauth_settings (
   client_secret TEXT NOT NULL DEFAULT ''
 );
 
+CREATE TABLE IF NOT EXISTS github_app_installations (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  installation_id INTEGER NOT NULL UNIQUE,
+  account_login   TEXT NOT NULL,
+  account_type    TEXT NOT NULL DEFAULT 'User',
+  created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS users (
   id            INTEGER PRIMARY KEY,
   username      TEXT NOT NULL UNIQUE,
@@ -974,6 +982,55 @@ func (d *DB) UpdateDomainCheck(host string, pointed, proxied bool, records []str
 
 func (d *DB) DeleteDomain(host string) error {
 	_, err := d.Exec(`DELETE FROM domains WHERE host=?`, host)
+	return err
+}
+
+// ── GitHub App installations ───────────────────────────────────────────────────
+
+// AppInstallation is a stored GitHub App installation record.
+type AppInstallation struct {
+	ID             int64  `json:"id"`
+	InstallationID int64  `json:"installationId"`
+	AccountLogin   string `json:"accountLogin"`
+	AccountType    string `json:"accountType"`
+	CreatedAt      string `json:"createdAt"`
+}
+
+func (d *DB) UpsertAppInstallation(installationID int64, login, typ string) error {
+	_, err := d.Exec(`
+INSERT INTO github_app_installations (installation_id, account_login, account_type)
+VALUES (?, ?, ?)
+ON CONFLICT(installation_id) DO UPDATE SET
+    account_login = excluded.account_login,
+    account_type  = excluded.account_type`,
+		installationID, login, typ)
+	return err
+}
+
+func (d *DB) ListAppInstallations() ([]AppInstallation, error) {
+	rows, err := d.Query(`SELECT id, installation_id, account_login, account_type, created_at FROM github_app_installations ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []AppInstallation
+	for rows.Next() {
+		var a AppInstallation
+		if err := rows.Scan(&a.ID, &a.InstallationID, &a.AccountLogin, &a.AccountType, &a.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, a)
+	}
+	return out, rows.Err()
+}
+
+func (d *DB) DeleteAppInstallation(id int64) error {
+	_, err := d.Exec(`DELETE FROM github_app_installations WHERE id=?`, id)
+	return err
+}
+
+func (d *DB) DeleteAppInstallationByInstallID(installationID int64) error {
+	_, err := d.Exec(`DELETE FROM github_app_installations WHERE installation_id=?`, installationID)
 	return err
 }
 
