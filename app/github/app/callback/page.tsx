@@ -31,8 +31,20 @@ function CallbackInner() {
           const relay = new URLSearchParams()
           if (installationId) relay.set("installation_id", installationId)
           if (action) relay.set("setup_action", action)
-          // No state forwarded — avoids relay loops
-          window.location.href = `${originFromState}/github/app/callback?${relay}`
+          // This instance may have the private key — resolve account details
+          // and pass them so the target shows real names, not "unknown".
+          const doRelay = async () => {
+            try {
+              const res = await fetch(`${GO_API}/api/github/app/installation-details?installation_id=${installationId}`)
+              if (res.ok) {
+                const d = await res.json()
+                if (d.accountLogin) relay.set("account_login", d.accountLogin)
+                if (d.accountType)  relay.set("account_type",  d.accountType)
+              }
+            } catch { /* best-effort — target will show "unknown" if this fails */ }
+            window.location.href = `${originFromState}/github/app/callback?${relay}`
+          }
+          doRelay()
           return
         }
       } catch { /* invalid base64 — fall through to local handling */ }

@@ -173,19 +173,29 @@ func (s *Server) githubAppRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Try to enrich the record with account metadata via the App JWT. If the
-	// private key isn't configured on this instance (e.g. a relay target that
-	// only needs webhooks), fall back to storing just the installation ID.
-	login, accountType := "unknown", "User"
-	appID, _ := s.db.GetSetting("github_app_id")
-	pkPEM, _ := s.db.GetSetting("github_app_private_key")
-	if appID != "" && pkPEM != "" {
-		if appClient, err := github.NewAppClient(appID, pkPEM); err == nil {
-			if inst, err := appClient.GetInstallation(installationID); err == nil {
-				login = inst.Account.Login
-				accountType = inst.Account.Type
+	// Accept pre-resolved account details from the relay instance (which has
+	// the private key) so key-less targets still show real account names.
+	login := r.URL.Query().Get("account_login")
+	accountType := r.URL.Query().Get("account_type")
+	if accountType == "" {
+		accountType = "User"
+	}
+
+	// If not pre-supplied, try our own GitHub API call using the App JWT.
+	if login == "" {
+		appID, _ := s.db.GetSetting("github_app_id")
+		pkPEM, _ := s.db.GetSetting("github_app_private_key")
+		if appID != "" && pkPEM != "" {
+			if appClient, err := github.NewAppClient(appID, pkPEM); err == nil {
+				if inst, err := appClient.GetInstallation(installationID); err == nil {
+					login = inst.Account.Login
+					accountType = inst.Account.Type
+				}
 			}
 		}
+	}
+	if login == "" {
+		login = "unknown"
 	}
 
 	if err := s.db.UpsertAppInstallation(installationID, login, accountType); err != nil {
@@ -196,6 +206,37 @@ func (s *Server) githubAppRegister(w http.ResponseWriter, r *http.Request) {
 		"ok":           true,
 		"accountLogin": login,
 		"accountType":  accountType,
+	})
+}
+
+// githubAppInstallationDetails fetches account metadata for one installation
+// using the App JWT — no DB write. Used by the relay callback page on an
+// instance that has the private key to enrich a relay to a key-less instance.
+func (s *Server) githubAppInstallationDetails(w http.ResponseWriter, r *http.Request) {
+	installationID, err := strconv.ParseInt(r.URL.Query().Get("installation_id"), 10, 64)
+	if err != nil || installationID == 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid installation_id"})
+		return
+	}
+	appID, _ := s.db.GetSetting("github_app_id")
+	pkPEM, _ := s.db.GetSetting("github_app_private_key")
+	if appID == "" || pkPEM == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "App not configured on this instance"})
+		return
+	}
+	appClient, err := github.NewAppClient(appID, pkPEM)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	inst, err := appClient.GetInstallation(installationID)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"accountLogin": inst.Account.Login,
+		"accountType":  inst.Account.Type,
 	})
 }
 
