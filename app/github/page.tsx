@@ -445,8 +445,12 @@ export default function GitHubPage() {
                       {inst.accountType === "Organization"
                         ? <Building2 size={14} style={{ color: "var(--fg-3)" }} />
                         : <UserIcon size={14} style={{ color: "var(--fg-3)" }} />}
-                      <span className="text-sm font-medium flex-1" style={{ color: "var(--fg)" }}>{inst.accountLogin}</span>
-                      <span className="text-xs" style={{ color: "var(--fg-3)" }}>{inst.accountType}</span>
+                      <span className="text-sm font-medium flex-1" style={{ color: "var(--fg)" }}>
+                        {inst.accountLogin === "unknown" ? "Connected" : inst.accountLogin}
+                      </span>
+                      {inst.accountLogin !== "unknown" && (
+                        <span className="text-xs" style={{ color: "var(--fg-3)" }}>{inst.accountType}</span>
+                      )}
                       <button onClick={() => removeInstallation(inst.id)} title="Remove" style={{ color: "var(--fg-3)" }}
                         className="hover:opacity-70 transition-opacity">
                         <Trash2 size={13} />
