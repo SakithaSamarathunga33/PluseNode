@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -43,10 +44,12 @@ type Server struct {
 	caddy     *caddy.Client
 	auth      *auth.Middleware
 	origins   []string
+	backupMu  sync.Mutex
+	backups   map[string]*backupJob
 }
 
 func NewServer(cfg Config) *Server {
-	return &Server{
+	srv := &Server{
 		docker:    cfg.Docker,
 		collector: cfg.Collector,
 		hub:       cfg.Hub,
@@ -59,7 +62,10 @@ func NewServer(cfg Config) *Server {
 			Secret:  firstNonEmpty(os.Getenv("JWT_SECRET"), os.Getenv("NODE_API_SECRET"), "pulsenode-dev-secret"),
 		}),
 		origins: cfg.Origins,
+		backups: make(map[string]*backupJob),
 	}
+	srv.startBackupCleaner()
+	return srv
 }
 
 func (s *Server) Routes() http.Handler {
@@ -216,8 +222,11 @@ func (s *Server) Routes() http.Handler {
 		r.Get("/database/{name}/connection-string", s.databaseConnectionString)
 		r.Get("/database/{name}/schema", s.databaseSchema)
 		r.Get("/database/{name}/metrics", s.databaseMetrics)
-		r.Get("/database/{name}/backup", notImplemented)
+		r.Post("/database/{name}/backup", s.startBackup)
+		r.Get("/database/backup/{jobId}/download", s.downloadBackup)
+		r.Post("/database/{name}/restore", s.restoreDatabase)
 		r.Post("/database/{name}/query", s.databaseQuery)
+		r.Get("/database/connections", s.databaseConnections)
 	})
 
 	r.Get("/metrics/live", s.metricsLive)
@@ -230,7 +239,6 @@ func (s *Server) Routes() http.Handler {
 	r.Post("/security/sbom", s.securitySBOM)
 
 	r.Get("/database/inspect", emptyList)
-	r.Get("/database/connections", emptyList)
 
 	return r
 }

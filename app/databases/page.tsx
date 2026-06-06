@@ -17,10 +17,13 @@ import {
   HardDrive,
   PlugZap,
   Plus,
+  RefreshCw,
+  RotateCcw,
   Search,
   Table2,
   TerminalSquare,
   Trash2,
+  Upload,
   X,
 } from "lucide-react"
 import {
@@ -28,7 +31,7 @@ import {
   AlertDialogTitle, AlertDialogDescription, AlertDialogFooter,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog"
-import { nodeApi, pythonApi, API_BASE } from "@/lib/api"
+import { nodeApi, API_BASE } from "@/lib/api"
 import { copyText } from "@/lib/utils"
 import type { CustomConnection, Database, DbMetrics, DbQueryResult, DbSchemaResult } from "@/lib/types"
 import { DatabaseQueryEditor, ResultTable } from "@/components/dashboard/DatabaseQueryEditor"
@@ -79,13 +82,316 @@ function statusTone(state: string) {
   return "bad"
 }
 
-function triggerBackup(dbName: string) {
-  const a = document.createElement("a")
-  a.href = `${API_BASE}/api/database/${encodeURIComponent(dbName)}/backup`
-  a.download = `${dbName}-backup`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
+// ── Backup modal ──────────────────────────────────────────────────────────────
+
+type BkpPhase = "idle" | "starting" | "dumping" | "done" | "error"
+type BkpState = { phase: BkpPhase; jobId: string; bytes: number; error: string; name: string }
+
+function fmtBytes(b: number) {
+  if (b < 1024) return `${b} B`
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`
+  return `${(b / (1024 * 1024)).toFixed(2)} MB`
+}
+
+function BackupModal({ db, onClose }: { db: Database; onClose: () => void }) {
+  const [dbs,      setDbs]      = useState<string[]>([])
+  const [tables,   setTables]   = useState<string[]>([])
+  const [selDb,    setSelDb]    = useState("")
+  const [selTable, setSelTable] = useState("")
+  const [state,    setState]    = useState<BkpState>({ phase: "idle", jobId: "", bytes: 0, error: "", name: "" })
+
+  useEffect(() => {
+    nodeApi.get<DbSchemaResult>(`/api/database/${db.name}/schema`)
+      .then(({ data }) => {
+        setDbs(data.databases ?? [])
+        setTables((data.tables ?? []).map(t => t.name))
+      })
+      .catch(() => {})
+  }, [db.name])
+
+  useEffect(() => {
+    if (!state.jobId) return
+    const es = new EventSource(`${API_BASE}/events`)
+    es.addEventListener("db:backup", (e: MessageEvent) => {
+      try {
+        const d = JSON.parse(e.data)
+        if (d.jobId !== state.jobId) return
+        setState(prev => ({ ...prev, phase: d.phase, bytes: d.bytes ?? prev.bytes, error: d.error ?? "", name: d.name || prev.name }))
+        if (d.phase === "done" || d.phase === "error") es.close()
+      } catch { /* ignore */ }
+    })
+    return () => es.close()
+  }, [state.jobId])
+
+  const start = async () => {
+    setState({ phase: "starting", jobId: "", bytes: 0, error: "", name: "" })
+    try {
+      const r = await fetch(`${API_BASE}/api/database/${encodeURIComponent(db.name)}/backup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ database: selDb, table: selTable }),
+      })
+      const d = await r.json()
+      if (!r.ok) { setState(prev => ({ ...prev, phase: "error", error: d.error ?? "Failed" })); return }
+      setState(prev => ({ ...prev, jobId: d.jobId, name: d.name }))
+    } catch (err) { setState(prev => ({ ...prev, phase: "error", error: String(err) })) }
+  }
+
+  const download = () => {
+    const a = document.createElement("a")
+    a.href = `${API_BASE}/api/database/backup/${state.jobId}/download`
+    a.download = state.name
+    a.click()
+  }
+
+  const reset = () => setState({ phase: "idle", jobId: "", bytes: 0, error: "", name: "" })
+  const running = state.phase === "starting" || state.phase === "dumping"
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={e => { if (e.target === e.currentTarget && !running) onClose() }}>
+      <div className="w-full max-w-md rounded-2xl p-6 space-y-5"
+        style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Download size={16} style={{ color: "var(--acc)" }} />
+            <h2 className="text-sm font-semibold" style={{ color: "var(--fg)" }}>Backup — {db.name}</h2>
+          </div>
+          <button onClick={onClose} style={{ color: "var(--fg-3)" }} disabled={running}><X size={16} /></button>
+        </div>
+
+        {/* Scope selectors (only when idle) */}
+        {state.phase === "idle" && (
+          <div className="space-y-3">
+            {dbs.length > 1 && (
+              <div>
+                <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>Database</label>
+                <select value={selDb} onChange={e => { setSelDb(e.target.value); setSelTable("") }}
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                  style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}>
+                  <option value="">All databases</option>
+                  {dbs.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+            )}
+            {tables.length > 0 && db.engine !== "redis" && (
+              <div>
+                <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>
+                  {db.engine === "mongodb" ? "Collection" : "Table"}
+                  <span className="ml-1.5 font-normal" style={{ color: "var(--fg-3)" }}>(optional — all if blank)</span>
+                </label>
+                <select value={selTable} onChange={e => setSelTable(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                  style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}>
+                  <option value="">All tables</option>
+                  {tables.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+            )}
+            {dbs.length === 0 && tables.length === 0 && (
+              <p className="text-xs" style={{ color: "var(--fg-3)" }}>Full database backup will be created.</p>
+            )}
+          </div>
+        )}
+
+        {/* Progress panel */}
+        {state.phase !== "idle" && (
+          <div className="rounded-xl p-4 space-y-2" style={{ background: "var(--bg-3)", border: "1px solid var(--border)" }}>
+            <div className="flex items-center gap-2">
+              {running && <RefreshCw size={13} className="animate-spin" style={{ color: "var(--acc)" }} />}
+              {state.phase === "done"  && <Check size={13} style={{ color: "var(--ok)" }} />}
+              {state.phase === "error" && <X    size={13} style={{ color: "var(--err)" }} />}
+              <span className="text-xs font-medium" style={{ color: state.phase === "done" ? "var(--ok)" : state.phase === "error" ? "var(--err)" : "var(--fg)" }}>
+                {state.phase === "starting" ? "Preparing…"
+                  : state.phase === "dumping" ? "Dumping data…"
+                  : state.phase === "done"    ? "Backup complete"
+                  :                             "Backup failed"}
+              </span>
+              {state.bytes > 0 && (
+                <span className="ml-auto text-xs tabular-nums" style={{ color: "var(--fg-3)" }}>{fmtBytes(state.bytes)}</span>
+              )}
+            </div>
+            {state.name && <p className="text-xs font-mono truncate" style={{ color: "var(--fg-3)" }}>{state.name}</p>}
+            {state.error && <p className="text-xs" style={{ color: "var(--err)" }}>{state.error}</p>}
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          {state.phase === "done" ? (
+            <>
+              <button onClick={download}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium"
+                style={{ background: "var(--acc)", color: "#fff" }}>
+                <Download size={13} /> Download
+              </button>
+              <button onClick={reset}
+                className="px-4 py-2.5 rounded-lg text-sm"
+                style={{ background: "var(--bg-3)", color: "var(--fg-3)", border: "1px solid var(--border)" }}>
+                New backup
+              </button>
+            </>
+          ) : state.phase === "error" ? (
+            <>
+              <button onClick={reset}
+                className="flex-1 py-2.5 rounded-lg text-sm font-medium"
+                style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}>
+                Try again
+              </button>
+              <button onClick={onClose}
+                className="px-4 py-2.5 rounded-lg text-sm"
+                style={{ background: "var(--bg-3)", color: "var(--fg-3)", border: "1px solid var(--border)" }}>
+                Close
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={start} disabled={running}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
+                style={{ background: "var(--acc)", color: "#fff" }}>
+                {running
+                  ? <><RefreshCw size={13} className="animate-spin" /> Running…</>
+                  : <><Download size={13} /> Start backup</>}
+              </button>
+              <button onClick={onClose} disabled={running}
+                className="px-4 py-2.5 rounded-lg text-sm disabled:opacity-50"
+                style={{ background: "var(--bg-3)", color: "var(--fg-3)", border: "1px solid var(--border)" }}>
+                Cancel
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Restore modal ─────────────────────────────────────────────────────────────
+
+function RestoreModal({ db, onClose }: { db: Database; onClose: () => void }) {
+  const [dbs,     setDbs]     = useState<string[]>([])
+  const [selDb,   setSelDb]   = useState("")
+  const [file,    setFile]    = useState<File | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error,   setError]   = useState("")
+  const [output,  setOutput]  = useState("")
+  const [done,    setDone]    = useState(false)
+  const isRedis = db.engine?.toLowerCase() === "redis"
+
+  useEffect(() => {
+    nodeApi.get<DbSchemaResult>(`/api/database/${db.name}/schema`)
+      .then(({ data }) => setDbs(data.databases ?? []))
+      .catch(() => {})
+  }, [db.name])
+
+  const restore = async () => {
+    if (!file) return
+    setLoading(true); setError(""); setOutput("")
+    try {
+      const form = new FormData()
+      form.append("file", file)
+      if (selDb) form.append("database", selDb)
+      const r = await fetch(`${API_BASE}/api/database/${encodeURIComponent(db.name)}/restore`, { method: "POST", body: form })
+      const d = await r.json()
+      if (!r.ok) { setError(d.error + (d.output ? "\n" + d.output : "")); return }
+      setOutput(d.output || "Restore complete.")
+      setDone(true)
+    } catch (err) { setError(String(err)) }
+    finally { setLoading(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={e => { if (e.target === e.currentTarget && !loading) onClose() }}>
+      <div className="w-full max-w-md rounded-2xl p-6 space-y-5"
+        style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <RotateCcw size={16} style={{ color: "var(--acc)" }} />
+            <h2 className="text-sm font-semibold" style={{ color: "var(--fg)" }}>Restore — {db.name}</h2>
+          </div>
+          <button onClick={onClose} disabled={loading} style={{ color: "var(--fg-3)" }}><X size={16} /></button>
+        </div>
+
+        {isRedis && (
+          <div className="rounded-lg px-3 py-2.5 text-xs"
+            style={{ background: "color-mix(in srgb, var(--warn) 12%, transparent)", color: "var(--warn)", border: "1px solid color-mix(in srgb, var(--warn) 25%, transparent)" }}>
+            Redis restore will stop the container, replace dump.rdb, then restart it.
+          </div>
+        )}
+
+        {!done && (
+          <div className="space-y-3">
+            {dbs.length > 1 && !isRedis && (
+              <div>
+                <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>Target database</label>
+                <select value={selDb} onChange={e => setSelDb(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                  style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}>
+                  <option value="">Default database</option>
+                  {dbs.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+            )}
+            <div>
+              <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>
+                Backup file (.sql · .archive · .rdb)
+              </label>
+              <input type="file" accept=".sql,.archive,.rdb,.dump,.gz"
+                onChange={e => setFile(e.target.files?.[0] ?? null)}
+                className="w-full text-xs rounded-lg px-3 py-2 outline-none"
+                style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }} />
+              {file && (
+                <p className="text-xs mt-1" style={{ color: "var(--fg-3)" }}>
+                  {file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-lg px-3 py-2.5"
+            style={{ background: "color-mix(in srgb, var(--err) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--err) 25%, transparent)" }}>
+            <pre className="text-xs whitespace-pre-wrap font-mono" style={{ color: "var(--err)" }}>{error}</pre>
+          </div>
+        )}
+
+        {done && (
+          <div className="rounded-lg px-3 py-2.5 space-y-1"
+            style={{ background: "color-mix(in srgb, var(--ok) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--ok) 25%, transparent)" }}>
+            <p className="text-xs font-medium flex items-center gap-1.5" style={{ color: "var(--ok)" }}>
+              <Check size={12} /> Restore complete
+            </p>
+            {output && <pre className="text-xs font-mono whitespace-pre-wrap opacity-70 max-h-24 overflow-y-auto" style={{ color: "var(--ok)" }}>{output.slice(0, 400)}</pre>}
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          {done ? (
+            <button onClick={onClose}
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium"
+              style={{ background: "var(--acc)", color: "#fff" }}>
+              Done
+            </button>
+          ) : (
+            <>
+              <button onClick={restore} disabled={!file || loading}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
+                style={{ background: "var(--acc)", color: "#fff" }}>
+                {loading ? <><RefreshCw size={13} className="animate-spin" /> Restoring…</> : <><RotateCcw size={13} /> Restore</>}
+              </button>
+              <button onClick={onClose} disabled={loading}
+                className="px-4 py-2.5 rounded-lg text-sm disabled:opacity-50"
+                style={{ background: "var(--bg-3)", color: "var(--fg-3)", border: "1px solid var(--border)" }}>
+                Cancel
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function ConnSpark({ data, color }: { data: number[]; color: string }) {
@@ -575,12 +881,16 @@ function DatabaseRow({
   expanded,
   onExpand,
   onDelete,
+  onBackup,
+  onRestore,
 }: {
   db: Database
   connHist: number[]
   expanded: boolean
   onExpand: () => void
   onDelete: (db: Database) => void
+  onBackup: (db: Database) => void
+  onRestore: (db: Database) => void
 }) {
   const [tab, setTab] = useState<TabId>("overview")
 
@@ -687,8 +997,11 @@ function DatabaseRow({
               <BarChart3 size={13} />
               Metrics
             </button>
-            <button onClick={() => triggerBackup(db.name)} className="pn-icon-btn" title="Backup" aria-label={`Backup ${db.name}`}>
+            <button onClick={() => onBackup(db)} className="pn-icon-btn" title="Backup" aria-label={`Backup ${db.name}`}>
               <Download size={13} />
+            </button>
+            <button onClick={() => onRestore(db)} className="pn-icon-btn" title="Restore" aria-label={`Restore ${db.name}`}>
+              <Upload size={13} />
             </button>
             <button
               onClick={() => onDelete(db)}
@@ -721,6 +1034,8 @@ export default function DatabasesPage() {
   const [connHistory, setConnHistory] = useState<number[]>([0])
   const [expandedDb, setExpandedDb] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Database | null>(null)
+  const [backupDb,    setBackupDb]    = useState<Database | null>(null)
+  const [restoreDb,   setRestoreDb]   = useState<Database | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [showConnect, setShowConnect] = useState(false)
   const [search, setSearch] = useState("")
@@ -732,43 +1047,27 @@ export default function DatabasesPage() {
         if (data.length === 0) return
         setDatabases(data)
 
-        pythonApi.get<Database[]>("/database/inspect")
-          .then(({ data: pyData }) => {
-            if (!pyData.length) return
-            setDatabases(prev => prev.map(db => {
-              const match = pyData.find(p => p.host === db.host || p.host === db.name || p.name === db.name)
-              if (!match) return db
-              return {
-                ...db,
-                size: match.size !== "-" ? match.size : db.size,
-                conns: match.conns > 0 ? match.conns : db.conns,
-                qps: match.qps > 0 ? match.qps : db.qps,
-                slow: match.slow,
-                tables: match.tables,
-                slowQueries: match.slowQueries,
-              }
-            }))
-          })
-          .catch(() => {})
-
         data.forEach(db => {
           nodeApi.get<DbMetrics>(`/api/database/${db.name}/metrics`)
             .then(({ data: metrics }) => {
               const get = (label: string) => metrics.metrics.find(x => x.label === label)?.value
-              const size = get("Database Size") || get("Used Memory") || get("Resident Memory")
+              // Labels from Go metrics handler — must match exactly
+              const size = get("DB Size") || get("Used Memory") || get("Resident Mem")
               const conns = Number(
                 get("Active Connections") ||
-                get("Connected Clients") ||
-                get("Current Connections") ||
-                get("Threads Connected") ||
+                get("Total Connections") ||
+                get("Connections") ||
+                get("Clients") ||
                 0
               )
+              const qps = Number(get("QPS (avg)") || 0)
               setDatabases(prev => prev.map(d => {
                 if (d.name !== db.name) return d
                 return {
                   ...d,
                   size: d.size === "-" && size ? String(size) : d.size,
                   conns: d.conns === 0 && conns > 0 ? conns : d.conns,
+                  qps:   d.qps  === 0 && qps  > 0 ? qps  : d.qps,
                 }
               }))
             })
@@ -778,7 +1077,7 @@ export default function DatabasesPage() {
       .catch(() => {})
 
     function pollConnections() {
-      pythonApi.get<{ name: string; conns: number }[]>("/database/connections")
+      nodeApi.get<{ name: string; conns: number }[]>("/api/database/connections")
         .then(({ data }) => {
           const total = data.reduce((s, d) => s + d.conns, 0)
           setTotalConns(total)
@@ -846,18 +1145,6 @@ export default function DatabasesPage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={async () => {
-              for (const db of databases) {
-                triggerBackup(db.name)
-                await new Promise(r => setTimeout(r, 600))
-              }
-            }}
-            className="pn-btn"
-          >
-            <Download size={13} />
-            Backup all
-          </button>
           <button onClick={() => setShowCreate(true)} className="pn-btn">
             <Plus size={13} />
             Create database
@@ -949,6 +1236,8 @@ export default function DatabasesPage() {
                     expanded={expandedDb === db.name}
                     onExpand={() => setExpandedDb(prev => prev === db.name ? null : db.name)}
                     onDelete={setDeleteTarget}
+                    onBackup={setBackupDb}
+                    onRestore={setRestoreDb}
                   />
                 ))}
               </tbody>
@@ -961,6 +1250,9 @@ export default function DatabasesPage() {
           </div>
         )}
       </div>
+
+      {backupDb  && <BackupModal  db={backupDb}  onClose={() => setBackupDb(null)}  />}
+      {restoreDb && <RestoreModal db={restoreDb} onClose={() => setRestoreDb(null)} />}
 
       {showCreate && (
         <CreateDatabaseModal

@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"archive/tar"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -8,6 +9,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -92,6 +94,78 @@ func (c *Client) ExecSliceEnv(ctx context.Context, containerNameOrID string, env
 	err := c.doRaw(ctx, http.MethodPost, "/exec/"+created.ID+"/start", map[string]any{"Detach": false, "Tty": false}, &buf)
 	return cleanDockerStream(buf.Bytes()), err
 }
+// ExecStreamEnv runs cmd in the container (with optional extra env) and copies
+// only stdout to dst, stripping Docker's 8-byte multiplexed-stream framing.
+// Use this for large dumps (pg_dump, mysqldump, mongodump, redis RDB) where
+// buffering the entire output in memory is not acceptable.
+func (c *Client) ExecStreamEnv(ctx context.Context, containerNameOrID string, env []string, cmd []string, dst io.Writer) error {
+	body := map[string]any{"Cmd": cmd, "AttachStdout": true, "AttachStderr": true}
+	if len(env) > 0 {
+		body["Env"] = env
+	}
+	var created struct{ ID string `json:"Id"` }
+	if err := c.do(ctx, http.MethodPost, "/containers/"+containerNameOrID+"/exec", body, &created); err != nil {
+		return err
+	}
+	pr, pw := io.Pipe()
+	done := make(chan error, 1)
+	go func() {
+		err := c.doRaw(ctx, http.MethodPost, "/exec/"+created.ID+"/start",
+			map[string]any{"Detach": false, "Tty": false}, pw)
+		pw.CloseWithError(err)
+		done <- err
+	}()
+	hdr := make([]byte, 8)
+	for {
+		if _, err := io.ReadFull(pr, hdr); err != nil {
+			if err == io.EOF || err == io.ErrUnexpectedEOF {
+				break
+			}
+			return err
+		}
+		size := int64(hdr[4])<<24 | int64(hdr[5])<<16 | int64(hdr[6])<<8 | int64(hdr[7])
+		out := dst
+		if hdr[0] != 1 { // discard stderr (type=2), keep only stdout (type=1)
+			out = io.Discard
+		}
+		if _, err := io.CopyN(out, pr, size); err != nil {
+			return err
+		}
+	}
+	return <-done
+}
+
+// CopyToContainer copies a single file into the container at destDir using the
+// Docker archive PUT endpoint. Creates an in-memory tar on the fly, so the
+// caller only needs an io.Reader + known size (stat the file before calling).
+func (c *Client) CopyToContainer(ctx context.Context, containerID, destDir, filename string, r io.Reader, size int64) error {
+	pr, pw := io.Pipe()
+	go func() {
+		tw := tar.NewWriter(pw)
+		_ = tw.WriteHeader(&tar.Header{Name: filename, Mode: 0644, Size: size, Typeflag: tar.TypeReg})
+		_, _ = io.Copy(tw, r)
+		_ = tw.Close()
+		pw.Close()
+	}()
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut,
+		"http://docker/containers/"+containerID+"/archive?path="+url.QueryEscape(destDir), pr)
+	if err != nil {
+		pr.CloseWithError(err)
+		return err
+	}
+	req.Header.Set("Content-Type", "application/x-tar")
+	res, err := c.http.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	io.Copy(io.Discard, res.Body)
+	if res.StatusCode >= 400 {
+		return fmt.Errorf("docker cp: HTTP %d", res.StatusCode)
+	}
+	return nil
+}
+
 func (c *Client) PruneImages(ctx context.Context) (uint64, error) { var raw struct{ SpaceReclaimed uint64 `json:"SpaceReclaimed"` }; err := c.do(ctx, http.MethodPost, "/images/prune?filters=%7B%22dangling%22%3A%5B%22false%22%5D%7D", map[string]any{}, &raw); return raw.SpaceReclaimed, err }
 func (c *Client) ContainerStats(ctx context.Context) ([]Stat, error) {
 	containers, err := c.Containers(ctx)

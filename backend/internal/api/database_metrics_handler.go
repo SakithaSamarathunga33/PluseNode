@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -206,6 +207,74 @@ func (s *Server) databaseMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, metricsResponse{Engine: mdb.Engine, Metrics: items})
+}
+
+// databaseConnections returns [{name, conns}] for all DB containers in parallel.
+// Used by the frontend sparkline poller (replaces the Python /database/connections endpoint).
+func (s *Server) databaseConnections(w http.ResponseWriter, r *http.Request) {
+	if !s.requireDocker(w) {
+		return
+	}
+	ctx := r.Context()
+	containers, err := s.docker.DatabaseContainers(ctx)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
+	type connResult struct {
+		Name  string `json:"name"`
+		Conns int    `json:"conns"`
+	}
+
+	results := make([]connResult, len(containers))
+	var wg sync.WaitGroup
+	for i, ctr := range containers {
+		wg.Add(1)
+		go func(i int, name, engine string) {
+			defer wg.Done()
+			results[i] = connResult{Name: name}
+			mdb, err := s.resolveAnyDB(ctx, name)
+			if err != nil {
+				return
+			}
+			var out string
+			switch engine {
+			case "postgres":
+				out, _ = s.docker.ExecSliceEnv(ctx, name,
+					[]string{"PGPASSWORD=" + mdb.Password},
+					[]string{"psql", "-U", mdb.Username, "-d", mdb.DBName, "-At", "-c",
+						"SELECT count(*) FROM pg_stat_activity;"})
+				n, _ := strconv.Atoi(strings.TrimSpace(out))
+				results[i].Conns = n
+			case "mysql":
+				out, _ = s.docker.ExecSlice(ctx, name,
+					[]string{"mysql", "-u" + mdb.Username, "-p" + mdb.Password, "-N", "-e",
+						"SHOW STATUS LIKE 'Threads_connected';"})
+				parts := strings.Fields(strings.TrimSpace(out))
+				if len(parts) >= 2 {
+					n, _ := strconv.Atoi(parts[len(parts)-1])
+					results[i].Conns = n
+				}
+			case "mongodb":
+				out, _ = s.docker.ExecSlice(ctx, name,
+					[]string{"mongosh", "--quiet", "--eval",
+						`print(db.adminCommand({serverStatus:1}).connections.current)`})
+				n, _ := strconv.Atoi(strings.TrimSpace(out))
+				results[i].Conns = n
+			case "redis":
+				redisCmd := []string{"redis-cli"}
+				if mdb.Password != "" {
+					redisCmd = append(redisCmd, "-a", mdb.Password, "--no-auth-warning")
+				}
+				out, _ = s.docker.ExecSlice(ctx, name, append(redisCmd, "CLIENT", "LIST"))
+				results[i].Conns = len(strings.Split(strings.TrimSpace(out), "\n"))
+			}
+		}(i, ctr.Name, ctr.Engine)
+	}
+	wg.Wait()
+
+	writeJSON(w, http.StatusOK, results)
 }
 
 func parseRedisInfo(raw string) map[string]string {
