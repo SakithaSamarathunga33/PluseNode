@@ -133,24 +133,18 @@ func (s *Server) githubAppCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	login, accountType := "unknown", "User"
 	appID, _ := s.db.GetSetting("github_app_id")
 	pkPEM, _ := s.db.GetSetting("github_app_private_key")
-	if appID == "" || pkPEM == "" {
-		http.Redirect(w, r, origin+"/github?app_error=not_configured", http.StatusFound)
-		return
+	if appID != "" && pkPEM != "" {
+		if appClient, err := github.NewAppClient(appID, pkPEM); err == nil {
+			if inst, err := appClient.GetInstallation(installationID); err == nil {
+				login = inst.Account.Login
+				accountType = inst.Account.Type
+			}
+		}
 	}
-
-	appClient, err := github.NewAppClient(appID, pkPEM)
-	if err != nil {
-		http.Redirect(w, r, origin+"/github?app_error=key_error", http.StatusFound)
-		return
-	}
-	inst, err := appClient.GetInstallation(installationID)
-	if err != nil {
-		http.Redirect(w, r, origin+"/github?app_error=api_error", http.StatusFound)
-		return
-	}
-	if err := s.db.UpsertAppInstallation(inst.ID, inst.Account.Login, inst.Account.Type); err != nil {
+	if err := s.db.UpsertAppInstallation(installationID, login, accountType); err != nil {
 		http.Redirect(w, r, origin+"/github?app_error=db_error", http.StatusFound)
 		return
 	}
@@ -179,31 +173,29 @@ func (s *Server) githubAppRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Try to enrich the record with account metadata via the App JWT. If the
+	// private key isn't configured on this instance (e.g. a relay target that
+	// only needs webhooks), fall back to storing just the installation ID.
+	login, accountType := "unknown", "User"
 	appID, _ := s.db.GetSetting("github_app_id")
 	pkPEM, _ := s.db.GetSetting("github_app_private_key")
-	if appID == "" || pkPEM == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "GitHub App not configured"})
-		return
+	if appID != "" && pkPEM != "" {
+		if appClient, err := github.NewAppClient(appID, pkPEM); err == nil {
+			if inst, err := appClient.GetInstallation(installationID); err == nil {
+				login = inst.Account.Login
+				accountType = inst.Account.Type
+			}
+		}
 	}
 
-	appClient, err := github.NewAppClient(appID, pkPEM)
-	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "key error: " + err.Error()})
-		return
-	}
-	inst, err := appClient.GetInstallation(installationID)
-	if err != nil {
-		writeJSON(w, http.StatusBadGateway, map[string]string{"error": "github api: " + err.Error()})
-		return
-	}
-	if err := s.db.UpsertAppInstallation(inst.ID, inst.Account.Login, inst.Account.Type); err != nil {
+	if err := s.db.UpsertAppInstallation(installationID, login, accountType); err != nil {
 		writeError(w, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"ok":           true,
-		"accountLogin": inst.Account.Login,
-		"accountType":  inst.Account.Type,
+		"accountLogin": login,
+		"accountType":  accountType,
 	})
 }
 
