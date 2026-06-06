@@ -111,16 +111,27 @@ function BackupModal({ db, onClose }: { db: Database; onClose: () => void }) {
 
   useEffect(() => {
     if (!state.jobId) return
+    let closed = false
     const es = new EventSource(`${API_BASE}/events`)
+
+    type BackupEvent = { jobId: string; phase: string; bytes?: number; error?: string; name?: string }
+
+    const applyUpdate = (d: BackupEvent) => {
+      if (d.jobId !== state.jobId) return
+      setState(prev => ({ ...prev, phase: d.phase as BkpPhase, bytes: d.bytes ?? prev.bytes, error: d.error ?? "", name: d.name || prev.name }))
+      if (d.phase === "done" || d.phase === "error") { closed = true; es.close() }
+    }
+
     es.addEventListener("db:backup", (e: MessageEvent) => {
-      try {
-        const d = JSON.parse(e.data)
-        if (d.jobId !== state.jobId) return
-        setState(prev => ({ ...prev, phase: d.phase, bytes: d.bytes ?? prev.bytes, error: d.error ?? "", name: d.name || prev.name }))
-        if (d.phase === "done" || d.phase === "error") es.close()
-      } catch { /* ignore */ }
+      try { applyUpdate(JSON.parse(e.data) as BackupEvent) } catch { /* ignore */ }
     })
-    return () => es.close()
+
+    // Catch-up poll: job may have completed before SSE connected
+    nodeApi.get<BackupEvent>(`/api/database/backup/${state.jobId}`)
+      .then(({ data }) => { if (!closed) applyUpdate(data) })
+      .catch(() => {})
+
+    return () => { closed = true; es.close() }
   }, [state.jobId])
 
   const start = async () => {

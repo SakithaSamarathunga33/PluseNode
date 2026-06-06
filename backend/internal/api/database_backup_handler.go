@@ -211,6 +211,27 @@ func (s *Server) finishBackup(job *backupJob, err error) {
 	s.hub.Broadcast("db:backup", event)
 }
 
+// ── Job status ────────────────────────────────────────────────────────────────
+
+func (s *Server) backupStatus(w http.ResponseWriter, r *http.Request) {
+	jobID := chi.URLParam(r, "jobId")
+	s.backupMu.Lock()
+	job, ok := s.backups[jobID]
+	var phase, name, errStr string
+	var bytes int64
+	if ok {
+		phase, name, errStr, bytes = job.Phase, job.Name, job.Err, job.Bytes
+	}
+	s.backupMu.Unlock()
+	if !ok {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "backup not found"})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"jobId": jobID, "phase": phase, "name": name, "error": errStr, "bytes": bytes,
+	})
+}
+
 // ── Download completed backup ─────────────────────────────────────────────────
 
 func (s *Server) downloadBackup(w http.ResponseWriter, r *http.Request) {

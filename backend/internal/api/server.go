@@ -223,6 +223,7 @@ func (s *Server) Routes() http.Handler {
 		r.Get("/database/{name}/schema", s.databaseSchema)
 		r.Get("/database/{name}/metrics", s.databaseMetrics)
 		r.Post("/database/{name}/backup", s.startBackup)
+		r.Get("/database/backup/{jobId}", s.backupStatus)
 		r.Get("/database/backup/{jobId}/download", s.downloadBackup)
 		r.Post("/database/{name}/restore", s.restoreDatabase)
 		r.Post("/database/{name}/query", s.databaseQuery)
