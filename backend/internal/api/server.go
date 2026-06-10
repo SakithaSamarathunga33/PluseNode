@@ -85,9 +85,11 @@ func (s *Server) Routes() http.Handler {
 	r.Get("/events", s.hub.ServeSSE)
 	r.Get("/ws", s.hub.ServeWebSocket)
 
-	// Container shell — WebSocket, no auth middleware wrapping needed (auth via origin check)
-	r.Get("/api/ws/containers/{id}/shell", s.containerShell)
-	r.Post("/api/ws/containers/resize", s.containerShellResize)
+	// Container shell — WebSocket exec into a container (root). MUST be authenticated:
+	// the WS upgrader accepts all origins, so without requireAuth this is an
+	// unauthenticated remote shell. Browser handshake carries the pn_session cookie.
+	r.With(s.requireAuth).Get("/api/ws/containers/{id}/shell", s.containerShell)
+	r.With(s.requireAuth).Post("/api/ws/containers/resize", s.containerShellResize)
 
 	r.Get("/api/github/callback", s.githubCallback)
 	// GitHub push webhook — public, authenticated by HMAC signature (see handler).
@@ -230,16 +232,18 @@ func (s *Server) Routes() http.Handler {
 		r.Get("/database/connections", s.databaseConnections)
 	})
 
-	r.Get("/metrics/live", s.metricsLive)
-	r.Get("/metrics/history", s.metricsHistory)
-	r.Get("/metrics/processes", s.processes)
+	// These live outside the /api group for legacy path reasons but are reachable
+	// externally via Caddy's /go/* proxy, so they must require auth too.
+	r.With(s.requireAuth).Get("/metrics/live", s.metricsLive)
+	r.With(s.requireAuth).Get("/metrics/history", s.metricsHistory)
+	r.With(s.requireAuth).Get("/metrics/processes", s.processes)
 
-	r.Get("/security/scans", s.securityScans)
-	r.Post("/security/scan", s.securityScan)
-	r.Get("/security/sboms", s.securitySBOMs)
-	r.Post("/security/sbom", s.securitySBOM)
+	r.With(s.requireAuth).Get("/security/scans", s.securityScans)
+	r.With(s.requireAuth).Post("/security/scan", s.securityScan)
+	r.With(s.requireAuth).Get("/security/sboms", s.securitySBOMs)
+	r.With(s.requireAuth).Post("/security/sbom", s.securitySBOM)
 
-	r.Get("/database/inspect", emptyList)
+	r.With(s.requireAuth).Get("/database/inspect", emptyList)
 
 	return r
 }

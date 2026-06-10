@@ -4,13 +4,13 @@ import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import {
-  Container, BarChart3, Activity, Layers, Network,
+  LayoutDashboard, BarChart3, Activity, Layers, Network,
   Database, Shield, FileCode2, BellRing,
   ChevronDown, Cpu, PanelLeftClose, PanelLeftOpen, Settings,
   FolderGit2, Box, Globe,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
-import { GitHubDark, Docker } from "developer-icons"
+import { GitHubDark } from "developer-icons"
 import { BorderBeam } from "@/components/magicui/border-beam"
 import { NumberTicker } from "@/components/magicui/number-ticker"
 import { cn } from "@/lib/utils"
@@ -39,7 +39,7 @@ const BASE_NAV_SECTIONS: NavSection[] = [
   {
     label: "Workspace",
     items: [
-      { label: "Dashboard",    href: "/containers",   icon: Container, devIcon: Docker  },
+      { label: "Dashboard",    href: "/containers",   icon: LayoutDashboard },
       { label: "Runtime",      href: "/runtime",      icon: Box        },
       { label: "Stats",        href: "/stats",        icon: BarChart3  },
       { label: "Processes",    href: "/processes",    icon: Activity   },
