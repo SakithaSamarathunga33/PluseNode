@@ -174,6 +174,8 @@ function QueryResult({ result }: { result: DbQueryResult }) {
 
 // ── DatabaseQueryEditor ───────────────────────────────────────────────────────
 
+const PAGE_SIZE = 100
+
 export function DatabaseQueryEditor({
   db,
   onClose,
@@ -190,6 +192,8 @@ export function DatabaseQueryEditor({
   const [error,            setError]            = useState<string | null>(null)
   const [loading,          setLoading]          = useState(false)
   const [showWarning,      setShowWarning]      = useState(false)
+  // Set while results came from the table picker — enables Prev/Next paging
+  const [tableView,        setTableView]        = useState<{ table: string; page: number } | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const isRedis = db.engine === "redis"
@@ -217,6 +221,7 @@ export function DatabaseQueryEditor({
   useEffect(() => {
     if (!selectedDatabase) return
     loadSchema(selectedDatabase)
+    setTableView(null)
   }, [db.name, selectedDatabase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const runQuery = useCallback(
@@ -225,6 +230,7 @@ export function DatabaseQueryEditor({
       setLoading(true)
       setError(null)
       setResult(null)
+      setTableView(null)
       try {
         const res = await nodeApi.post<DbQueryResult>(`/api/database/${db.name}/query`, {
           query,
@@ -250,10 +256,10 @@ export function DatabaseQueryEditor({
     [query, db.name, selectedDatabase, hasQuery] // eslint-disable-line react-hooks/exhaustive-deps
   )
 
-  async function handleTableClick(tableName: string) {
+  async function loadTablePage(tableName: string, page: number) {
     const q = isRedis ? "KEYS *"
             : isMongo ? `${tableName} {}`
-            : `SELECT * FROM ${tableName} LIMIT 100;`
+            : `SELECT * FROM ${tableName} LIMIT ${PAGE_SIZE} OFFSET ${page * PAGE_SIZE};`
     setQuery(q)
     setError(null)
     setResult(null)
@@ -265,11 +271,16 @@ export function DatabaseQueryEditor({
         force: false,
       })
       setResult(res)
+      setTableView(isRedis || isMongo ? null : { table: tableName, page })
     } catch (err: unknown) {
       setError((err as ApiError)?.message || "Query failed")
     } finally {
       setLoading(false)
     }
+  }
+
+  function handleTableClick(tableName: string) {
+    loadTablePage(tableName, 0)
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -364,7 +375,7 @@ export function DatabaseQueryEditor({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => { setQuery(""); setResult(null); setError(null) }}
+              onClick={() => { setQuery(""); setResult(null); setError(null); setTableView(null) }}
             >
               Clear
             </Button>
@@ -373,7 +384,7 @@ export function DatabaseQueryEditor({
                 ? "Redis command"
                 : isMongo
                 ? "collection {filter}"
-                : "Ctrl+↵ to run · 100 row limit"}
+                : "Ctrl+↵ to run"}
             </span>
           </div>
         </div>
@@ -400,6 +411,39 @@ export function DatabaseQueryEditor({
 
         {/* Results */}
         {result && <QueryResult result={result} />}
+
+        {/* Table paging — shown when results came from the table picker */}
+        {result && tableView && (() => {
+          const total = schema.tables.find(t => t.name === tableView.table)?.rows
+          const from = tableView.page * PAGE_SIZE + (result.rowCount > 0 ? 1 : 0)
+          const to = tableView.page * PAGE_SIZE + result.rowCount
+          return (
+            <div className="flex items-center gap-2 px-3 py-1.5 border-t border-pulseNode-border/10 bg-pulseNode-navy/50">
+              <span className="text-[10px] text-helm-fg3">
+                {tableView.table} · rows {from}–{to}{total ? ` of ~${total.toLocaleString()}` : ""}
+              </span>
+              <div className="ml-auto flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={loading || tableView.page === 0}
+                  onClick={() => loadTablePage(tableView.table, tableView.page - 1)}
+                >
+                  ← Prev
+                </Button>
+                <span className="text-[10px] text-helm-fg3">Page {tableView.page + 1}</span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={loading || result.rowCount < PAGE_SIZE}
+                  onClick={() => loadTablePage(tableView.table, tableView.page + 1)}
+                >
+                  Next →
+                </Button>
+              </div>
+            </div>
+          )
+        })()}
       </div>
 
       {/* Destructive query confirmation dialog */}

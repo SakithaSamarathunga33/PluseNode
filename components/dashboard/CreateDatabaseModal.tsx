@@ -159,7 +159,7 @@ export function CreateDatabaseModal({ onClose, onCreated }: { onClose: () => voi
                 </label>
                 <input
                   value={name}
-                  onChange={e => setName(e.target.value)}
+                  onChange={e => setName(e.target.value.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9_.-]/g, ""))}
                   placeholder={engine ? `my-${engine}` : "my-database"}
                   className="w-full px-3 py-2 rounded-lg text-sm font-mono focus:outline-none"
                   style={{
@@ -171,7 +171,7 @@ export function CreateDatabaseModal({ onClose, onCreated }: { onClose: () => voi
                   onBlur={e =>  { (e.target as HTMLInputElement).style.borderColor = "var(--border)" }}
                 />
                 <p className="text-[10px] text-helm-fg3">
-                  Leave blank to auto-generate. Used as the container and database name.
+                  Leave blank to auto-generate. Used as the container and database name — letters, numbers, dots, dashes and underscores only.
                 </p>
               </div>
 

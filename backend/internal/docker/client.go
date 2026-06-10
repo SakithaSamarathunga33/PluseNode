@@ -460,7 +460,7 @@ func (c *Client) CreateDBContainer(ctx context.Context, image, name, volumeName,
 	var created struct {
 		ID string `json:"Id"`
 	}
-	if err := c.do(ctx, http.MethodPost, "/containers/create?name="+name, body, &created); err != nil {
+	if err := c.do(ctx, http.MethodPost, "/containers/create?name="+url.QueryEscape(name), body, &created); err != nil {
 		return "", err
 	}
 	return created.ID, nil
@@ -468,6 +468,19 @@ func (c *Client) CreateDBContainer(ctx context.Context, image, name, volumeName,
 
 func (c *Client) StartContainer(ctx context.Context, id string) error {
 	return c.do(ctx, http.MethodPost, "/containers/"+id+"/start", nil, nil)
+}
+
+// ContainerState returns the inspect-level state (running, exited, restarting, …).
+func (c *Client) ContainerState(ctx context.Context, nameOrID string) (string, error) {
+	var raw struct {
+		State struct {
+			Status string `json:"Status"`
+		} `json:"State"`
+	}
+	if err := c.do(ctx, http.MethodGet, "/containers/"+nameOrID+"/json", nil, &raw); err != nil {
+		return "", err
+	}
+	return raw.State.Status, nil
 }
 
 func (c *Client) CreateTTYExec(ctx context.Context, containerID string) (string, error) {

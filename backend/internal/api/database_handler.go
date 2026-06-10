@@ -74,8 +74,13 @@ func (s *Server) provisionDatabase(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "unsupported engine: " + req.Engine})
 		return
 	}
+	req.Name = sanitizeDBName(req.Name)
 	if req.Name == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "name is required"})
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "name is required — use letters, numbers, dots, dashes or underscores"})
+		return
+	}
+	if existing, err := s.db.GetManagedDatabaseByContainerName(req.Engine, req.Name); err == nil && existing != nil {
+		writeJSON(w, http.StatusConflict, map[string]string{"error": fmt.Sprintf("a %s database named %q already exists", req.Engine, req.Name)})
 		return
 	}
 
@@ -153,6 +158,10 @@ func (s *Server) runProvision(id, containerName, volumeName, password, username,
 	if meta.EnvDB != "" {
 		envVars[meta.EnvDB] = dbName
 	}
+	// mysql:8.0 refuses to start unless a root password strategy is set
+	if engine == "mysql" {
+		envVars["MYSQL_ROOT_PASSWORD"] = password
+	}
 
 	emit("Creating container " + containerName + "…")
 	cid, err := s.docker.CreateDBContainer(ctx, meta.Image, containerName, volumeName, meta.DataPath, hostPort, meta.InternPort, envVars)
@@ -171,6 +180,15 @@ func (s *Server) runProvision(id, containerName, volumeName, password, username,
 
 	emit("Waiting for health check…")
 	time.Sleep(3 * time.Second) // give the container a moment to initialize
+
+	// Verify the container actually stayed up (a bad env/config makes it exit or
+	// restart-loop immediately, which a blind "running" would mask).
+	if state, err := s.docker.ContainerState(ctx, cid); err == nil && state != "running" {
+		logs, _ := s.docker.Logs(ctx, cid, 5)
+		emit("ERROR: container is " + state + " — " + strings.TrimSpace(logs))
+		_ = s.db.UpdateManagedDatabaseStatus(id, "error", cid)
+		return
+	}
 
 	_ = s.db.UpdateManagedDatabaseStatus(id, "running", cid)
 	emit("✓ Database ready on host port " + fmt.Sprintf("%d", hostPort))
@@ -292,6 +310,22 @@ func (s *Server) deleteConnectedDatabase(w http.ResponseWriter, r *http.Request)
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+// sanitizeDBName makes a user-supplied name safe for Docker container/volume
+// names ([a-zA-Z0-9][a-zA-Z0-9_.-]*): whitespace becomes "-", other invalid
+// characters are stripped, and leading non-alphanumerics are trimmed.
+func sanitizeDBName(raw string) string {
+	var b strings.Builder
+	for _, r := range strings.TrimSpace(raw) {
+		switch {
+		case r == ' ' || r == '\t':
+			b.WriteRune('-')
+		case (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_' || r == '.' || r == '-':
+			b.WriteRune(r)
+		}
+	}
+	return strings.TrimLeft(b.String(), "_.-")
+}
 
 func freePort() (int, error) {
 	l, err := net.Listen("tcp", ":0")
