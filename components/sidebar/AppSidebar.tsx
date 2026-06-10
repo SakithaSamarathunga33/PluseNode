@@ -39,7 +39,7 @@ const BASE_NAV_SECTIONS: NavSection[] = [
   {
     label: "Workspace",
     items: [
-      { label: "Containers",   href: "/containers",   icon: Container, devIcon: Docker  },
+      { label: "Dashboard",    href: "/containers",   icon: Container, devIcon: Docker  },
       { label: "Runtime",      href: "/runtime",      icon: Box        },
       { label: "Stats",        href: "/stats",        icon: BarChart3  },
       { label: "Processes",    href: "/processes",    icon: Activity   },

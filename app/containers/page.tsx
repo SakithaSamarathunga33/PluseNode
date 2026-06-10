@@ -571,7 +571,7 @@ export default function ContainersPage() {
       {/* ── Header ── */}
       <div className="gsap-enter flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-xl font-bold" style={{ color: "var(--fg)" }}>Containers</h1>
+          <h1 className="text-xl font-bold" style={{ color: "var(--fg)" }}>Dashboard</h1>
           <p className="text-[12px] mt-0.5" style={{ color: "var(--fg-3)" }}>
             {containers.length} containers · {running} running · {stopped + exited} stopped
           </p>

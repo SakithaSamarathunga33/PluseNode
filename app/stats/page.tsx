@@ -65,48 +65,6 @@ function pushHistory(arr: number[], val: number): number[] {
   return next
 }
 
-function animateChartSvgs(root: HTMLDivElement | null) {
-  if (!root) return
-
-  const curves = Array.from(
-    root.querySelectorAll<SVGPathElement>(
-      ".chart-animate .recharts-area-curve, .chart-animate .recharts-line-curve"
-    )
-  )
-  const areas = Array.from(root.querySelectorAll<SVGPathElement>(".chart-animate .recharts-area-area"))
-  const bars = Array.from(root.querySelectorAll<SVGElement>(".chart-animate .recharts-bar-rectangle path"))
-
-  curves.forEach(path => {
-    const length = path.getTotalLength()
-    gsap.set(path, { strokeDasharray: length, strokeDashoffset: length, opacity: 1 })
-  })
-
-  if (curves.length > 0) {
-    gsap.to(curves, {
-      strokeDashoffset: 0,
-      duration: 1.15,
-      ease: "power2.out",
-      stagger: 0.06,
-    })
-  }
-
-  if (areas.length > 0) {
-    gsap.fromTo(
-      areas,
-      { opacity: 0 },
-      { opacity: 1, duration: 0.85, ease: "power2.out", delay: 0.15 }
-    )
-  }
-
-  if (bars.length > 0) {
-    gsap.fromTo(
-      bars,
-      { scaleY: 0, transformOrigin: "50% 100%" },
-      { scaleY: 1, duration: 0.7, ease: "power3.out", stagger: 0.008, delay: 0.1 }
-    )
-  }
-}
-
 export default function StatsPage() {
   const [timeRange, setTimeRange]   = useState("6h")
   const [host, setHost]             = useState<HostInfo>(MOCK_HOST)
@@ -222,11 +180,13 @@ export default function StatsPage() {
       { opacity: 0, y: 20 },
       { opacity: 1, y: 0, duration: 0.45, stagger: 0.08, ease: "power2.out" }
     )
-    const runChartAnimation = () => animateChartSvgs(containerRef.current)
-    const frame = requestAnimationFrame(() => {
-      requestAnimationFrame(runChartAnimation)
-    })
-    return () => cancelAnimationFrame(frame)
+    // uPlot renders to canvas, so per-path SVG stroke animation isn't possible —
+    // reveal each chart left-to-right with a clip instead (mimics a line draw)
+    gsap.fromTo(
+      ".chart-animate",
+      { clipPath: "inset(0 100% 0 0)", opacity: 0 },
+      { clipPath: "inset(0 0% 0 0)", opacity: 1, duration: 1.1, ease: "power2.out", stagger: 0.12, delay: 0.2 }
+    )
   }, { scope: containerRef })
 
   // Memory breakdown

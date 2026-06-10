@@ -75,9 +75,9 @@
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/components/dashboard/UPlotChart.tsx": {
-    "mtime": 1781056728.0918162,
-    "ast_hash": "da013b4a2d04003d5f2ccdabe02ea5bf",
-    "semantic_hash": ""
+    "mtime": 1779547790.5970886,
+    "ast_hash": "b9fb1fb844329459c90873b570bc1a18",
+    "semantic_hash": "b9fb1fb844329459c90873b570bc1a18"
   },
   "/home/sakitha/apps/vps/components/dashboard/StatCard.tsx": {
     "mtime": 1779242500.9196715,
@@ -105,8 +105,8 @@
     "semantic_hash": "6e74a6b00e6155a0e0367997f5a35980"
   },
   "/home/sakitha/apps/vps/components/sidebar/AppSidebar.tsx": {
-    "mtime": 1781056718.6027725,
-    "ast_hash": "42cf030714f54ceaa33ba1dfcf5a58bc",
+    "mtime": 1780291209.2983696,
+    "ast_hash": "3dd593e5eb2d050b10a478ff13de201f",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/components/magicui/border-beam.tsx": {
@@ -420,9 +420,9 @@
     "semantic_hash": "a855e86d6b006470932286d0c27a431f"
   },
   "/home/sakitha/apps/vps/app/containers/page.tsx": {
-    "mtime": 1781056720.057779,
-    "ast_hash": "38b5101570249b61ea248a1560418f3a",
-    "semantic_hash": ""
+    "mtime": 1779605429.430942,
+    "ast_hash": "c05b4e1fa70ef58b004506c3ee3f9794",
+    "semantic_hash": "c05b4e1fa70ef58b004506c3ee3f9794"
   },
   "/home/sakitha/apps/vps/app/login/page.tsx": {
     "mtime": 1780231705.7628205,
@@ -435,9 +435,9 @@
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/app/stats/page.tsx": {
-    "mtime": 1781056750.3079193,
-    "ast_hash": "02536f903b9356fbfb03ab92be7ef7bf",
-    "semantic_hash": ""
+    "mtime": 1779546730.7616649,
+    "ast_hash": "e3ff6aeb868a0fdb9bbe01a0afe9cb6d",
+    "semantic_hash": "e3ff6aeb868a0fdb9bbe01a0afe9cb6d"
   },
   "/home/sakitha/apps/vps/app/databases/page.tsx": {
     "mtime": 1780735306.0959764,

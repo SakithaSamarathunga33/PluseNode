@@ -74,6 +74,7 @@ export function UPlotChart({ series, height = 200, mode = "line", max }: UPlotCh
           stroke: resolveCssColor(s.color),
           fill: mode === "line" ? resolveCssColor(s.fill) : undefined,
           width: s.width ?? 1.5,
+          points: { show: false },
           paths: mode === "bar" ? uPlot.paths.bars!({ size: [0.65, 60] }) : undefined,
         })),
       ],

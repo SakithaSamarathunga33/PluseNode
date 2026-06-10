@@ -1,16 +1,16 @@
 # Graph Report - vps  (2026-06-10)
 
 ## Corpus Check
-- 131 files · ~307,580 words
+- 131 files · ~307,655 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1971 nodes · 3006 edges · 129 communities (91 shown, 38 thin omitted)
+- 1971 nodes · 3006 edges · 128 communities (91 shown, 37 thin omitted)
 - Extraction: 90% EXTRACTED · 10% INFERRED · 0% AMBIGUOUS · INFERRED: 313 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `736e2d8c`
+- Built from commit: `0a0b86c7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -132,7 +132,6 @@
 - [[_COMMUNITY_Community 123|Community 123]]
 - [[_COMMUNITY_Community 124|Community 124]]
 - [[_COMMUNITY_Community 125|Community 125]]
-- [[_COMMUNITY_Community 128|Community 128]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `importMap` - 257 edges
@@ -164,7 +163,7 @@
 - **Terminal sequenced animation system (Terminal + AnimatedSpan + TypingAnimation + Contexts)** — magicui_terminal_terminal, magicui_terminal_animatedspan, magicui_terminal_typinganimation, magicui_terminal_sequencecontext, magicui_terminal_itemindexcontext, magicui_terminal_useinview [EXTRACTED 1.00]
 - **Tailwind custom animations consumed by MagicUI components** — vps_tailwindconfig_animation_border_beam, vps_tailwindconfig_animation_sparkle, vps_tailwindconfig_animation_meteor, magicui_borderbeam_borderbeam, magicui_sparklestext_sparklestext, magicui_meteors_meteors [EXTRACTED 1.00]
 
-## Communities (129 total, 38 thin omitted)
+## Communities (128 total, 37 thin omitted)
 
 ### Community 0 - "Go API Handlers"
 Cohesion: 0.12
@@ -203,8 +202,8 @@ Cohesion: 0.08
 Nodes (29): ConnectDatabaseModal(), Phase, CopyField(), CreateDatabaseModal(), Creds, ENGINES, Phase, DatabaseQueryEditor() (+21 more)
 
 ### Community 10 - "HTTP & Routing Layer"
-Cohesion: 0.13
-Nodes (5): writeJSON(), Server, Server, Server, Server
+Cohesion: 0.11
+Nodes (6): writeJSON(), Server, Server, Server, Server, Server
 
 ### Community 11 - "Process Monitoring"
 Cohesion: 0.10
@@ -489,12 +488,12 @@ Nodes (7): Card(), CardAction(), CardContent(), CardDescription(), CardFooter(),
 ## Knowledge Gaps
 - **853 isolated node(s):** `config`, `name`, `version`, `private`, `dev` (+848 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **38 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **37 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `writeJSON()` connect `HTTP & Routing Layer` to `Community 128`, `Environment & GitHub OAuth`, `Auth Middleware`, `Deploy & Update System`, `Database Handler Utils`, `Database Metrics API`, `Project & Deploy API`, `Auth Cookie Endpoints`, `GitHub API Endpoints`, `DB Query Engine`, `Card UI Component`, `Coolify Integration UI`, `Network Monitoring UI`, `Docker Action API`, `GitHub Integration Page`?**
+- **Why does `writeJSON()` connect `HTTP & Routing Layer` to `Environment & GitHub OAuth`, `Auth Middleware`, `Deploy & Update System`, `Database Handler Utils`, `Database Metrics API`, `Project & Deploy API`, `Auth Cookie Endpoints`, `GitHub API Endpoints`, `DB Query Engine`, `Card UI Component`, `Coolify Integration UI`, `Network Monitoring UI`, `Docker Action API`, `GitHub Integration Page`?**
   _High betweenness centrality (0.041) - this node is a cross-community bridge._
 - **Why does `cn()` connect `MagicUI Base Components` to `Login Page`, `Go API Handlers`, `Badge & Tabs UI`, `MagicUI Border Animations`, `Stats & Metrics UI`, `Community 123`, `Process Monitoring`, `Community 109`, `Community 110`, `App Shell & Layout`, `Community 115`, `SBOM History UI`, `MagicUI Animations`, `Mock Data & Types`, `Terminal Animation Component`, `Community 125`?**
   _High betweenness centrality (0.023) - this node is a cross-community bridge._
