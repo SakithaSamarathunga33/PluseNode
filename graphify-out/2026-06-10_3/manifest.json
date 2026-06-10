@@ -105,8 +105,8 @@
     "semantic_hash": "6e74a6b00e6155a0e0367997f5a35980"
   },
   "/home/sakitha/apps/vps/components/sidebar/AppSidebar.tsx": {
-    "mtime": 1781056980.3840196,
-    "ast_hash": "57b65db87d6a32bd89d022b24778abbc",
+    "mtime": 1781056718.6027725,
+    "ast_hash": "42cf030714f54ceaa33ba1dfcf5a58bc",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/components/magicui/border-beam.tsx": {
@@ -240,8 +240,8 @@
     "semantic_hash": "03cf2470d68e42908350144ed411dc30"
   },
   "/home/sakitha/apps/vps/backend/cmd/pulsenode/main.go": {
-    "mtime": 1781058068.222711,
-    "ast_hash": "be3cd8104d05034dea7d0ce144f1032f",
+    "mtime": 1780708075.95632,
+    "ast_hash": "b671cfa04f1ddb1b7a503e11ab25b1f3",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/api/metrics.go": {
@@ -270,8 +270,8 @@
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/api/server.go": {
-    "mtime": 1781058026.3874743,
-    "ast_hash": "717ccb4b29812f49257888d645a2977e",
+    "mtime": 1780735179.9932232,
+    "ast_hash": "77eeffada7d1fd34bb958f20728c88a0",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/api/alerts_handler.go": {
@@ -325,9 +325,9 @@
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/api/shell.go": {
-    "mtime": 1781058045.5415828,
-    "ast_hash": "0eebd6ef14368954c54eb1eaee82a586",
-    "semantic_hash": ""
+    "mtime": 1779603201.7404976,
+    "ast_hash": "7ee5ae7cdde030229311353fa7e2e6b1",
+    "semantic_hash": "7ee5ae7cdde030229311353fa7e2e6b1"
   },
   "/home/sakitha/apps/vps/backend/internal/db/db.go": {
     "mtime": 1780706225.5086734,
@@ -380,9 +380,9 @@
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/hub/hub.go": {
-    "mtime": 1781058059.4396615,
-    "ast_hash": "8ec4edccbf900eacaa7b19ffbb019c34",
-    "semantic_hash": ""
+    "mtime": 1779591001.344382,
+    "ast_hash": "04ce3d46b2cdfd687799b92b993bcd2b",
+    "semantic_hash": "04ce3d46b2cdfd687799b92b993bcd2b"
   },
   "/home/sakitha/apps/vps/app/layout.tsx": {
     "mtime": 1780228219.107836,
@@ -485,8 +485,8 @@
     "semantic_hash": "0b4acbbaaf71aa4efc094376718f3741"
   },
   "/home/sakitha/apps/vps/.claude/settings.local.json": {
-    "mtime": 1781057338.1448135,
-    "ast_hash": "3beb3d294bae3f6ad72230c046b87bdc",
+    "mtime": 1781055969.8680003,
+    "ast_hash": "3717e3120bb77e95813c27609cf6a90d",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/docker-compose.standalone.yml": {
