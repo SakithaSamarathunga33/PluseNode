@@ -6,16 +6,30 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
 	"github.com/rs/zerolog/log"
 )
 
-var wsUpgrader = websocket.Upgrader{
-	ReadBufferSize:  4096,
-	WriteBufferSize: 4096,
-	CheckOrigin:     func(r *http.Request) bool { return true },
+// originAllowed reports whether a WebSocket Origin header is acceptable.
+// An empty Origin (non-browser clients, e.g. a CLI using a Bearer token) is
+// allowed because cross-site WebSocket hijacking requires a browser, which
+// always sends Origin. A present Origin must match one of the configured app
+// origins — this blocks a malicious page from opening an authenticated socket
+// (e.g. a container shell) using the victim's ambient credentials.
+func originAllowed(origin string, allowed []string) bool {
+	if origin == "" {
+		return true
+	}
+	o := strings.TrimRight(origin, "/")
+	for _, a := range allowed {
+		if strings.EqualFold(strings.TrimRight(a, "/"), o) {
+			return true
+		}
+	}
+	return false
 }
 
 // containerShell upgrades to WebSocket then proxies a TTY shell inside the container
@@ -23,6 +37,12 @@ var wsUpgrader = websocket.Upgrader{
 // no CGO/creack/pty needed on the host.
 func (s *Server) containerShell(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+
+	wsUpgrader := websocket.Upgrader{
+		ReadBufferSize:  4096,
+		WriteBufferSize: 4096,
+		CheckOrigin:     func(r *http.Request) bool { return originAllowed(r.Header.Get("Origin"), s.origins) },
+	}
 
 	// 1. Create exec with TTY
 	execID, err := s.docker.CreateTTYExec(r.Context(), id)

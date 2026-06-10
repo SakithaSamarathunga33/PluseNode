@@ -47,17 +47,20 @@ func main() {
 	jobQueue := queue.New(database, events, 2)
 	jobQueue.RecoverStuck()
 
+	origins := []string{
+		env("NEXT_PUBLIC_ORIGIN", "http://localhost:3000"),
+		"http://localhost:3001",
+		"http://127.0.0.1:3000",
+	}
+	events.AllowedOrigins = origins // gate cross-site WebSocket handshakes on /ws
+
 	server := api.NewServer(api.Config{
 		Docker:    dockerClient,
 		Collector: collector,
 		Hub:       events,
 		DB:        database,
 		Queue:     jobQueue,
-		Origins: []string{
-			env("NEXT_PUBLIC_ORIGIN", "http://localhost:3000"),
-			"http://localhost:3001",
-			"http://127.0.0.1:3000",
-		},
+		Origins:   origins,
 	})
 
 	server.SeedDomainsIfEmpty(context.Background())

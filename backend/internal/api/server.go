@@ -82,8 +82,12 @@ func (s *Server) Routes() http.Handler {
 
 	r.Get("/health", s.health)
 	r.Get("/config", s.clientConfig)
-	r.Get("/events", s.hub.ServeSSE)
-	r.Get("/ws", s.hub.ServeWebSocket)
+	// Realtime streams carry deploy logs / provisioning detail to every subscriber,
+	// so they must be authenticated. Browser EventSource/WebSocket send the
+	// pn_session cookie same-origin; the cookie is SameSite=Lax so it isn't sent
+	// cross-site.
+	r.With(s.requireAuth).Get("/events", s.hub.ServeSSE)
+	r.With(s.requireAuth).Get("/ws", s.hub.ServeWebSocket)
 
 	// Container shell — WebSocket exec into a container (root). MUST be authenticated:
 	// the WS upgrader accepts all origins, so without requireAuth this is an

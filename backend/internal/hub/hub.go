@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,10 +20,29 @@ type Hub struct {
 	mu      sync.RWMutex
 	clients map[chan Event]struct{}
 	ws      map[*websocket.Conn]struct{}
+	// AllowedOrigins gates cross-site WebSocket handshakes. Empty = same-origin
+	// browsers only (any present Origin is rejected). Set from the app's
+	// configured origins at startup.
+	AllowedOrigins []string
 }
 
 func New() *Hub {
 	return &Hub{clients: map[chan Event]struct{}{}, ws: map[*websocket.Conn]struct{}{}}
+}
+
+// originAllowed reports whether a WebSocket Origin is acceptable. An empty Origin
+// (non-browser clients) is allowed; a present Origin must match a configured one.
+func originAllowed(origin string, allowed []string) bool {
+	if origin == "" {
+		return true
+	}
+	o := strings.TrimRight(origin, "/")
+	for _, a := range allowed {
+		if strings.EqualFold(strings.TrimRight(a, "/"), o) {
+			return true
+		}
+	}
+	return false
 }
 
 func (h *Hub) Broadcast(kind string, data any) {
@@ -100,7 +120,7 @@ func (h *Hub) ServeSSE(w http.ResponseWriter, r *http.Request) {
 
 func (h *Hub) ServeWebSocket(w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
-		CheckOrigin: func(*http.Request) bool { return true },
+		CheckOrigin: func(r *http.Request) bool { return originAllowed(r.Header.Get("Origin"), h.AllowedOrigins) },
 	}
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
