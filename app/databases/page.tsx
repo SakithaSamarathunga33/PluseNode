@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import {
@@ -9,6 +9,7 @@ import {
   BarChart3,
   Check,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Copy,
   Database as DatabaseIcon,
@@ -522,7 +523,9 @@ function ConnectionStringPanel({ dbName, database }: { dbName: string; database?
   )
 }
 
-// ── TableDataModal — read-only data viewer (SELECT * first 100 rows) ───────────
+// ── TableDataModal — read-only data viewer with pagination (100 rows / page) ──
+
+const PAGE_SIZE = 100
 
 function exportResultCsv(result: DbQueryResult, name: string) {
   const esc = (v: unknown) => JSON.stringify(v ?? "")
@@ -538,14 +541,16 @@ function exportResultCsv(result: DbQueryResult, name: string) {
 function TableDataModal({ db, database, table, onClose }: {
   db: Database; database: string; table: string; onClose: () => void
 }) {
+  const [page,    setPage]    = useState(0)
   const [result,  setResult]  = useState<DbQueryResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState<string | null>(null)
 
-  useEffect(() => {
+  const fetchPage = useCallback((p: number) => {
+    const offset = p * PAGE_SIZE
     const q = db.engine === "redis"   ? "KEYS *"
              : db.engine === "mongodb" ? `${table} {}`
-             : `SELECT * FROM ${table} LIMIT 100;`
+             : `SELECT * FROM ${table} LIMIT ${PAGE_SIZE} OFFSET ${offset};`
     let cancelled = false
     setLoading(true); setError(null); setResult(null)
     nodeApi.post<DbQueryResult>(`/api/database/${db.name}/query`, {
@@ -557,11 +562,23 @@ function TableDataModal({ db, database, table, onClose }: {
     return () => { cancelled = true }
   }, [db.name, db.engine, database, table])
 
+  useEffect(() => fetchPage(page), [fetchPage, page])
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
   }, [onClose])
+
+  // For non-SQL engines, pagination doesn't apply
+  const isPaginatable = db.engine !== "redis" && db.engine !== "mongodb"
+  const hasNextPage   = isPaginatable && (result?.rowCount ?? 0) >= PAGE_SIZE
+  const hasPrevPage   = page > 0
+  const rowStart      = page * PAGE_SIZE + 1
+  const rowEnd        = page * PAGE_SIZE + (result?.rowCount ?? 0)
+
+  const goNext = () => setPage(p => p + 1)
+  const goPrev = () => setPage(p => Math.max(0, p - 1))
 
   return (
     <div
@@ -620,10 +637,46 @@ function TableDataModal({ db, database, table, onClose }: {
             result.columns.length === 0 ? (
               <div className="flex h-40 min-w-[420px] items-center justify-center text-xs text-helm-fg3">No rows to display.</div>
             ) : (
-              <ResultTable result={result} scrollClassName="w-max max-w-[92vw] max-h-[calc(85vh-3.5rem)]" />
+              <ResultTable result={result} scrollClassName="w-max max-w-[92vw] max-h-[calc(85vh-8rem)]" />
             )
           )}
         </div>
+
+        {/* Pagination footer */}
+        {isPaginatable && !error && (
+          <div className="flex flex-shrink-0 items-center justify-between gap-3 border-t border-pulseNode-border/10 bg-pulseNode-navy px-4 py-2.5">
+            <span className="font-mono text-[11px] text-helm-fg3">
+              {loading
+                ? "Loading…"
+                : result && result.rowCount > 0
+                  ? `Rows ${rowStart}–${rowEnd}`
+                  : page === 0 ? "No rows" : "No more rows"}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={goPrev}
+                disabled={!hasPrevPage || loading}
+                aria-label="Previous page"
+                className="flex items-center gap-1 rounded-md border border-pulseNode-border/20 px-2.5 py-1 text-[11px] text-helm-fg3 transition-all hover:border-pn-electric/40 hover:text-helm-fg disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronLeft size={12} />
+                Prev
+              </button>
+              <span className="min-w-[3rem] text-center font-mono text-[11px] text-helm-fg3">
+                Page {page + 1}
+              </span>
+              <button
+                onClick={goNext}
+                disabled={!hasNextPage || loading}
+                aria-label="Next page"
+                className="flex items-center gap-1 rounded-md border border-pulseNode-border/20 px-2.5 py-1 text-[11px] text-helm-fg3 transition-all hover:border-pn-electric/40 hover:text-helm-fg disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Next
+                <ChevronRight size={12} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
