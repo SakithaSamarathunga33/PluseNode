@@ -65,8 +65,12 @@ func (s *Server) requireAuth(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		// Cookie path (browser sessions).
+		// Cookie path (browser sessions). Slide the session on each authenticated
+		// request — re-issue a fresh token so an active user isn't logged out
+		// mid-action when the original 30-min token expires. Idle sessions still
+		// expire (no requests → no renewal).
 		if c, err := r.Cookie("pn_session"); err == nil && s.auth.ValidateToken(c.Value) {
+			setSessionCookie(w, s.auth.MakeJWT(user.Username, sessionTTL), int(sessionTTL))
 			next.ServeHTTP(w, r)
 			return
 		}

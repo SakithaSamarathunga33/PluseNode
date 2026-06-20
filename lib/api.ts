@@ -5,6 +5,11 @@ export const API_BASE = GO_API
 export interface ApiError extends Error { status: number }
 
 async function throwApiError(res: Response, label: string): Promise<never> {
+  // A 401 means the browser session is gone/expired — send the user to log in
+  // rather than surfacing a dead-end "Unauthorized" error.
+  if (res.status === 401 && typeof window !== "undefined" && window.location.pathname !== "/login") {
+    window.location.href = "/login"
+  }
   let msg = `${res.status} ${label}`
   try {
     const body = await res.json()

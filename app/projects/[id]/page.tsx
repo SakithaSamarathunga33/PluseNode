@@ -165,16 +165,30 @@ export default function ProjectDetailPage() {
     }
   }, [logs])
 
+  // On a 401 the browser session has expired — bounce to login so the user can
+  // re-authenticate instead of hitting a silent failure. Returns true if it
+  // handled an auth failure (caller should stop).
+  const handledAuthFailure = (res: Response): boolean => {
+    if (res.status === 401) {
+      if (typeof window !== "undefined") window.location.href = "/login"
+      return true
+    }
+    return false
+  }
+
   const triggerDeploy = async () => {
     setDeploying(true)
     try {
       const r = await fetch(`${GO_API}/api/projects/${id}/deploy`, { method: "POST" })
-      const d = await r.json()
+      if (handledAuthFailure(r)) return
+      const d = await r.json().catch(() => ({}))
       if (r.ok) {
         await fetchDeployments()
         setActiveDep(d.deploymentId)
         setTab("logs")
         fetchProject()
+      } else {
+        alert(d.error ?? "Redeploy failed")
       }
     } finally { setDeploying(false) }
   }
@@ -195,7 +209,8 @@ export default function ProjectDetailPage() {
     setRolling(dep.ID)
     try {
       const r = await fetch(`${GO_API}/api/projects/${id}/deployments/${dep.ID}/rollback`, { method: "POST" })
-      const d = await r.json()
+      if (handledAuthFailure(r)) return
+      const d = await r.json().catch(() => ({}))
       if (r.ok) {
         await fetchDeployments()
         setActiveDep(d.deploymentId)
@@ -239,6 +254,7 @@ export default function ProjectDetailPage() {
           autoDeploy: form.autoDeploy,
         }),
       })
+      if (handledAuthFailure(r)) return false
       if (!r.ok) {
         const d = await r.json().catch(() => ({}))
         setSettingsErr(d.error ?? "Failed to save settings")
@@ -337,11 +353,12 @@ export default function ProjectDetailPage() {
             <button
               onClick={triggerDeploy}
               disabled={deploying}
+              title={`Redeploy the latest commit on ${project.Branch || "the deploy branch"}`}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-60"
               style={{ background: "var(--acc)", color: "#fff" }}
             >
               {deploying ? <RefreshCw size={13} className="animate-spin" /> : <Play size={13} />}
-              {deploying ? "Deploying…" : "Deploy"}
+              {deploying ? "Deploying…" : "Redeploy"}
             </button>
             <button
               onClick={deleteProject}
