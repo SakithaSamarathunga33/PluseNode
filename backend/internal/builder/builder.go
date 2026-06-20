@@ -322,23 +322,45 @@ func (cfg Config) deployContainer(ctx context.Context, imageRef, slug string, en
 	return cid, nil
 }
 
-// removeOldContainers removes every container for this project except keepID:
-// the new-style ones (matched by the pulsenode.project label) and the previous
-// container recorded by the caller (covers containers from the old naming scheme
-// that predate the label).
+// removeOldContainers removes every container that routes to this project
+// except keepID (the container we just deployed). Old and new containers carry
+// identical Traefik routing labels, so any leftover old container keeps
+// receiving a share of traffic until it's removed — leaving one live means the
+// user sees the old version on ~half of requests.
+//
+// Candidates are gathered by every signal old and new deploys can share:
+//   - the pulsenode.project label (new naming scheme), and
+//   - the Traefik router label keyed on the project id, which is ALSO present on
+//     pre-label legacy containers, so they get cleaned up even though they
+//     predate the pulsenode.project label.
+//
+// PrevContainerID is still honored as a final fallback for containers that
+// somehow carry neither label.
 func (cfg Config) removeOldContainers(ctx context.Context, projectID, keepID string) {
-	seen := map[string]bool{keepID: true}
-	out, _ := runOutput(ctx, "", "docker", "ps", "-aq", "--filter", "label=pulsenode.project="+projectID)
-	for _, oldID := range strings.Fields(out) {
-		if seen[oldID] || strings.HasPrefix(keepID, oldID) || strings.HasPrefix(oldID, keepID) {
-			continue
-		}
-		seen[oldID] = true
-		_ = runSilent(ctx, "docker", "rm", "-f", oldID)
+	filters := []string{
+		"label=pulsenode.project=" + projectID,
+		"label=traefik.http.routers.pn-" + projectID + ".entrypoints",
 	}
-	if prev := strings.TrimSpace(cfg.PrevContainerID); prev != "" && !seen[prev] &&
-		!strings.HasPrefix(keepID, prev) && !strings.HasPrefix(prev, keepID) {
-		_ = runSilent(ctx, "docker", "rm", "-f", prev)
+	seen := map[string]bool{}
+	var ids []string
+	for _, f := range filters {
+		out, _ := runOutput(ctx, "", "docker", "ps", "-aq", "--filter", f)
+		for _, id := range strings.Fields(out) {
+			if !seen[id] {
+				seen[id] = true
+				ids = append(ids, id)
+			}
+		}
+	}
+	if prev := strings.TrimSpace(cfg.PrevContainerID); prev != "" && !seen[prev] {
+		seen[prev] = true
+		ids = append(ids, prev)
+	}
+	for _, id := range ids {
+		if strings.HasPrefix(keepID, id) || strings.HasPrefix(id, keepID) {
+			continue // never remove the container we just deployed
+		}
+		_ = runSilent(ctx, "docker", "rm", "-f", id)
 	}
 }
 
