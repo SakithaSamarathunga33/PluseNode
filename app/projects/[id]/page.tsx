@@ -15,7 +15,7 @@ const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
 type Project = {
   ID: string; Name: string; RepoURL: string; Branch: string
   Domain: string; Status: string; BuildMethod: string; Port: number
-  BuildCommand: string; EnvVars: string; BackendEnvVars: string; CreatedAt: string
+  BuildCommand: string; EnvVars: string; BackendEnvVars: string; BaseDir: string; CreatedAt: string
   AutoDeploy: boolean; LastCommitSHA: string
 }
 type Deployment = {
@@ -136,12 +136,20 @@ export default function ProjectDetailPage() {
       backendEnvText: toEnvText(project.BackendEnvVars),
       autoDeploy: project.AutoDeploy,
     })
-    // Probe whether this repo is a monorepo so we can show the backend env box.
-    setMonorepo(null)
-    fetch(`${GO_API}/api/github/detect-layout?repo=${encodeURIComponent(project.RepoURL)}&branch=${encodeURIComponent(project.Branch)}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => setMonorepo(Boolean(d?.monorepo)))
-      .catch(() => setMonorepo(false))
+    // Probe whether this repo is a monorepo so we can show the backend env box
+    // — but only for a combined-mode project (BaseDir empty). A project with
+    // BaseDir set is a single component deployed separately (its own project),
+    // so it never gets the second env box even if the repo still has both
+    // frontend/ and backend/ folders.
+    if (project.BaseDir) {
+      setMonorepo(false)
+    } else {
+      setMonorepo(null)
+      fetch(`${GO_API}/api/github/detect-layout?repo=${encodeURIComponent(project.RepoURL)}&branch=${encodeURIComponent(project.Branch)}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(d => setMonorepo(Boolean(d?.monorepo)))
+        .catch(() => setMonorepo(false))
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project?.ID])
 
@@ -526,6 +534,7 @@ export default function ProjectDetailPage() {
                 {[
                   { label: "Project ID", value: project.ID },
                   { label: "Repository", value: project.RepoURL },
+                  ...(project.BaseDir ? [{ label: "Deploys from", value: `${project.BaseDir}/ (separate from this repo's other component)` }] : []),
                   { label: "Last deployed commit", value: project.LastCommitSHA ? project.LastCommitSHA.slice(0, 7) : "—" },
                 ].map(row => (
                   <div key={row.label} className="flex items-center justify-between text-sm gap-3">

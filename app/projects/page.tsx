@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Plus, RefreshCw, FolderGit2, GitBranch, Globe, Circle, PlayCircle } from "lucide-react"
+import { Plus, RefreshCw, FolderGit2, GitBranch, Globe, Circle, PlayCircle, ChevronDown, ChevronRight, Boxes } from "lucide-react"
 
 const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
 
@@ -14,6 +14,7 @@ type Project = {
   Domain: string
   Status: string
   BuildMethod: string
+  BaseDir: string
   CreatedAt: string
 }
 
@@ -22,6 +23,134 @@ const STATUS_COLORS: Record<string, string> = {
   building: "var(--acc)",
   failed:   "var(--err)",
   idle:     "var(--fg-4)",
+}
+
+// Normalizes a repo URL to owner/repo so projects deployed separately from the
+// same repo (one for frontend/, one for backend/) can be grouped together.
+function repoSlug(url: string): string {
+  return url.replace(/^https?:\/\/github\.com\//i, "").replace(/\.git$/i, "").toLowerCase()
+}
+
+function StatusBadge({ status }: { status: string }) {
+  return (
+    <span
+      className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-full capitalize"
+      style={{
+        background: (STATUS_COLORS[status] ?? "var(--fg-4)") + "20",
+        color: STATUS_COLORS[status] ?? "var(--fg-4)",
+      }}
+    >
+      <Circle size={6} fill="currentColor" />
+      {status}
+    </span>
+  )
+}
+
+function ProjectCard({ proj, compact }: { proj: Project; compact?: boolean }) {
+  return (
+    <Link
+      href={`/projects/${proj.ID}`}
+      className="block rounded-xl p-4 transition-colors hover:opacity-90"
+      style={{ background: compact ? "var(--bg-1)" : "var(--bg-2)", border: "1px solid var(--border)" }}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "var(--bg-3)" }}>
+            <FolderGit2 size={16} style={{ color: "var(--acc)" }} />
+          </div>
+          <div className="min-w-0">
+            <p className="font-medium text-sm flex items-center gap-1.5" style={{ color: "var(--fg)" }}>
+              {proj.Name}
+              {proj.BaseDir && (
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium capitalize"
+                  style={{ background: "var(--bg-3)", color: "var(--fg-3)" }}
+                >
+                  {proj.BaseDir}
+                </span>
+              )}
+            </p>
+            <p className="text-xs truncate mt-0.5" style={{ color: "var(--fg-3)" }}>
+              {proj.RepoURL.replace("https://github.com/", "")}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <StatusBadge status={proj.Status} />
+        </div>
+      </div>
+      <div className="flex items-center gap-4 mt-3 text-xs" style={{ color: "var(--fg-3)" }}>
+        <span className="flex items-center gap-1">
+          <GitBranch size={11} />
+          {proj.Branch}
+        </span>
+        <span className="flex items-center gap-1">
+          <Globe size={11} />
+          {proj.Domain}
+        </span>
+        <span className="flex items-center gap-1 ml-auto">
+          <PlayCircle size={11} />
+          {proj.BuildMethod}
+        </span>
+      </div>
+    </Link>
+  )
+}
+
+// A repo deployed in "separate" mode (one independent project per
+// frontend/backend folder, see app/projects/new) renders here instead of as a
+// plain card: grouped under the repo name, expandable, with a "+ Add …" action
+// for whichever component hasn't been deployed yet.
+function RepoGroup({ repoUrl, members }: { repoUrl: string; members: Project[] }) {
+  const [expanded, setExpanded] = useState(true)
+  const hasFrontend = members.some(m => m.BaseDir === "frontend")
+  const hasBackend = members.some(m => m.BaseDir === "backend")
+  const missing = !hasFrontend ? "frontend" : !hasBackend ? "backend" : null
+  const branch = members[0]?.Branch ?? "main"
+  const repoName = repoUrl.replace(/^https?:\/\/github\.com\//i, "").replace(/\.git$/i, "")
+
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}>
+      <button
+        onClick={() => setExpanded(e => !e)}
+        className="w-full flex items-center justify-between gap-4 p-4 text-left transition-colors hover:opacity-90"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "var(--bg-3)" }}>
+            <Boxes size={16} style={{ color: "var(--acc)" }} />
+          </div>
+          <div className="min-w-0">
+            <p className="font-medium text-sm" style={{ color: "var(--fg)" }}>{repoName}</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--fg-3)" }}>
+              Deployed separately · {members.length} of 2 services
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {members.map(m => <StatusBadge key={m.ID} status={m.Status} />)}
+          {expanded ? <ChevronDown size={16} style={{ color: "var(--fg-3)" }} /> : <ChevronRight size={16} style={{ color: "var(--fg-3)" }} />}
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="p-3 pt-0 space-y-2">
+          {members.map(m => <ProjectCard key={m.ID} proj={m} compact />)}
+          {missing && (
+            <Link
+              href={`/projects/new?repo=${encodeURIComponent(repoName)}&branch=${encodeURIComponent(branch)}&component=${missing}`}
+              className="flex items-center justify-center gap-2 rounded-xl p-3 text-sm font-medium capitalize transition-colors hover:opacity-90"
+              style={{ background: "var(--bg-1)", border: "1px dashed var(--border)", color: "var(--acc)" }}
+            >
+              <Plus size={14} />
+              Add {missing}
+            </Link>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function ProjectsPage() {
@@ -44,6 +173,23 @@ export default function ProjectsPage() {
         <RefreshCw size={20} className="animate-spin" style={{ color: "var(--fg-3)" }} />
       </div>
     )
+  }
+
+  // Group projects that were deployed as separate frontend/backend components
+  // of the same repo (BaseDir set) under one expandable card; everything else
+  // renders as a plain card, unchanged from before.
+  const renderedGroups = new Set<string>()
+  const items: { key: string; node: React.ReactNode }[] = []
+  for (const proj of projects) {
+    if (proj.BaseDir) {
+      const key = repoSlug(proj.RepoURL)
+      if (renderedGroups.has(key)) continue
+      renderedGroups.add(key)
+      const members = projects.filter(p => p.BaseDir && repoSlug(p.RepoURL) === key)
+      items.push({ key, node: <RepoGroup repoUrl={proj.RepoURL} members={members} /> })
+    } else {
+      items.push({ key: proj.ID, node: <ProjectCard proj={proj} /> })
+    }
   }
 
   return (
@@ -86,55 +232,7 @@ export default function ProjectsPage() {
         </div>
       ) : (
         <div className="grid gap-3">
-          {projects.map(proj => (
-            <Link
-              key={proj.ID}
-              href={`/projects/${proj.ID}`}
-              className="block rounded-xl p-4 transition-colors hover:opacity-90"
-              style={{ background: "var(--bg-2)", border: "1px solid var(--border)" }}
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ background: "var(--bg-3)" }}>
-                    <FolderGit2 size={16} style={{ color: "var(--acc)" }} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm" style={{ color: "var(--fg)" }}>{proj.Name}</p>
-                    <p className="text-xs truncate mt-0.5" style={{ color: "var(--fg-3)" }}>
-                      {proj.RepoURL.replace("https://github.com/", "")}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span
-                    className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-full capitalize"
-                    style={{
-                      background: (STATUS_COLORS[proj.Status] ?? "var(--fg-4)") + "20",
-                      color: STATUS_COLORS[proj.Status] ?? "var(--fg-4)",
-                    }}
-                  >
-                    <Circle size={6} fill="currentColor" />
-                    {proj.Status}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 mt-3 text-xs" style={{ color: "var(--fg-3)" }}>
-                <span className="flex items-center gap-1">
-                  <GitBranch size={11} />
-                  {proj.Branch}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Globe size={11} />
-                  {proj.Domain}
-                </span>
-                <span className="flex items-center gap-1 ml-auto">
-                  <PlayCircle size={11} />
-                  {proj.BuildMethod}
-                </span>
-              </div>
-            </Link>
-          ))}
+          {items.map(item => <div key={item.key}>{item.node}</div>)}
         </div>
       )}
     </div>

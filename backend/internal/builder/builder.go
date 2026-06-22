@@ -30,6 +30,7 @@ type Config struct {
 	Domain       string
 	EnvVars      string // JSON {"KEY":"VALUE"} — frontend/single-service env
 	BackendEnvVars string // JSON {"KEY":"VALUE"} — monorepo backend env (ignored for single-service)
+	BaseDir      string // "" | "frontend" | "backend" — subfolder to build from when this project is one component of a monorepo deployed separately. Skips monorepo auto-split.
 	TraefikNet   string
 	PrevContainerID string // previous running container, removed after the new one is healthy
 	Log          LogFunc
@@ -90,27 +91,39 @@ func Run(ctx context.Context, cfg Config) (Result, error) {
 	}
 	imageRef := fmt.Sprintf("pn-%s:%s", slug, verTag)
 
+	// buildDir is the repo root, unless this project is one component of a
+	// monorepo deployed as its own separate project (BaseDir set), in which case
+	// it's the component's subfolder — and monorepo auto-split below is skipped
+	// since the split decision was already made explicitly at project creation.
+	buildDir := tmpDir
+	if cfg.BaseDir != "" {
+		buildDir = filepath.Join(tmpDir, cfg.BaseDir)
+		cfg.log("system", fmt.Sprintf("→ Building from %s/ (deployed as a separate project)", cfg.BaseDir))
+	}
+
 	// 3. Detect method if auto. A frontend/ + backend/ monorepo is deployed as
 	// two services on one domain (frontend at /, backend at /api). An explicit
 	// build method (set by the user) is always respected and never split.
 	method := cfg.Method
 	if method == "auto" || method == "" {
-		if feDir, beDir, ok := DetectMonorepo(tmpDir); ok {
-			cfg.log("system", "→ Detected a frontend/ + backend/ monorepo — deploying two services on one domain")
-			// Backend gets its own env (kept separate from the frontend's), so
-			// backend secrets never land in the frontend container.
-			beEnvMap := map[string]string{}
-			if cfg.BackendEnvVars != "" && cfg.BackendEnvVars != "{}" {
-				_ = json.Unmarshal([]byte(cfg.BackendEnvVars), &beEnvMap)
+		if cfg.BaseDir == "" {
+			if feDir, beDir, ok := DetectMonorepo(tmpDir); ok {
+				cfg.log("system", "→ Detected a frontend/ + backend/ monorepo — deploying two services on one domain")
+				// Backend gets its own env (kept separate from the frontend's), so
+				// backend secrets never land in the frontend container.
+				beEnvMap := map[string]string{}
+				if cfg.BackendEnvVars != "" && cfg.BackendEnvVars != "{}" {
+					_ = json.Unmarshal([]byte(cfg.BackendEnvVars), &beEnvMap)
+				}
+				res, err := cfg.runMonorepo(ctx, slug, verTag, envMap, beEnvMap, feDir, beDir)
+				if err != nil {
+					return Result{}, err
+				}
+				res.CommitSHA, res.CommitMsg = commitSHA, commitMsg
+				return res, nil
 			}
-			res, err := cfg.runMonorepo(ctx, slug, verTag, envMap, beEnvMap, feDir, beDir)
-			if err != nil {
-				return Result{}, err
-			}
-			res.CommitSHA, res.CommitMsg = commitSHA, commitMsg
-			return res, nil
 		}
-		method = Detect(tmpDir)
+		method = Detect(buildDir)
 		cfg.log("system", fmt.Sprintf("→ Auto-detected build method: %s", method))
 	} else {
 		cfg.log("system", fmt.Sprintf("→ Build method: %s", method))
@@ -121,12 +134,12 @@ func Run(ctx context.Context, cfg Config) (Result, error) {
 	switch method {
 	case MethodCompose:
 		// Compose manages its own images/services; no single image to tag or roll back.
-		res.ContainerID, err = cfg.buildCompose(ctx, tmpDir, fmt.Sprintf("pn-%s", slug), envMap)
+		res.ContainerID, err = cfg.buildCompose(ctx, buildDir, fmt.Sprintf("pn-%s", slug), envMap)
 	case MethodDockerfile:
-		res.ContainerID, err = cfg.buildDockerfile(ctx, tmpDir, imageRef, slug, envMap)
+		res.ContainerID, err = cfg.buildDockerfile(ctx, buildDir, imageRef, slug, envMap)
 		res.ImageTag = imageRef
 	case MethodNixpacks:
-		res.ContainerID, err = cfg.buildNixpacks(ctx, tmpDir, imageRef, slug, envMap)
+		res.ContainerID, err = cfg.buildNixpacks(ctx, buildDir, imageRef, slug, envMap)
 		res.ImageTag = imageRef
 	default:
 		return Result{}, fmt.Errorf("unknown build method: %s", method)
@@ -526,6 +539,17 @@ func (cfg Config) removeOldContainers(ctx context.Context, projectID, component,
 		if strings.HasPrefix(keepID, id) || strings.HasPrefix(id, keepID) {
 			continue // never remove the container we just deployed
 		}
+		_ = runSilent(ctx, "docker", "rm", "-f", id)
+	}
+}
+
+// RemoveProjectContainers force-removes every container belonging to a
+// project (matched by the pulsenode.project label — covers both components
+// of a monorepo deploy). Used when a project is deleted, so its container(s)
+// don't keep running and squatting the project's Traefik routes.
+func RemoveProjectContainers(ctx context.Context, projectID string) {
+	out, _ := runOutput(ctx, "", "docker", "ps", "-aq", "--filter", "label=pulsenode.project="+projectID)
+	for _, id := range strings.Fields(out) {
 		_ = runSilent(ctx, "docker", "rm", "-f", id)
 	}
 }

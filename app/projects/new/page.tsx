@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { GitFork, GitBranch, Globe, ChevronRight, ChevronLeft, RefreshCw, Shuffle, Check, Layers } from "lucide-react"
+import { useState, useEffect, useCallback, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { GitFork, GitBranch, Globe, ChevronRight, ChevronLeft, RefreshCw, Shuffle, Check, Layers, Boxes } from "lucide-react"
 
 const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
 
@@ -15,8 +15,9 @@ const randomName = () =>
   NOUNS[Math.floor(Math.random() * NOUNS.length)] + "-" +
   Math.floor(Math.random() * 900 + 100)
 
-export default function NewProjectPage() {
+function NewProjectForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [step, setStep] = useState(1)
 
   // Step 1 — pick repo
@@ -40,10 +41,24 @@ export default function NewProjectPage() {
 
   // Monorepo (frontend/ + backend/) detection — null = not yet probed
   const [monorepo, setMonorepo] = useState<boolean | null>(null)
+  // How to deploy a detected monorepo: one project with two routed services
+  // ("combined", the default), or each folder as its own independent project
+  // ("separate" — own domain, own rollback, deploy one folder at a time).
+  const [deployMode, setDeployMode] = useState<"combined" | "separate">("combined")
+  // Which folder this project builds when deployMode is "separate".
+  const [component, setComponent] = useState<"frontend" | "backend">("frontend")
 
   // Step 3 — deploy
   const [creating, setCreating] = useState(false)
   const [error, setError]       = useState("")
+
+  // Prefill from the projects list's "+ Add frontend/backend" action: jump
+  // straight to Step 2 for a known repo, pre-selected for separate-mode deploy
+  // of the missing component. Runs once repos have loaded.
+  const [prefillDone, setPrefillDone] = useState(false)
+  const prefillRepo = searchParams.get("repo")
+  const prefillBranch = searchParams.get("branch")
+  const prefillComponent = searchParams.get("component")
 
   const loadRepos = useCallback(async () => {
     setReposLoading(true)
@@ -79,9 +94,11 @@ export default function NewProjectPage() {
     } catch { /* use default */ }
   }
 
-  const goToStep2 = async () => {
-    if (!selectedRepo) return
-    setName(selectedRepo.name.toLowerCase().replace(/[^a-z0-9-]/g, "-"))
+  const goToStep2 = async (repoOverride?: Repo, branchOverride?: string) => {
+    const repo = repoOverride ?? selectedRepo
+    if (!repo) return
+    const branch = branchOverride ?? selectedBranch
+    setName(repo.name.toLowerCase().replace(/[^a-z0-9-]/g, "-"))
     setDomain("")
     setMonorepo(null)
     try {
@@ -92,12 +109,34 @@ export default function NewProjectPage() {
       }
     } catch { /* keep default */ }
     // Probe layout so the form can mirror what the deploy pipeline will do.
-    fetch(`${GO_API}/api/github/detect-layout?repo=${encodeURIComponent(selectedRepo.full_name)}&branch=${encodeURIComponent(selectedBranch)}`)
+    fetch(`${GO_API}/api/github/detect-layout?repo=${encodeURIComponent(repo.full_name)}&branch=${encodeURIComponent(branch)}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => setMonorepo(Boolean(d?.monorepo)))
       .catch(() => setMonorepo(false))
     setStep(2)
   }
+
+  // "+ Add frontend/backend" from the projects list lands here with ?repo=,
+  // &branch=, &component= — skip straight to Step 2, separate mode, with the
+  // missing component pre-selected.
+  useEffect(() => {
+    if (prefillDone || !prefillRepo || repos.length === 0) return
+    const match = repos.find(r => r.full_name.toLowerCase() === prefillRepo.toLowerCase())
+    if (!match) return
+    setPrefillDone(true)
+    const branch = prefillBranch || match.default_branch
+    setSelectedRepo(match)
+    setSelectedBranch(branch)
+    setBranches([branch])
+    fetch(`${GO_API}/api/github/branches?repo=${encodeURIComponent(match.full_name)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then((list: string[] | null) => { if (list) setBranches(list) })
+      .catch(() => {})
+    setDeployMode("separate")
+    if (prefillComponent === "frontend" || prefillComponent === "backend") setComponent(prefillComponent)
+    goToStep2(match, branch)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [repos, prefillDone, prefillRepo, prefillBranch, prefillComponent])
 
   const parseEnvVars = (text: string): Record<string, string> => {
     const map: Record<string, string> = {}
@@ -117,15 +156,18 @@ export default function NewProjectPage() {
     setCreating(true)
     setError("")
     try {
+      const combinedMonorepo = monorepo && deployMode === "combined"
       const envVars = JSON.stringify(parseEnvVars(envText))
-      // Monorepo: backend gets its own env; BACKEND_PORT tells the builder which
-      // port Traefik forwards /api to.
+      // Combined monorepo: backend gets its own env; BACKEND_PORT tells the
+      // builder which port Traefik forwards /api to. Separate mode deploys one
+      // component as a normal single-service project, so no split env needed.
       let backendEnvVars = "{}"
-      if (monorepo) {
+      if (combinedMonorepo) {
         const beEnv = parseEnvVars(backendEnvText)
         if (backendPort.trim()) beEnv.BACKEND_PORT = backendPort.trim()
         backendEnvVars = JSON.stringify(beEnv)
       }
+      const baseDir = monorepo && deployMode === "separate" ? component : ""
       const r = await fetch(`${GO_API}/api/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -139,6 +181,7 @@ export default function NewProjectPage() {
           domain,
           envVars,
           backendEnvVars,
+          baseDir,
         }),
       })
       const proj = await r.json()
@@ -254,7 +297,7 @@ export default function NewProjectPage() {
           )}
 
           <button
-            onClick={goToStep2}
+            onClick={() => goToStep2()}
             disabled={!selectedRepo}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium disabled:opacity-40 transition-colors"
             style={{ background: "var(--acc)", color: "#fff" }}
@@ -276,15 +319,79 @@ export default function NewProjectPage() {
               <span>{selectedBranch}</span>
             </div>
 
-            {/* Monorepo banner */}
+            {/* Monorepo: choose combined vs separate deploy */}
             {monorepo && (
+              <div className="rounded-lg p-3 space-y-2" style={{ background: "var(--bg-3)", border: "1px solid var(--border)" }}>
+                <p className="text-xs font-medium" style={{ color: "var(--fg-3)" }}>
+                  frontend/ + backend/ detected — deploy as…
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setDeployMode("combined")}
+                    className="p-2.5 rounded-lg text-left transition-colors"
+                    style={{
+                      background: deployMode === "combined" ? "var(--acc)/10" : "var(--bg-2)",
+                      border: `1px solid ${deployMode === "combined" ? "var(--acc)" : "var(--border)"}`,
+                    }}
+                  >
+                    <p className="text-xs font-medium" style={{ color: deployMode === "combined" ? "var(--acc)" : "var(--fg)" }}>
+                      One project
+                    </p>
+                    <p className="text-[10px] mt-0.5" style={{ color: "var(--fg-4)" }}>Shared domain · / and /api</p>
+                  </button>
+                  <button
+                    onClick={() => setDeployMode("separate")}
+                    className="p-2.5 rounded-lg text-left transition-colors"
+                    style={{
+                      background: deployMode === "separate" ? "var(--acc)/10" : "var(--bg-2)",
+                      border: `1px solid ${deployMode === "separate" ? "var(--acc)" : "var(--border)"}`,
+                    }}
+                  >
+                    <p className="text-xs font-medium" style={{ color: deployMode === "separate" ? "var(--acc)" : "var(--fg)" }}>
+                      Separate projects
+                    </p>
+                    <p className="text-[10px] mt-0.5" style={{ color: "var(--fg-4)" }}>Own domain · one at a time</p>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {monorepo && deployMode === "combined" && (
               <div className="rounded-lg p-3 flex gap-2.5" style={{ background: "var(--acc)/10", border: "1px solid var(--acc)" }}>
                 <Layers size={15} style={{ color: "var(--acc)", flexShrink: 0, marginTop: 1 }} />
                 <div className="text-xs leading-relaxed" style={{ color: "var(--fg)" }}>
-                  <span className="font-medium">Monorepo detected — frontend/ + backend/.</span>{" "}
+                  <span className="font-medium">One project, two services.</span>{" "}
                   Two containers will deploy on this domain: <span className="font-mono">frontend → /</span> and{" "}
                   <span className="font-mono">backend → /api</span>. Keep build method on <span className="font-medium">Auto-detect</span>.
                   Your frontend should call <span className="font-mono">/api/…</span>.
+                </div>
+              </div>
+            )}
+
+            {monorepo && deployMode === "separate" && (
+              <div className="rounded-lg p-3 space-y-2.5" style={{ background: "var(--acc)/10", border: "1px solid var(--acc)" }}>
+                <div className="flex gap-2.5">
+                  <Boxes size={15} style={{ color: "var(--acc)", flexShrink: 0, marginTop: 1 }} />
+                  <p className="text-xs leading-relaxed" style={{ color: "var(--fg)" }}>
+                    Deploys only one folder as its own independent project — its own domain, build, env vars, and rollback history.
+                    Add the other folder later from the Projects page.
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["frontend", "backend"] as const).map(c => (
+                    <button
+                      key={c}
+                      onClick={() => setComponent(c)}
+                      className="p-2.5 rounded-lg text-left capitalize transition-colors"
+                      style={{
+                        background: component === c ? "var(--acc)" : "var(--bg-2)",
+                        color: component === c ? "#fff" : "var(--fg)",
+                        border: `1px solid ${component === c ? "var(--acc)" : "var(--border)"}`,
+                      }}
+                    >
+                      <p className="text-xs font-medium">{c}/</p>
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
@@ -331,10 +438,10 @@ export default function NewProjectPage() {
             </div>
 
             {/* Port(s) */}
-            <div className={monorepo ? "grid grid-cols-2 gap-3" : ""}>
+            <div className={monorepo && deployMode === "combined" ? "grid grid-cols-2 gap-3" : ""}>
               <div>
                 <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>
-                  {monorepo ? "Frontend Port" : "Container Port"}
+                  {monorepo && deployMode === "combined" ? "Frontend Port" : "Container Port"}
                 </label>
                 <input
                   type="number"
@@ -344,7 +451,7 @@ export default function NewProjectPage() {
                   style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
                 />
               </div>
-              {monorepo && (
+              {monorepo && deployMode === "combined" && (
                 <div>
                   <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>Backend Port</label>
                   <input
@@ -390,7 +497,7 @@ export default function NewProjectPage() {
             {/* Env vars */}
             <div>
               <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>
-                {monorepo ? "Frontend Environment Variables" : "Environment Variables"}
+                {monorepo && deployMode === "combined" ? "Frontend Environment Variables" : "Environment Variables"}
               </label>
               <textarea
                 value={envText}
@@ -401,12 +508,12 @@ export default function NewProjectPage() {
                 style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
               />
               <p className="text-[10px] mt-1" style={{ color: "var(--fg-4)" }}>
-                {monorepo ? "Goes to the frontend container only · one KEY=VALUE per line" : "One KEY=VALUE per line"}
+                {monorepo && deployMode === "combined" ? "Goes to the frontend container only · one KEY=VALUE per line" : "One KEY=VALUE per line"}
               </p>
             </div>
 
-            {/* Backend env vars (monorepo) */}
-            {monorepo && (
+            {/* Backend env vars (combined monorepo only) */}
+            {monorepo && deployMode === "combined" && (
               <div>
                 <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>
                   Backend Environment Variables
@@ -458,11 +565,16 @@ export default function NewProjectPage() {
               { label: "Branch",     value: selectedBranch },
               { label: "Name",       value: name },
               { label: "Domain",     value: domain },
-              ...(monorepo
+              ...(monorepo && deployMode === "combined"
                 ? [
                     { label: "Layout",        value: "monorepo (/ + /api)" },
                     { label: "Frontend Port", value: port },
                     { label: "Backend Port",  value: backendPort },
+                  ]
+                : monorepo && deployMode === "separate"
+                ? [
+                    { label: "Layout", value: `separate (${component}/ only)` },
+                    { label: "Port",   value: port },
                   ]
                 : [{ label: "Port", value: port }]),
               { label: "Build",      value: buildMethod },
@@ -505,5 +617,13 @@ export default function NewProjectPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function NewProjectPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewProjectForm />
+    </Suspense>
   )
 }

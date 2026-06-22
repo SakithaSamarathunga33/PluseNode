@@ -104,6 +104,7 @@ func (q *Queue) runDeployment(depID string) {
 		Domain:          proj.Domain,
 		EnvVars:         proj.EnvVars,
 		BackendEnvVars:  proj.BackendEnvVars,
+		BaseDir:         proj.BaseDir,
 		TraefikNet:      os.Getenv("TRAEFIK_NETWORK"),
 		PrevContainerID: proj.ContainerID,
 		Log:             emit,

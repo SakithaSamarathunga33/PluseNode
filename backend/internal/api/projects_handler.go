@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"pulsenode/backend/internal/builder"
 	"pulsenode/backend/internal/db"
 )
 
@@ -51,6 +52,7 @@ func (s *Server) createProject(w http.ResponseWriter, r *http.Request) {
 		Domain         string `json:"domain"`
 		EnvVars        string `json:"envVars"`
 		BackendEnvVars string `json:"backendEnvVars"`
+		BaseDir        string `json:"baseDir"`
 		AutoDeploy     *bool  `json:"autoDeploy"`
 	}
 	if err := decodeJSON(r, &body); err != nil {
@@ -59,6 +61,10 @@ func (s *Server) createProject(w http.ResponseWriter, r *http.Request) {
 	}
 	if body.Name == "" || body.RepoURL == "" || body.Domain == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "name, repoUrl, and domain are required"})
+		return
+	}
+	if body.BaseDir != "" && body.BaseDir != "frontend" && body.BaseDir != "backend" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "baseDir must be \"frontend\" or \"backend\""})
 		return
 	}
 	if body.Branch == "" {
@@ -93,6 +99,7 @@ func (s *Server) createProject(w http.ResponseWriter, r *http.Request) {
 		Domain:         body.Domain,
 		EnvVars:        body.EnvVars,
 		BackendEnvVars: body.BackendEnvVars,
+		BaseDir:        body.BaseDir,
 		Status:         "idle",
 		AutoDeploy:     autoDeploy,
 	}
@@ -161,6 +168,10 @@ func (s *Server) deleteProject(w http.ResponseWriter, r *http.Request) {
 		writeError(w, err)
 		return
 	}
+	// Stop+remove the project's live container(s) (both components, for a
+	// separate-mode/monorepo deploy) so a deleted project doesn't keep serving
+	// traffic or squatting its Traefik routes.
+	builder.RemoveProjectContainers(r.Context(), id)
 	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
 }
 
