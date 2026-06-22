@@ -335,13 +335,13 @@
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/builder/detect.go": {
-    "mtime": 1782097176.9057412,
-    "ast_hash": "4e17779da46126ed70b5c1245788846c",
-    "semantic_hash": ""
+    "mtime": 1779590658.1994689,
+    "ast_hash": "234a6bc0acfac7f65d03c3a680cfb108",
+    "semantic_hash": "234a6bc0acfac7f65d03c3a680cfb108"
   },
   "/home/sakitha/apps/vps/backend/internal/builder/builder.go": {
-    "mtime": 1782097257.3461053,
-    "ast_hash": "d166205901590796f1d228b1716f141b",
+    "mtime": 1781924044.7648306,
+    "ast_hash": "802878a839970d3b01ddc23de9c1f731",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/queue/queue.go": {
@@ -690,8 +690,8 @@
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/CLAUDE.md": {
-    "mtime": 1782097345.1345031,
-    "ast_hash": "8330ba51b253d8af1f8b6866e9a4bc18",
+    "mtime": 1781924245.8471346,
+    "ast_hash": "b51ca8f415bf31cfd2a7c6e665b45e9e",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/pulsenode-login-purple-button.png": {
@@ -750,8 +750,8 @@
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/builder/builder_test.go": {
-    "mtime": 1782097322.4224002,
-    "ast_hash": "9149a8ccf6a350e820cc1099a74cbfc2",
+    "mtime": 1780668653.4281936,
+    "ast_hash": "4d930023fb602a624daf147460c33103",
     "semantic_hash": ""
   },
   "/home/sakitha/apps/vps/backend/internal/api/database_backup_handler.go": {

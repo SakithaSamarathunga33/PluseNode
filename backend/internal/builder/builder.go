@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -73,16 +74,7 @@ func Run(ctx context.Context, cfg Config) (Result, error) {
 		cfg.log("system", fmt.Sprintf("→ Building commit %s — %s", shortSHA(commitSHA), commitMsg))
 	}
 
-	// 2. Detect method if auto
-	method := cfg.Method
-	if method == "auto" || method == "" {
-		method = Detect(tmpDir)
-		cfg.log("system", fmt.Sprintf("→ Auto-detected build method: %s", method))
-	} else {
-		cfg.log("system", fmt.Sprintf("→ Build method: %s", method))
-	}
-
-	// 3. Parse env vars
+	// 2. Parse env vars
 	envMap := map[string]string{}
 	if cfg.EnvVars != "" && cfg.EnvVars != "{}" {
 		_ = json.Unmarshal([]byte(cfg.EnvVars), &envMap)
@@ -96,6 +88,26 @@ func Run(ctx context.Context, cfg Config) (Result, error) {
 		verTag = shortID(cfg.DeploymentID)
 	}
 	imageRef := fmt.Sprintf("pn-%s:%s", slug, verTag)
+
+	// 3. Detect method if auto. A frontend/ + backend/ monorepo is deployed as
+	// two services on one domain (frontend at /, backend at /api). An explicit
+	// build method (set by the user) is always respected and never split.
+	method := cfg.Method
+	if method == "auto" || method == "" {
+		if feDir, beDir, ok := DetectMonorepo(tmpDir); ok {
+			cfg.log("system", "→ Detected a frontend/ + backend/ monorepo — deploying two services on one domain")
+			res, err := cfg.runMonorepo(ctx, slug, verTag, envMap, feDir, beDir)
+			if err != nil {
+				return Result{}, err
+			}
+			res.CommitSHA, res.CommitMsg = commitSHA, commitMsg
+			return res, nil
+		}
+		method = Detect(tmpDir)
+		cfg.log("system", fmt.Sprintf("→ Auto-detected build method: %s", method))
+	} else {
+		cfg.log("system", fmt.Sprintf("→ Build method: %s", method))
+	}
 
 	// 4. Build & run
 	res := Result{CommitSHA: commitSHA, CommitMsg: commitMsg}
@@ -263,32 +275,98 @@ func pinsNodeVersion(dir string) bool {
 	return strings.TrimSpace(pkg.Engines.Node) != ""
 }
 
-// deployContainer starts a NEW container from imageRef under a unique name,
-// waits for it to become healthy, and only then removes the project's previous
-// container(s) — so a failed deploy never takes down the running version
-// (zero-downtime). Both containers carry identical Traefik router/service labels,
-// so Traefik load-balances across them during the brief overlap.
+// serviceSpec describes one Traefik-routed service. A single-service deploy uses
+// the default spec (component ""); a frontend/ + backend/ monorepo uses one spec
+// per component so each gets its own router/service labels and is swapped
+// independently.
+type serviceSpec struct {
+	component  string // "" single-service | "frontend" | "backend"
+	routerName string // Traefik router/service key, e.g. "pn-<id>" or "pn-<id>-api"
+	rule       string // Traefik rule, e.g. Host(`d`) or Host(`d`) && PathPrefix(`/api`)
+	priority   int    // Traefik router priority (0 = default/by rule length)
+	port       int    // port the container listens on / Traefik forwards to
+}
+
+// defaultSpec is the single-service layout: the whole app on the domain root.
+func (cfg Config) defaultSpec() serviceSpec {
+	return serviceSpec{
+		routerName: "pn-" + cfg.ProjectID,
+		rule:       fmt.Sprintf("Host(`%s`)", cfg.Domain),
+		port:       cfg.Port,
+	}
+}
+
+// frontendSpec serves the domain root.
+func (cfg Config) frontendSpec() serviceSpec {
+	return serviceSpec{
+		component:  "frontend",
+		routerName: "pn-" + cfg.ProjectID,
+		rule:       fmt.Sprintf("Host(`%s`)", cfg.Domain),
+		port:       cfg.Port,
+	}
+}
+
+// backendSpec serves /api on the same domain (higher priority than the root
+// router so /api wins). Its listen port comes from the BACKEND_PORT env var, or
+// the project port if unset.
+func (cfg Config) backendSpec(envMap map[string]string) serviceSpec {
+	port := cfg.Port
+	if v := strings.TrimSpace(envMap["BACKEND_PORT"]); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			port = n
+		}
+	}
+	return serviceSpec{
+		component:  "backend",
+		routerName: "pn-" + cfg.ProjectID + "-api",
+		rule:       fmt.Sprintf("Host(`%s`) && PathPrefix(`/api`)", cfg.Domain),
+		priority:   100,
+		port:       port,
+	}
+}
+
+// deployContainer deploys the project as a single service on the domain root.
 func (cfg Config) deployContainer(ctx context.Context, imageRef, slug string, envMap map[string]string) (string, error) {
+	return cfg.deployService(ctx, imageRef, slug, envMap, cfg.defaultSpec())
+}
+
+// deployService starts a NEW container from imageRef under a unique name with
+// the given Traefik routing spec, waits for it to become healthy, and only then
+// removes the previous container(s) for that service — so a failed deploy never
+// takes down the running version (zero-downtime). Old and new carry identical
+// router/service labels, so Traefik load-balances across them during the overlap.
+func (cfg Config) deployService(ctx context.Context, imageRef, slug string, envMap map[string]string, spec serviceSpec) (string, error) {
 	id := cfg.ProjectID
-	domain := cfg.Domain
-	port := fmt.Sprintf("%d", cfg.Port)
+	port := fmt.Sprintf("%d", spec.port)
 	traefikNet := cfg.resolveTraefikNetwork(ctx)
 	if traefikNet == "" {
 		return "", fmt.Errorf("TRAEFIK_NETWORK is not configured and no Traefik Docker network could be detected")
 	}
 
-	newName := fmt.Sprintf("pn-%s-%d", slug, time.Now().Unix())
-	args := []string{"run", "-d", "--name", newName, "--restart", "unless-stopped"}
-	args = append(args, "--network", traefikNet)
+	namePrefix := "pn-" + slug
+	if spec.component != "" {
+		namePrefix += "-" + spec.component
+	}
+	newName := fmt.Sprintf("%s-%d", namePrefix, time.Now().Unix())
+
+	args := []string{"run", "-d", "--name", newName, "--restart", "unless-stopped", "--network", traefikNet}
 	args = append(args,
 		"--label", "traefik.enable=true",
 		"--label", fmt.Sprintf("pulsenode.project=%s", id),
-		"--label", fmt.Sprintf("traefik.http.routers.pn-%s.rule=Host(`%s`)", id, domain),
-		"--label", fmt.Sprintf("traefik.http.routers.pn-%s.entrypoints=websecure", id),
-		"--label", fmt.Sprintf("traefik.http.routers.pn-%s.tls.certresolver=letsencrypt", id),
-		"--label", fmt.Sprintf("traefik.http.services.pn-%s.loadbalancer.server.port=%s", id, port),
+	)
+	if spec.component != "" {
+		args = append(args, "--label", fmt.Sprintf("pulsenode.component=%s", spec.component))
+	}
+	args = append(args,
+		"--label", fmt.Sprintf("traefik.http.routers.%s.rule=%s", spec.routerName, spec.rule),
+		"--label", fmt.Sprintf("traefik.http.routers.%s.entrypoints=websecure", spec.routerName),
+		"--label", fmt.Sprintf("traefik.http.routers.%s.tls.certresolver=letsencrypt", spec.routerName),
+		"--label", fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port=%s", spec.routerName, port),
 		"--label", fmt.Sprintf("traefik.docker.network=%s", traefikNet),
 	)
+	if spec.priority > 0 {
+		args = append(args, "--label", fmt.Sprintf("traefik.http.routers.%s.priority=%d", spec.routerName, spec.priority))
+	}
 
 	if _, ok := envMap["PORT"]; !ok {
 		args = append(args, "-e", "PORT="+port)
@@ -318,8 +396,64 @@ func (cfg Config) deployContainer(ctx context.Context, imageRef, slug string, en
 	}
 	cfg.log("system", "✓ New container is healthy — switching traffic over")
 
-	cfg.removeOldContainers(ctx, id, cid)
+	cfg.removeOldContainers(ctx, id, spec.component, cid)
 	return cid, nil
+}
+
+// runMonorepo builds and deploys a frontend/ + backend/ repo as two services on
+// the same domain: frontend at /, backend at /api. Both images are built first
+// so a build error never leaves a half-swapped deploy; then each is rolled out
+// through the zero-downtime health gate. Rollback is not supported (Result has
+// no single ImageTag), matching compose deploys.
+func (cfg Config) runMonorepo(ctx context.Context, slug, verTag string, envMap map[string]string, feDir, beDir string) (Result, error) {
+	feImage := fmt.Sprintf("pn-%s-frontend:%s", slug, verTag)
+	beImage := fmt.Sprintf("pn-%s-backend:%s", slug, verTag)
+
+	cfg.log("system", "→ Building frontend…")
+	if err := cfg.buildImage(ctx, feDir, feImage, "frontend"); err != nil {
+		return Result{}, fmt.Errorf("frontend build: %w", err)
+	}
+	cfg.log("system", "→ Building backend…")
+	if err := cfg.buildImage(ctx, beDir, beImage, "backend"); err != nil {
+		return Result{}, fmt.Errorf("backend build: %w", err)
+	}
+
+	cfg.log("system", fmt.Sprintf("→ Deploying frontend (serves https://%s/)…", cfg.Domain))
+	feCID, err := cfg.deployService(ctx, feImage, slug, envMap, cfg.frontendSpec())
+	if err != nil {
+		return Result{}, fmt.Errorf("frontend deploy: %w", err)
+	}
+	cfg.log("system", fmt.Sprintf("→ Deploying backend (serves https://%s/api)…", cfg.Domain))
+	beCID, err := cfg.deployService(ctx, beImage, slug, envMap, cfg.backendSpec(envMap))
+	if err != nil {
+		return Result{}, fmt.Errorf("backend deploy: %w", err)
+	}
+
+	cfg.log("system", fmt.Sprintf("✓ Frontend %s • Backend %s", feCID, beCID))
+	cfg.log("system", fmt.Sprintf("✓ Live at https://%s (API at /api)", cfg.Domain))
+	// ContainerID tracks the frontend (the project's primary, root-routed service).
+	return Result{ContainerID: feCID}, nil
+}
+
+// buildImage builds dir into imageRef using its own detected method (Dockerfile
+// or nixpacks). label is the component name used in log lines. A nested
+// docker-compose in a monorepo component is not supported.
+func (cfg Config) buildImage(ctx context.Context, dir, imageRef, label string) error {
+	method := Detect(dir)
+	cfg.log("system", fmt.Sprintf("→ [%s] build method: %s", label, method))
+	switch method {
+	case MethodDockerfile:
+		return cfg.run(ctx, dir, "docker", "build", "-t", imageRef, ".")
+	case MethodNixpacks:
+		args := []string{"build", dir, "--name", imageRef}
+		if isNodeProject(dir) && !pinsNodeVersion(dir) {
+			cfg.log("system", fmt.Sprintf("→ [%s] no Node version pinned; defaulting to Node %s", label, defaultNodeVersion))
+			args = append(args, "--env", "NIXPACKS_NODE_VERSION="+defaultNodeVersion)
+		}
+		return cfg.run(ctx, dir, "nixpacks", args...)
+	default:
+		return fmt.Errorf("[%s] a nested docker-compose is not supported in monorepo mode — use a Dockerfile or a buildable project", label)
+	}
 }
 
 // removeOldContainers removes every container that routes to this project
@@ -336,32 +470,64 @@ func (cfg Config) deployContainer(ctx context.Context, imageRef, slug string, en
 //
 // PrevContainerID is still honored as a final fallback for containers that
 // somehow carry neither label.
-func (cfg Config) removeOldContainers(ctx context.Context, projectID, keepID string) {
-	filters := []string{
-		"label=pulsenode.project=" + projectID,
-		"label=traefik.http.routers.pn-" + projectID + ".entrypoints",
-	}
+//
+// component scopes the cleanup so a monorepo deploy swaps only its own service:
+// a "frontend" deploy must not remove the "backend" container and vice versa.
+// component "" is the single-service case (legacy behavior). Containers carrying
+// no component label are treated as legacy and removed by the frontend/default
+// pass (they shared the root router pn-<id>), which also converts a previously
+// single-service project to monorepo cleanly.
+func (cfg Config) removeOldContainers(ctx context.Context, projectID, component, keepID string) {
 	seen := map[string]bool{}
 	var ids []string
-	for _, f := range filters {
-		out, _ := runOutput(ctx, "", "docker", "ps", "-aq", "--filter", f)
-		for _, id := range strings.Fields(out) {
-			if !seen[id] {
+	add := func(list ...string) {
+		for _, id := range list {
+			id = strings.TrimSpace(id)
+			if id != "" && !seen[id] {
 				seen[id] = true
 				ids = append(ids, id)
 			}
 		}
 	}
-	if prev := strings.TrimSpace(cfg.PrevContainerID); prev != "" && !seen[prev] {
-		seen[prev] = true
-		ids = append(ids, prev)
+
+	// Project-labeled containers: only this service's component, plus any
+	// unlabeled legacy ones (which predate per-component labels).
+	out, _ := runOutput(ctx, "", "docker", "ps", "-aq", "--filter", "label=pulsenode.project="+projectID)
+	for _, id := range strings.Fields(out) {
+		if comp := componentLabel(ctx, id); comp == "" || comp == component {
+			add(id)
+		}
 	}
+
+	// Truly-legacy containers predate the pulsenode.project label entirely; the
+	// shared root router label still identifies them. The backend uses a distinct
+	// -api router, so this pass only applies to the frontend/default service.
+	if component == "" || component == "frontend" {
+		out, _ := runOutput(ctx, "", "docker", "ps", "-aq", "--filter", "label=traefik.http.routers.pn-"+projectID+".entrypoints")
+		add(strings.Fields(out)...)
+		add(cfg.PrevContainerID)
+	}
+
 	for _, id := range ids {
 		if strings.HasPrefix(keepID, id) || strings.HasPrefix(id, keepID) {
 			continue // never remove the container we just deployed
 		}
 		_ = runSilent(ctx, "docker", "rm", "-f", id)
 	}
+}
+
+// componentLabel returns a container's pulsenode.component label, or "" if it
+// has none (legacy / single-service container).
+func componentLabel(ctx context.Context, id string) string {
+	out, err := runOutput(ctx, "", "docker", "inspect", "-f", `{{index .Config.Labels "pulsenode.component"}}`, id)
+	if err != nil {
+		return ""
+	}
+	s := strings.TrimSpace(out)
+	if s == "<no value>" {
+		return ""
+	}
+	return s
 }
 
 // waitHealthy blocks until the container reports healthy, fails, or healthTimeout

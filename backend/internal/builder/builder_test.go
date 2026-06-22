@@ -1,6 +1,50 @@
 package builder
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+)
+
+func TestDetectMonorepo(t *testing.T) {
+	write := func(dir, name string) {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, name), []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Run("frontend+backend → monorepo", func(t *testing.T) {
+		root := t.TempDir()
+		write(filepath.Join(root, "frontend"), "package.json")
+		write(filepath.Join(root, "backend"), "go.mod")
+		fe, be, ok := DetectMonorepo(root)
+		if !ok || fe != filepath.Join(root, "frontend") || be != filepath.Join(root, "backend") {
+			t.Fatalf("got fe=%q be=%q ok=%v", fe, be, ok)
+		}
+	})
+
+	t.Run("backend missing build marker → not monorepo", func(t *testing.T) {
+		root := t.TempDir()
+		write(filepath.Join(root, "frontend"), "package.json")
+		if err := os.MkdirAll(filepath.Join(root, "backend"), 0o755); err != nil {
+			t.Fatal(err) // dir exists but no buildable marker
+		}
+		if _, _, ok := DetectMonorepo(root); ok {
+			t.Fatal("expected not a monorepo when backend/ has no build marker")
+		}
+	})
+
+	t.Run("only frontend → not monorepo", func(t *testing.T) {
+		root := t.TempDir()
+		write(filepath.Join(root, "frontend"), "Dockerfile")
+		if _, _, ok := DetectMonorepo(root); ok {
+			t.Fatal("expected not a monorepo with only frontend/")
+		}
+	})
+}
 
 func TestShortID(t *testing.T) {
 	cases := []struct{ in, want string }{
