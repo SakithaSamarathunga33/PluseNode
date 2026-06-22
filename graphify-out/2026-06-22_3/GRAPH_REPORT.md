@@ -1,16 +1,16 @@
 # Graph Report - vps  (2026-06-22)
 
 ## Corpus Check
-- 131 files · ~311,442 words
+- 131 files · ~310,825 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1989 nodes · 3059 edges · 133 communities (92 shown, 41 thin omitted)
-- Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 323 edges (avg confidence: 0.81)
+- 1989 nodes · 3058 edges · 131 communities (92 shown, 39 thin omitted)
+- Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 322 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b1070dac`
+- Built from commit: `145bd95f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -135,8 +135,6 @@
 - [[_COMMUNITY_Community 128|Community 128]]
 - [[_COMMUNITY_Community 129|Community 129]]
 - [[_COMMUNITY_Community 130|Community 130]]
-- [[_COMMUNITY_Community 131|Community 131]]
-- [[_COMMUNITY_Community 132|Community 132]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `importMap` - 257 edges
@@ -153,14 +151,14 @@
 ## Surprising Connections (you probably didn't know these)
 - `TooltipProvider()` --uses--> `cn()`  [INFERRED]
   components/ui/tooltip.tsx → lib/utils.ts
-- `@/* Path Alias` --conceptually_related_to--> `cn()`  [INFERRED]
-  tsconfig.json → lib/utils.ts
 - `BlurFade()` --calls--> `cn()`  [EXTRACTED]
   components/magicui/blur-fade.tsx → lib/utils.ts
 - `AlertDialogOverlay()` --calls--> `cn()`  [EXTRACTED]
   components/ui/alert-dialog.tsx → lib/utils.ts
 - `AlertDialogMedia()` --calls--> `cn()`  [EXTRACTED]
   components/ui/alert-dialog.tsx → lib/utils.ts
+- `SheetOverlay()` --calls--> `cn()`  [EXTRACTED]
+  components/ui/sheet.tsx → lib/utils.ts
 
 ## Hyperedges (group relationships)
 - **MagicUI components sharing PulseNode CSS variable palette** — magicui_borderbeam_borderbeam, magicui_meteors_meteors, magicui_sparklestext_sparklestext, vps_tailwindconfig_pulsenode_palette, concept_pn_css_variables [EXTRACTED 1.00]
@@ -168,11 +166,11 @@
 - **Terminal sequenced animation system (Terminal + AnimatedSpan + TypingAnimation + Contexts)** — magicui_terminal_terminal, magicui_terminal_animatedspan, magicui_terminal_typinganimation, magicui_terminal_sequencecontext, magicui_terminal_itemindexcontext, magicui_terminal_useinview [EXTRACTED 1.00]
 - **Tailwind custom animations consumed by MagicUI components** — vps_tailwindconfig_animation_border_beam, vps_tailwindconfig_animation_sparkle, vps_tailwindconfig_animation_meteor, magicui_borderbeam_borderbeam, magicui_sparklestext_sparklestext, magicui_meteors_meteors [EXTRACTED 1.00]
 
-## Communities (133 total, 41 thin omitted)
+## Communities (131 total, 39 thin omitted)
 
 ### Community 0 - "Go API Handlers"
 Cohesion: 0.08
-Nodes (34): DatabasesPage, ImagesPage, DatabaseMetricsPanel(), COOLIFY_DEPLOYMENTS, COOLIFY_PROJECTS, DATABASES, SBOMS, MOCK ALERTS data (+26 more)
+Nodes (35): DatabasesPage, ImagesPage, detectSuspicious (security engine), ProcessesPage, Mock data fallback pattern (initial state), Suspicious process detection engine, DatabaseMetricsPanel(), CONTAINERS (+27 more)
 
 ### Community 1 - "Frontend Dependencies"
 Cohesion: 0.05
@@ -195,32 +193,32 @@ Cohesion: 0.09
 Nodes (15): Client, cleanDockerStream(), dbMeta(), formatPorts(), imageVersion(), New(), shortID(), Container (+7 more)
 
 ### Community 6 - "Deploy & Update System"
-Cohesion: 0.18
-Nodes (16): Config, emptyList(), firstNonEmpty(), installedVersion(), NewServer(), notImplemented(), runningAtLeast(), signalHandler() (+8 more)
+Cohesion: 0.07
+Nodes (38): Config, coolifyProxy(), emptyList(), firstNonEmpty(), installedVersion(), NewServer(), notImplemented(), runningAtLeast() (+30 more)
 
 ### Community 7 - "Build Pipeline"
-Cohesion: 0.09
-Nodes (34): backupJob, progressWriter, builder.buildCompose func, builder.buildDockerfile func, builder.buildNixpacks func, CommitInfo(), componentLabel(), detectTraefikNetwork() (+26 more)
+Cohesion: 0.07
+Nodes (40): backupJob, api.Server.githubCallback handler, progressWriter, builder.buildCompose func, builder.buildDockerfile func, builder.buildNixpacks func, CommitInfo(), componentLabel() (+32 more)
 
 ### Community 9 - "Docker Images UI"
 Cohesion: 0.08
 Nodes (29): ConnectDatabaseModal(), Phase, CopyField(), CreateDatabaseModal(), Creds, ENGINES, Phase, DatabaseQueryEditor() (+21 more)
 
 ### Community 10 - "HTTP & Routing Layer"
-Cohesion: 0.09
-Nodes (9): buildConnString(), writeError(), writeJSON(), Server, Server, Server, Server, Server (+1 more)
+Cohesion: 0.13
+Nodes (5): writeJSON(), Server, Server, Server, Server
 
 ### Community 11 - "Process Monitoring"
 Cohesion: 0.10
-Nodes (14): Suspicious Process Detection Engine, FILL_COLORS, ProgressBar(), ProgressBarProps, PROCESSES, ActionMenuProps, detectSuspicious(), DialogState (+6 more)
+Nodes (16): Suspicious Process Detection Engine, FILL_COLORS, ProgressBar(), ProgressBarProps, pythonApi, ActionMenuProps, detectSuspicious(), DialogState (+8 more)
 
 ### Community 12 - "Security Scanning UI"
 Cohesion: 0.13
 Nodes (13): SCANS, Scan, MOCK_CVES, TREND_BARS, X_LABELS, Sheet(), SheetContent(), SheetDescription() (+5 more)
 
 ### Community 13 - "Project & Deploy API"
-Cohesion: 0.25
-Nodes (14): envVarVal(), loadDotEnv(), resolveCompose(), runDetachedComposeUp(), runUpdate(), selfImage(), streamCmd(), streamCmdEnv() (+6 more)
+Cohesion: 0.22
+Nodes (4): writeError(), signalHandler(), Server, NewID()
 
 ### Community 14 - "Path Aliases & Config"
 Cohesion: 0.09
@@ -235,16 +233,16 @@ Cohesion: 0.18
 Nodes (9): engineFromImage(), firstEnv(), isDestructiveQuery(), parseCSVResult(), parseTSVResult(), dbQueryResult, dbSchemaResult, dbTableInfo (+1 more)
 
 ### Community 17 - "UI Utility Components"
-Cohesion: 0.18
-Nodes (8): @base-ui/react, ENGINE_TONE, BlurFade(), BlurFadeProps, Accordion(), AccordionContent(), AccordionItem(), AccordionTrigger()
+Cohesion: 0.24
+Nodes (6): @base-ui/react, ENGINE_TONE, Accordion(), AccordionContent(), AccordionItem(), AccordionTrigger()
 
 ### Community 18 - "TypeScript Configuration"
 Cohesion: 0.11
 Nodes (18): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+10 more)
 
 ### Community 19 - "MagicUI Base Components"
-Cohesion: 0.18
-Nodes (21): cn(), Card(), CardAction(), CardContent(), CardDescription(), CardFooter(), CardHeader(), CardTitle() (+13 more)
+Cohesion: 0.16
+Nodes (19): cn(), Progress(), ProgressIndicator(), ProgressLabel(), ProgressTrack(), ProgressValue(), ScrollArea(), ScrollBar() (+11 more)
 
 ### Community 20 - "Caddy Reverse Proxy"
 Cohesion: 0.18
@@ -255,8 +253,8 @@ Cohesion: 0.20
 Nodes (8): firstLine(), splitFullName(), sign(), TestSplitFullName(), TestValidSignature(), validSignature(), Server, ParseOwnerRepo()
 
 ### Community 22 - "SBOM History UI"
-Cohesion: 0.32
-Nodes (5): requestAnimationFrame, StatCardProps, TONE_COLORS, NumberTicker(), NumberTickerProps
+Cohesion: 0.15
+Nodes (10): requestAnimationFrame, StatCardProps, TONE_COLORS, SBOMS, SBOM, NumberTicker(), NumberTickerProps, ECOSYSTEM_COLORS (+2 more)
 
 ### Community 23 - "Network Monitoring UI"
 Cohesion: 0.11
@@ -267,16 +265,16 @@ Cohesion: 0.17
 Nodes (16): MagicUI Component Library, PulseNode CSS Variables (globals.css), BlurFade Component, BorderBeam Component, Meteors(), NumberTicker Component, NumberTicker RAF Easing Animation, generateSparkle Helper Function (+8 more)
 
 ### Community 25 - "App Sidebar & Realtime"
-Cohesion: 0.08
-Nodes (31): AppSidebar, Socket.IO Realtime Events, ContainerHistory, ContainersPage(), DeveloperIcon, IMAGE_ICONS, LogsPanel(), RemoveDialog() (+23 more)
+Cohesion: 0.09
+Nodes (27): AppSidebar, Socket.IO Realtime Events, ContainerHistory, ContainersPage(), DeveloperIcon, IMAGE_ICONS, LogsPanel(), RemoveDialog() (+19 more)
 
 ### Community 26 - "Container Management UI"
-Cohesion: 0.10
-Nodes (28): ContainersPage, LogsPanel (container logs drawer), RemoveDialog (confirm container remove), TerminalPanel (container exec), ConnectionStringPanel, DatabaseRow, DbDetails (schema/table browser), DbExpand (tabbed db panel) (+20 more)
+Cohesion: 0.14
+Nodes (21): ContainersPage, LogsPanel (container logs drawer), RemoveDialog (confirm container remove), TerminalPanel (container exec), ConnectionStringPanel, DatabaseRow, DbDetails (schema/table browser), DbExpand (tabbed db panel) (+13 more)
 
 ### Community 27 - "Mock Data & Types"
-Cohesion: 0.15
-Nodes (8): MeteorsProps, Input(), ScrollArea(), ScrollBar(), Separator(), Tooltip(), TooltipContent(), TooltipProvider()
+Cohesion: 0.17
+Nodes (7): BlurFade(), BlurFadeProps, MeteorsProps, Input(), Tooltip(), TooltipContent(), TooltipProvider()
 
 ### Community 28 - "Terminal Animation Component"
 Cohesion: 0.13
@@ -319,12 +317,12 @@ Cohesion: 0.38
 Nodes (3): AuthStatus, BorderBeam(), BorderBeamProps
 
 ### Community 40 - "Database Handler Utils"
-Cohesion: 0.29
+Cohesion: 0.24
 Nodes (5): hijackedConn, api.Server.containerShell WebSocket handler, hijackDockerExec(), originAllowed(), Server
 
 ### Community 41 - "Stats & Metrics UI"
-Cohesion: 0.08
-Nodes (19): CHANNEL_CARDS, MOCK_NEW_ALERT, SevIcon(), Tab, TABS, ToggleSwitch(), ALERT_RULES, ALERTS (+11 more)
+Cohesion: 0.09
+Nodes (18): CHANNEL_CARDS, MOCK_NEW_ALERT, SevIcon(), Tab, TABS, ToggleSwitch(), ALERT_RULES, ALERTS (+10 more)
 
 ### Community 43 - "UI Screenshot Reference"
 Cohesion: 0.28
@@ -351,12 +349,12 @@ Cohesion: 0.36
 Nodes (8): PulseNode Brand, Hexagon Server Icon, Pulse/Heartbeat Wave Icon Element, Server Rack Icon Element, PulseNode Dark Logo, Blue and Cyan Color Scheme, Dark Navy Background, PulseNode Wordmark Typography
 
 ### Community 50 - "Card UI Component"
-Cohesion: 0.20
-Nodes (7): api.Server.githubCallback handler, Method, db.GitHubAccount struct, AuthorisedCloneURL(), Queue, New(), timePtr()
+Cohesion: 0.17
+Nodes (6): buildConnString(), freePort(), randHex(), sanitizeDBName(), engineMeta, Server
 
 ### Community 51 - "DB Write Operations"
-Cohesion: 0.20
-Nodes (5): builder.Config struct, boolToInt(), db.ConnectedDatabase struct, Encrypt(), db.Project struct
+Cohesion: 0.12
+Nodes (10): api.Server.provisionDatabase handler, api.Server.runProvision async func, builder.Config struct, aesKey(), boolToInt(), db.ConnectedDatabase struct, Decrypt(), Encrypt() (+2 more)
 
 ### Community 52 - "Suspicious Process Detection"
 Cohesion: 0.07
@@ -398,13 +396,9 @@ Nodes (5): Hexagon Icon Element, PulseNode Logo (PNG, transparent background), P
 Cohesion: 0.40
 Nodes (5): AES-GCM Encryption for Tokens and Env Vars, deployment_logs SQLite table, deployments SQLite table, github_accounts SQLite table, projects SQLite table
 
-### Community 63 - "GitHub Integration Page"
-Cohesion: 0.16
-Nodes (7): backupsDir(), freePort(), randHex(), sanitizeDBName(), engineMeta, Server, NewID()
-
 ### Community 64 - "Login Page"
-Cohesion: 0.31
-Nodes (5): Config, Middleware, NewMiddleware(), nowUnix(), writeAuthError()
+Cohesion: 0.25
+Nodes (6): api.Server.authStatus handler, Config, Middleware, NewMiddleware(), nowUnix(), writeAuthError()
 
 ### Community 65 - "Auth & Update Concepts"
 Cohesion: 0.50
@@ -419,8 +413,8 @@ Cohesion: 0.67
 Nodes (3): Relational Database, PostgreSQL Official Logo, PostgreSQL
 
 ### Community 69 - "Auth Middleware"
-Cohesion: 0.13
-Nodes (8): Server, b64u(), InstallationRepos(), NewAppClient(), ParseRSAPrivateKey(), AppClient, Installation, InstallationToken
+Cohesion: 0.21
+Nodes (4): Server, InstallationRepos(), NewAppClient(), ParseRSAPrivateKey()
 
 ### Community 71 - "DB Init & Migration"
 Cohesion: 0.08
@@ -442,9 +436,13 @@ Nodes (20): Architecture, Backend (`backend/`), Build Method Detection (auto), c
 Cohesion: 0.10
 Nodes (19): `app/databases/page.tsx`, Backend Architecture, Card Selection, code:block1 (GET  /api/database/:name/schema?database=myapp_db   → databa), code:json ({ "query": "SELECT * FROM users LIMIT 10", "database": "myap), `components/dashboard/DatabaseQueryEditor.tsx` (new), Credential Auto-Detection Flow, Database Query Editor — Design Spec (+11 more)
 
+### Community 109 - "Community 109"
+Cohesion: 0.33
+Nodes (4): b64u(), AppClient, Installation, InstallationToken
+
 ### Community 110 - "Community 110"
-Cohesion: 0.08
-Nodes (30): ResultTable(), VulnBar(), Vulns, DeveloperIcon, IMAGE_ICON_MAP, API_BASE, IMAGES, SPARKS (+22 more)
+Cohesion: 0.10
+Nodes (26): ResultTable(), VulnBar(), Vulns, DeveloperIcon, IMAGE_ICON_MAP, IMAGES, DbQueryResult, DbSchemaResult (+18 more)
 
 ### Community 111 - "Community 111"
 Cohesion: 0.12
@@ -455,8 +453,8 @@ Cohesion: 0.15
 Nodes (12): 1. Server route — `server/index.js`, 2. Terminal component — `components/magicui/terminal.tsx`, 3. Stats page — `app/stats/page.tsx`, Build Cache Clear Button with Magic UI Terminal, code:ts (const [cacheDialogOpen, setCacheDialogOpen] = useState(false), code:tsx (<button onClick={handleClearCache}>Clear Build Cache</button), code:block3 (idle → (button click) → running → done), Components (+4 more)
 
 ### Community 114 - "Community 114"
-Cohesion: 0.36
-Nodes (9): api.Server.listAuditLog handler, api.Server.metricsLive handler, api.Server.streamDeploymentLogs SSE func, api.Server struct, auth.Middleware struct, db.DB struct, hub.Hub struct, main.main entrypoint (+1 more)
+Cohesion: 0.22
+Nodes (12): api.Server.listAuditLog handler, api.Server.metricsLive handler, api.Server.AuditLog middleware, api.Server.deployProject handler, api.Server.streamDeploymentLogs SSE func, api.Server struct, auth.Middleware struct, db.DB struct (+4 more)
 
 ### Community 115 - "Community 115"
 Cohesion: 0.25
@@ -470,13 +468,17 @@ Nodes (5): scriptCompleted, stats, filesScanned, filesWithImports, totalEdges
 Cohesion: 0.20
 Nodes (6): CheckResult, DomainsResponse, InUseHost, InUseRef, SavedDomain, Settings
 
-### Community 118 - "Community 118"
-Cohesion: 0.15
-Nodes (8): Server, Content, AuthURL(), ExchangeCode(), NewClient(), Hook, Repo, User
-
 ### Community 123 - "Community 123"
-Cohesion: 0.20
-Nodes (9): api.Server.authLogin handler, api.Server.authSetup handler, api.Server.authStatus handler, api.Server.AuditLog middleware, api.Server.requireAuth middleware, api.Server.deployProject handler, db.Deployment struct, db.User struct (+1 more)
+Cohesion: 0.18
+Nodes (7): api.Server.authLogin handler, api.Server.authSetup handler, RateLimit(), api.Server.requireAuth middleware, statusRecorder, db.User struct, hub.Hub.ServeSSE handler
+
+### Community 124 - "Community 124"
+Cohesion: 0.14
+Nodes (8): Series, UPlotChart(), UPlotChartProps, API_BASE, SPARKS, HostInfo, PyMetrics, TIME_OPTIONS
+
+### Community 125 - "Community 125"
+Cohesion: 0.46
+Nodes (7): Card(), CardAction(), CardContent(), CardDescription(), CardFooter(), CardHeader(), CardTitle()
 
 ### Community 128 - "Community 128"
 Cohesion: 0.48
@@ -490,21 +492,17 @@ Nodes (4): Account, AppInstallation, AppSettings, OAuthSettings
 Cohesion: 0.40
 Nodes (5): AnimatedThemeToggler(), AnimatedThemeTogglerProps, getThemeTransitionClipPaths(), polygonCollapsed(), TransitionVariant
 
-### Community 131 - "Community 131"
-Cohesion: 0.50
-Nodes (3): api.Server.provisionDatabase handler, api.Server.runProvision async func, db.ManagedDatabase struct
-
 ## Knowledge Gaps
 - **856 isolated node(s):** `config`, `name`, `version`, `private`, `dev` (+851 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **41 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **39 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `writeJSON()` connect `HTTP & Routing Layer` to `Environment & GitHub OAuth`, `Auth Middleware`, `Deploy & Update System`, `Database Metrics API`, `Auth Cookie Endpoints`, `DB Query Engine`, `Coolify Integration UI`, `Community 118`, `Network Monitoring UI`, `Community 125`, `Docker Action API`, `GitHub Integration Page`?**
+- **Why does `writeJSON()` connect `HTTP & Routing Layer` to `Environment & GitHub OAuth`, `Auth Middleware`, `Deploy & Update System`, `Database Handler Utils`, `Database Metrics API`, `Project & Deploy API`, `Auth Cookie Endpoints`, `DB Query Engine`, `Card UI Component`, `Coolify Integration UI`, `Community 118`, `Network Monitoring UI`, `Docker Action API`, `GitHub Integration Page`?**
   _High betweenness centrality (0.042) - this node is a cross-community bridge._
-- **Why does `cn()` connect `MagicUI Base Components` to `Community 128`, `Go API Handlers`, `Community 130`, `Community 132`, `Badge & Tabs UI`, `MagicUI Border Animations`, `Stats & Metrics UI`, `Process Monitoring`, `Security Scanning UI`, `Community 110`, `UI Utility Components`, `SBOM History UI`, `MagicUI Animations`, `Container Management UI`, `Mock Data & Types`, `Terminal Animation Component`?**
+- **Why does `cn()` connect `MagicUI Base Components` to `Community 128`, `Go API Handlers`, `Community 130`, `Badge & Tabs UI`, `MagicUI Border Animations`, `Stats & Metrics UI`, `Process Monitoring`, `Security Scanning UI`, `Community 110`, `Community 124`, `UI Utility Components`, `SBOM History UI`, `MagicUI Animations`, `Mock Data & Types`, `Terminal Animation Component`, `Community 125`?**
   _High betweenness centrality (0.023) - this node is a cross-community bridge._
 - **Why does `importMap` connect `Alerts UI` to `Community 116`?**
   _High betweenness centrality (0.020) - this node is a cross-community bridge._

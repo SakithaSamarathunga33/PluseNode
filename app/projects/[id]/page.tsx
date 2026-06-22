@@ -15,7 +15,7 @@ const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
 type Project = {
   ID: string; Name: string; RepoURL: string; Branch: string
   Domain: string; Status: string; BuildMethod: string; Port: number
-  BuildCommand: string; EnvVars: string; CreatedAt: string
+  BuildCommand: string; EnvVars: string; BackendEnvVars: string; CreatedAt: string
   AutoDeploy: boolean; LastCommitSHA: string
 }
 type Deployment = {
@@ -70,8 +70,10 @@ export default function ProjectDetailPage() {
   // Editable settings form
   const [form, setForm] = useState({
     name: "", branch: "", domain: "", port: "3000",
-    buildMethod: "auto", buildCommand: "", envText: "", autoDeploy: true,
+    buildMethod: "auto", buildCommand: "", envText: "", backendEnvText: "", autoDeploy: true,
   })
+  // Whether this project's repo is a frontend/+backend/ monorepo (null = unknown).
+  const [monorepo, setMonorepo] = useState<boolean | null>(null)
   const [saving, setSaving]     = useState(false)
   const [savedAt, setSavedAt]   = useState(0)
   const [settingsErr, setSettingsErr] = useState("")
@@ -114,13 +116,15 @@ export default function ProjectDetailPage() {
   // so background status refreshes don't clobber in-progress edits.
   useEffect(() => {
     if (!project) return
-    let envText = ""
-    try {
-      const obj = JSON.parse(project.EnvVars || "{}")
-      if (obj && typeof obj === "object" && !Array.isArray(obj)) {
-        envText = Object.entries(obj).map(([k, v]) => `${k}=${v}`).join("\n")
-      }
-    } catch { /* leave blank */ }
+    const toEnvText = (json: string) => {
+      try {
+        const obj = JSON.parse(json || "{}")
+        if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+          return Object.entries(obj).map(([k, v]) => `${k}=${v}`).join("\n")
+        }
+      } catch { /* leave blank */ }
+      return ""
+    }
     setForm({
       name: project.Name,
       branch: project.Branch,
@@ -128,9 +132,16 @@ export default function ProjectDetailPage() {
       port: String(project.Port),
       buildMethod: project.BuildMethod,
       buildCommand: project.BuildCommand ?? "",
-      envText,
+      envText: toEnvText(project.EnvVars),
+      backendEnvText: toEnvText(project.BackendEnvVars),
       autoDeploy: project.AutoDeploy,
     })
+    // Probe whether this repo is a monorepo so we can show the backend env box.
+    setMonorepo(null)
+    fetch(`${GO_API}/api/github/detect-layout?repo=${encodeURIComponent(project.RepoURL)}&branch=${encodeURIComponent(project.Branch)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => setMonorepo(Boolean(d?.monorepo)))
+      .catch(() => setMonorepo(false))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project?.ID])
 
@@ -251,6 +262,7 @@ export default function ProjectDetailPage() {
           port: parseInt(form.port, 10) || 3000,
           domain: form.domain,
           envVars: JSON.stringify(parseEnvVars(form.envText)),
+          backendEnvVars: JSON.stringify(parseEnvVars(form.backendEnvText)),
           autoDeploy: form.autoDeploy,
         }),
       })
@@ -658,7 +670,10 @@ export default function ProjectDetailPage() {
                 </Field>
 
                 {/* Env vars */}
-                <Field label="Environment Variables" hint="One KEY=VALUE per line">
+                <Field
+                  label={monorepo ? "Frontend Environment Variables" : "Environment Variables"}
+                  hint={monorepo ? "Frontend container only · one KEY=VALUE per line" : "One KEY=VALUE per line"}
+                >
                   <textarea
                     value={form.envText}
                     onChange={e => setForm(f => ({ ...f, envText: e.target.value }))}
@@ -668,6 +683,20 @@ export default function ProjectDetailPage() {
                     style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
                   />
                 </Field>
+
+                {/* Backend env vars (monorepo) */}
+                {monorepo && (
+                  <Field label="Backend Environment Variables" hint="Backend container only — set BACKEND_PORT here for the /api service">
+                    <textarea
+                      value={form.backendEnvText}
+                      onChange={e => setForm(f => ({ ...f, backendEnvText: e.target.value }))}
+                      placeholder={"NODE_ENV=production\nDATABASE_URL=postgres://…\nBACKEND_PORT=3001"}
+                      rows={4}
+                      className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono resize-y"
+                      style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
+                    />
+                  </Field>
+                )}
               </div>
 
               {settingsErr && (

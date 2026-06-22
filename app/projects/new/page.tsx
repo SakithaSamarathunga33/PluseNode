@@ -36,6 +36,7 @@ export default function NewProjectPage() {
   const [buildMethod, setBuildMethod] = useState("auto")
   const buildCommand = ""
   const [envText, setEnvText]   = useState("") // KEY=VALUE lines
+  const [backendEnvText, setBackendEnvText] = useState("") // monorepo backend env
 
   // Monorepo (frontend/ + backend/) detection — null = not yet probed
   const [monorepo, setMonorepo] = useState<boolean | null>(null)
@@ -98,9 +99,9 @@ export default function NewProjectPage() {
     setStep(2)
   }
 
-  const parseEnvVars = (): Record<string, string> => {
+  const parseEnvVars = (text: string): Record<string, string> => {
     const map: Record<string, string> = {}
-    for (const line of envText.split("\n")) {
+    for (const line of text.split("\n")) {
       const idx = line.indexOf("=")
       if (idx > 0) {
         const k = line.slice(0, idx).trim()
@@ -116,10 +117,15 @@ export default function NewProjectPage() {
     setCreating(true)
     setError("")
     try {
-      const env = parseEnvVars()
-      // Monorepo: the backend listens on BACKEND_PORT (Traefik forwards /api to it).
-      if (monorepo && backendPort.trim()) env.BACKEND_PORT = backendPort.trim()
-      const envVars = JSON.stringify(env)
+      const envVars = JSON.stringify(parseEnvVars(envText))
+      // Monorepo: backend gets its own env; BACKEND_PORT tells the builder which
+      // port Traefik forwards /api to.
+      let backendEnvVars = "{}"
+      if (monorepo) {
+        const beEnv = parseEnvVars(backendEnvText)
+        if (backendPort.trim()) beEnv.BACKEND_PORT = backendPort.trim()
+        backendEnvVars = JSON.stringify(beEnv)
+      }
       const r = await fetch(`${GO_API}/api/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -132,6 +138,7 @@ export default function NewProjectPage() {
           port: parseInt(port, 10) || 3000,
           domain,
           envVars,
+          backendEnvVars,
         }),
       })
       const proj = await r.json()
@@ -383,7 +390,7 @@ export default function NewProjectPage() {
             {/* Env vars */}
             <div>
               <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>
-                Environment Variables
+                {monorepo ? "Frontend Environment Variables" : "Environment Variables"}
               </label>
               <textarea
                 value={envText}
@@ -393,8 +400,30 @@ export default function NewProjectPage() {
                 className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono resize-y"
                 style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
               />
-              <p className="text-[10px] mt-1" style={{ color: "var(--fg-4)" }}>One KEY=VALUE per line</p>
+              <p className="text-[10px] mt-1" style={{ color: "var(--fg-4)" }}>
+                {monorepo ? "Goes to the frontend container only · one KEY=VALUE per line" : "One KEY=VALUE per line"}
+              </p>
             </div>
+
+            {/* Backend env vars (monorepo) */}
+            {monorepo && (
+              <div>
+                <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>
+                  Backend Environment Variables
+                </label>
+                <textarea
+                  value={backendEnvText}
+                  onChange={e => setBackendEnvText(e.target.value)}
+                  placeholder={"NODE_ENV=production\nDATABASE_URL=postgres://…\nJWT_SECRET=…"}
+                  rows={4}
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono resize-y"
+                  style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
+                />
+                <p className="text-[10px] mt-1" style={{ color: "var(--fg-4)" }}>
+                  Goes to the backend container only — your backend secrets stay out of the frontend
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2">

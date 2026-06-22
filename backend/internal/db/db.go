@@ -203,6 +203,10 @@ CREATE TABLE IF NOT EXISTS domains (
 	// image_tag records the Docker image a deployment produced, so a later
 	// deployment can be rolled back to it without rebuilding.
 	d.addColumn("deployments", "image_tag", "TEXT")
+	// backend_env_vars holds the backend container's env for frontend/+backend
+	// monorepos (kept separate from env_vars, which is the frontend/single env,
+	// so backend secrets are never injected into the frontend container).
+	d.addColumn("projects", "backend_env_vars", "TEXT")
 	return nil
 }
 
@@ -343,7 +347,8 @@ type Project struct {
 	BuildCommand  string
 	Port          int
 	Domain        string
-	EnvVars       string // JSON map, encrypted at rest
+	EnvVars       string // JSON map, encrypted at rest (frontend/single-service env)
+	BackendEnvVars string // JSON map, encrypted at rest (monorepo backend env; "" otherwise)
 	ContainerID   string
 	Status        string
 	AutoDeploy    bool
@@ -357,10 +362,14 @@ func (d *DB) CreateProject(p *Project) error {
 	if err != nil {
 		return err
 	}
+	encBackend, err := Encrypt(p.BackendEnvVars)
+	if err != nil {
+		return err
+	}
 	_, err = d.Exec(`
-INSERT INTO projects (id, name, repo_url, branch, build_method, build_command, port, domain, env_vars, status, auto_deploy)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		p.ID, p.Name, p.RepoURL, p.Branch, p.BuildMethod, p.BuildCommand, p.Port, p.Domain, enc, p.Status, boolToInt(p.AutoDeploy))
+INSERT INTO projects (id, name, repo_url, branch, build_method, build_command, port, domain, env_vars, backend_env_vars, status, auto_deploy)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		p.ID, p.Name, p.RepoURL, p.Branch, p.BuildMethod, p.BuildCommand, p.Port, p.Domain, enc, encBackend, p.Status, boolToInt(p.AutoDeploy))
 	return err
 }
 
@@ -386,11 +395,11 @@ func (d *DB) ListProjects() ([]Project, error) {
 }
 
 func (d *DB) GetProject(id string) (*Project, error) {
-	row := d.QueryRow(`SELECT id, name, repo_url, branch, build_method, COALESCE(build_command,''), port, domain, env_vars, COALESCE(container_id,''), status, COALESCE(auto_deploy,1), COALESCE(last_commit_sha,''), created_at, updated_at FROM projects WHERE id=?`, id)
+	row := d.QueryRow(`SELECT id, name, repo_url, branch, build_method, COALESCE(build_command,''), port, domain, env_vars, COALESCE(backend_env_vars,''), COALESCE(container_id,''), status, COALESCE(auto_deploy,1), COALESCE(last_commit_sha,''), created_at, updated_at FROM projects WHERE id=?`, id)
 	var p Project
-	var enc string
+	var enc, encBackend string
 	var autoDeploy int
-	if err := row.Scan(&p.ID, &p.Name, &p.RepoURL, &p.Branch, &p.BuildMethod, &p.BuildCommand, &p.Port, &p.Domain, &enc, &p.ContainerID, &p.Status, &autoDeploy, &p.LastCommitSHA, &p.CreatedAt, &p.UpdatedAt); err != nil {
+	if err := row.Scan(&p.ID, &p.Name, &p.RepoURL, &p.Branch, &p.BuildMethod, &p.BuildCommand, &p.Port, &p.Domain, &enc, &encBackend, &p.ContainerID, &p.Status, &autoDeploy, &p.LastCommitSHA, &p.CreatedAt, &p.UpdatedAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
@@ -402,6 +411,9 @@ func (d *DB) GetProject(id string) (*Project, error) {
 		return nil, err
 	}
 	p.EnvVars = plain
+	if p.BackendEnvVars, err = Decrypt(encBackend); err != nil {
+		return nil, err
+	}
 	return &p, nil
 }
 
@@ -410,13 +422,17 @@ func (d *DB) UpdateProjectStatus(id, status, containerID string) error {
 	return err
 }
 
-func (d *DB) UpdateProject(id, name, branch, buildMethod, buildCommand string, port int, domain, envVars string, autoDeploy bool) error {
+func (d *DB) UpdateProject(id, name, branch, buildMethod, buildCommand string, port int, domain, envVars, backendEnvVars string, autoDeploy bool) error {
 	enc, err := Encrypt(envVars)
 	if err != nil {
 		return err
 	}
-	_, err = d.Exec(`UPDATE projects SET name=?, branch=?, build_method=?, build_command=?, port=?, domain=?, env_vars=?, auto_deploy=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
-		name, branch, buildMethod, buildCommand, port, domain, enc, boolToInt(autoDeploy), id)
+	encBackend, err := Encrypt(backendEnvVars)
+	if err != nil {
+		return err
+	}
+	_, err = d.Exec(`UPDATE projects SET name=?, branch=?, build_method=?, build_command=?, port=?, domain=?, env_vars=?, backend_env_vars=?, auto_deploy=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
+		name, branch, buildMethod, buildCommand, port, domain, enc, encBackend, boolToInt(autoDeploy), id)
 	return err
 }
 

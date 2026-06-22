@@ -28,7 +28,8 @@ type Config struct {
 	BuildCommand string // optional override
 	Port         int
 	Domain       string
-	EnvVars      string // JSON {"KEY":"VALUE"}
+	EnvVars      string // JSON {"KEY":"VALUE"} — frontend/single-service env
+	BackendEnvVars string // JSON {"KEY":"VALUE"} — monorepo backend env (ignored for single-service)
 	TraefikNet   string
 	PrevContainerID string // previous running container, removed after the new one is healthy
 	Log          LogFunc
@@ -96,7 +97,13 @@ func Run(ctx context.Context, cfg Config) (Result, error) {
 	if method == "auto" || method == "" {
 		if feDir, beDir, ok := DetectMonorepo(tmpDir); ok {
 			cfg.log("system", "→ Detected a frontend/ + backend/ monorepo — deploying two services on one domain")
-			res, err := cfg.runMonorepo(ctx, slug, verTag, envMap, feDir, beDir)
+			// Backend gets its own env (kept separate from the frontend's), so
+			// backend secrets never land in the frontend container.
+			beEnvMap := map[string]string{}
+			if cfg.BackendEnvVars != "" && cfg.BackendEnvVars != "{}" {
+				_ = json.Unmarshal([]byte(cfg.BackendEnvVars), &beEnvMap)
+			}
+			res, err := cfg.runMonorepo(ctx, slug, verTag, envMap, beEnvMap, feDir, beDir)
 			if err != nil {
 				return Result{}, err
 			}
@@ -412,7 +419,7 @@ func (cfg Config) deployService(ctx context.Context, imageRef, slug string, envM
 // so a build error never leaves a half-swapped deploy; then each is rolled out
 // through the zero-downtime health gate. Rollback is not supported (Result has
 // no single ImageTag), matching compose deploys.
-func (cfg Config) runMonorepo(ctx context.Context, slug, verTag string, envMap map[string]string, feDir, beDir string) (Result, error) {
+func (cfg Config) runMonorepo(ctx context.Context, slug, verTag string, feEnv, beEnv map[string]string, feDir, beDir string) (Result, error) {
 	feImage := fmt.Sprintf("pn-%s-frontend:%s", slug, verTag)
 	beImage := fmt.Sprintf("pn-%s-backend:%s", slug, verTag)
 
@@ -426,12 +433,12 @@ func (cfg Config) runMonorepo(ctx context.Context, slug, verTag string, envMap m
 	}
 
 	cfg.log("system", fmt.Sprintf("→ Deploying frontend (serves https://%s/)…", cfg.Domain))
-	feCID, err := cfg.deployService(ctx, feImage, slug, envMap, cfg.frontendSpec())
+	feCID, err := cfg.deployService(ctx, feImage, slug, feEnv, cfg.frontendSpec())
 	if err != nil {
 		return Result{}, fmt.Errorf("frontend deploy: %w", err)
 	}
 	cfg.log("system", fmt.Sprintf("→ Deploying backend (serves https://%s/api)…", cfg.Domain))
-	beCID, err := cfg.deployService(ctx, beImage, slug, envMap, cfg.backendSpec(envMap))
+	beCID, err := cfg.deployService(ctx, beImage, slug, beEnv, cfg.backendSpec(beEnv))
 	if err != nil {
 		return Result{}, fmt.Errorf("backend deploy: %w", err)
 	}

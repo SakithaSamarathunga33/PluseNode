@@ -3930,7 +3930,7 @@
       "source_file": "components/dashboard/UPlotChart.tsx",
       "source_location": "L1",
       "id": "components_dashboard_uplotchart_tsx",
-      "community": 25,
+      "community": 124,
       "norm_label": "uplotchart.tsx"
     },
     {
@@ -3939,7 +3939,7 @@
       "source_file": "components/dashboard/UPlotChart.tsx",
       "source_location": "L7",
       "id": "dashboard_uplotchart_series",
-      "community": 25,
+      "community": 124,
       "norm_label": "series"
     },
     {
@@ -3948,7 +3948,7 @@
       "source_file": "components/dashboard/UPlotChart.tsx",
       "source_location": "L15",
       "id": "dashboard_uplotchart_uplotchartprops",
-      "community": 25,
+      "community": 124,
       "norm_label": "uplotchartprops"
     },
     {
@@ -3957,7 +3957,7 @@
       "source_file": "components/dashboard/UPlotChart.tsx",
       "source_location": "L23",
       "id": "dashboard_uplotchart_resolvecsscolor",
-      "community": 25,
+      "community": 124,
       "norm_label": "resolvecsscolor()"
     },
     {
@@ -3966,7 +3966,7 @@
       "source_file": "components/dashboard/UPlotChart.tsx",
       "source_location": "L33",
       "id": "dashboard_uplotchart_uplotchart",
-      "community": 25,
+      "community": 124,
       "norm_label": "uplotchart()"
     },
     {
@@ -3975,7 +3975,7 @@
       "source_file": "components/dashboard/UPlotChart.tsx",
       "source_location": "L104",
       "id": "dashboard_uplotchart_padseries",
-      "community": 25,
+      "community": 124,
       "norm_label": "padseries()"
     },
     {
@@ -4515,7 +4515,7 @@
       "source_file": "components/magicui/blur-fade.tsx",
       "source_location": "L1",
       "id": "components_magicui_blur_fade_tsx",
-      "community": 17,
+      "community": 27,
       "norm_label": "blur-fade.tsx"
     },
     {
@@ -4524,7 +4524,7 @@
       "source_file": "components/magicui/blur-fade.tsx",
       "source_location": "L4",
       "id": "magicui_blur_fade_blurfadeprops",
-      "community": 17,
+      "community": 27,
       "norm_label": "blurfadeprops"
     },
     {
@@ -4533,7 +4533,7 @@
       "source_file": "components/magicui/blur-fade.tsx",
       "source_location": "L12",
       "id": "magicui_blur_fade_blurfade",
-      "community": 17,
+      "community": 27,
       "norm_label": "blurfade()"
     },
     {
@@ -4614,7 +4614,7 @@
       "source_file": "components/ui/separator.tsx",
       "source_location": "L1",
       "id": "components_ui_separator_tsx",
-      "community": 27,
+      "community": 19,
       "norm_label": "separator.tsx"
     },
     {
@@ -4623,7 +4623,7 @@
       "source_file": "components/ui/separator.tsx",
       "source_location": "L7",
       "id": "ui_separator_separator",
-      "community": 27,
+      "community": 19,
       "norm_label": "separator()"
     },
     {
@@ -4794,7 +4794,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L1",
       "id": "components_ui_card_tsx",
-      "community": 19,
+      "community": 125,
       "norm_label": "card.tsx"
     },
     {
@@ -4803,7 +4803,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L5",
       "id": "ui_card_card",
-      "community": 19,
+      "community": 125,
       "norm_label": "card()"
     },
     {
@@ -4812,7 +4812,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L23",
       "id": "ui_card_cardheader",
-      "community": 19,
+      "community": 125,
       "norm_label": "cardheader()"
     },
     {
@@ -4821,7 +4821,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L36",
       "id": "ui_card_cardtitle",
-      "community": 19,
+      "community": 125,
       "norm_label": "cardtitle()"
     },
     {
@@ -4830,7 +4830,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L49",
       "id": "ui_card_carddescription",
-      "community": 19,
+      "community": 125,
       "norm_label": "carddescription()"
     },
     {
@@ -4839,7 +4839,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L59",
       "id": "ui_card_cardaction",
-      "community": 19,
+      "community": 125,
       "norm_label": "cardaction()"
     },
     {
@@ -4848,7 +4848,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L72",
       "id": "ui_card_cardcontent",
-      "community": 19,
+      "community": 125,
       "norm_label": "cardcontent()"
     },
     {
@@ -4857,7 +4857,7 @@
       "source_file": "components/ui/card.tsx",
       "source_location": "L82",
       "id": "ui_card_cardfooter",
-      "community": 19,
+      "community": 125,
       "norm_label": "cardfooter()"
     },
     {
@@ -5316,7 +5316,7 @@
       "source_file": "components/ui/scroll-area.tsx",
       "source_location": "L1",
       "id": "components_ui_scroll_area_tsx",
-      "community": 27,
+      "community": 19,
       "norm_label": "scroll-area.tsx"
     },
     {
@@ -5325,7 +5325,7 @@
       "source_file": "components/ui/scroll-area.tsx",
       "source_location": "L8",
       "id": "ui_scroll_area_scrollarea",
-      "community": 27,
+      "community": 19,
       "norm_label": "scrollarea()"
     },
     {
@@ -5334,7 +5334,7 @@
       "source_file": "components/ui/scroll-area.tsx",
       "source_location": "L31",
       "id": "ui_scroll_area_scrollbar",
-      "community": 27,
+      "community": 19,
       "norm_label": "scrollbar()"
     },
     {
@@ -5388,7 +5388,7 @@
       "source_file": "lib/socket.ts",
       "source_location": "L1",
       "id": "lib_socket_ts",
-      "community": 41,
+      "community": 25,
       "norm_label": "socket.ts"
     },
     {
@@ -5397,7 +5397,7 @@
       "source_file": "lib/socket.ts",
       "source_location": "L3",
       "id": "lib_socket_handler",
-      "community": 41,
+      "community": 25,
       "norm_label": "handler"
     },
     {
@@ -5406,7 +5406,7 @@
       "source_file": "lib/socket.ts",
       "source_location": "L6",
       "id": "lib_socket_realtime_events",
-      "community": 41,
+      "community": 25,
       "norm_label": "realtime_events"
     },
     {
@@ -5496,7 +5496,7 @@
       "source_file": "lib/socket.ts",
       "source_location": "L106",
       "id": "lib_socket_realtimeurl",
-      "community": 41,
+      "community": 25,
       "norm_label": "realtimeurl()"
     },
     {
@@ -5550,7 +5550,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L33",
       "id": "lib_types_hostinfo",
-      "community": 0,
+      "community": 124,
       "norm_label": "hostinfo"
     },
     {
@@ -5559,7 +5559,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L49",
       "id": "lib_types_process",
-      "community": 26,
+      "community": 0,
       "norm_label": "process"
     },
     {
@@ -5631,7 +5631,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L139",
       "id": "lib_types_sbom",
-      "community": 0,
+      "community": 22,
       "norm_label": "sbom"
     },
     {
@@ -5640,7 +5640,7 @@
       "source_file": "lib/types.ts",
       "source_location": "L148",
       "id": "lib_types_alert",
-      "community": 0,
+      "community": 41,
       "norm_label": "alert"
     },
     {
@@ -5847,7 +5847,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L20",
       "id": "lib_mock_data_sparks",
-      "community": 110,
+      "community": 124,
       "norm_label": "sparks"
     },
     {
@@ -5865,7 +5865,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L48",
       "id": "lib_mock_data_containers",
-      "community": 25,
+      "community": 0,
       "norm_label": "containers"
     },
     {
@@ -5874,7 +5874,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L63",
       "id": "lib_mock_data_processes",
-      "community": 11,
+      "community": 0,
       "norm_label": "processes"
     },
     {
@@ -5919,7 +5919,7 @@
       "source_file": "lib/mock-data.ts",
       "source_location": "L121",
       "id": "lib_mock_data_sboms",
-      "community": 0,
+      "community": 22,
       "norm_label": "sboms"
     },
     {
@@ -6126,7 +6126,7 @@
       "source_file": "backend/internal/api/database_backup_handler.go",
       "source_location": "L261",
       "id": "api_server_restoredatabase",
-      "community": 63,
+      "community": 13,
       "norm_label": ".restoredatabase()"
     },
     {
@@ -6558,7 +6558,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L1",
       "id": "backend_internal_api_update_go",
-      "community": 13,
+      "community": 6,
       "norm_label": "update.go"
     },
     {
@@ -6567,7 +6567,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L15",
       "id": "api_updatestate",
-      "community": 13,
+      "community": 6,
       "norm_label": "updatestate"
     },
     {
@@ -6603,7 +6603,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L55",
       "id": "api_update_updatelog",
-      "community": 13,
+      "community": 6,
       "norm_label": "updatelog()"
     },
     {
@@ -6612,7 +6612,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L61",
       "id": "api_update_updatefail",
-      "community": 13,
+      "community": 6,
       "norm_label": "updatefail()"
     },
     {
@@ -6621,7 +6621,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L70",
       "id": "api_update_loaddotenv",
-      "community": 13,
+      "community": 6,
       "norm_label": "loaddotenv()"
     },
     {
@@ -6630,7 +6630,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L89",
       "id": "api_update_envvarval",
-      "community": 13,
+      "community": 6,
       "norm_label": "envvarval()"
     },
     {
@@ -6639,7 +6639,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L99",
       "id": "api_update_streamcmd",
-      "community": 13,
+      "community": 6,
       "norm_label": "streamcmd()"
     },
     {
@@ -6648,7 +6648,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L103",
       "id": "api_update_streamcmdenv",
-      "community": 13,
+      "community": 6,
       "norm_label": "streamcmdenv()"
     },
     {
@@ -6657,7 +6657,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L126",
       "id": "api_update_resolvecompose",
-      "community": 13,
+      "community": 6,
       "norm_label": "resolvecompose()"
     },
     {
@@ -6666,7 +6666,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L146",
       "id": "api_update_runupdate",
-      "community": 13,
+      "community": 6,
       "norm_label": "runupdate()"
     },
     {
@@ -6675,7 +6675,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L274",
       "id": "api_update_rundetachedcomposeup",
-      "community": 13,
+      "community": 6,
       "norm_label": "rundetachedcomposeup()"
     },
     {
@@ -6684,7 +6684,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L315",
       "id": "api_update_selfimage",
-      "community": 13,
+      "community": 6,
       "norm_label": "selfimage()"
     },
     {
@@ -6693,7 +6693,7 @@
       "source_file": "backend/internal/api/update.go",
       "source_location": "L334",
       "id": "api_update_tohostpaths",
-      "community": 13,
+      "community": 6,
       "norm_label": "tohostpaths()"
     },
     {
@@ -6702,7 +6702,7 @@
       "source_file": "backend/internal/api/middleware.go",
       "source_location": "L1",
       "id": "backend_internal_api_middleware_go",
-      "community": 109,
+      "community": 123,
       "norm_label": "middleware.go"
     },
     {
@@ -6711,7 +6711,7 @@
       "source_file": "backend/internal/api/middleware.go",
       "source_location": "L12",
       "id": "api_middleware_ratelimit",
-      "community": 109,
+      "community": 123,
       "norm_label": "ratelimit()"
     },
     {
@@ -6738,7 +6738,7 @@
       "source_file": "backend/internal/api/middleware.go",
       "source_location": "L37",
       "id": "api_statusrecorder",
-      "community": 109,
+      "community": 123,
       "norm_label": "statusrecorder"
     },
     {
@@ -6747,7 +6747,7 @@
       "source_file": "backend/internal/api/middleware.go",
       "source_location": "L42",
       "id": "api_statusrecorder_writeheader",
-      "community": 109,
+      "community": 123,
       "norm_label": ".writeheader()"
     },
     {
@@ -6756,7 +6756,7 @@
       "source_file": "backend/internal/api/middleware.go",
       "source_location": "L48",
       "id": "api_statusrecorder_flush",
-      "community": 109,
+      "community": 123,
       "norm_label": ".flush()"
     },
     {
@@ -6765,7 +6765,7 @@
       "source_file": "backend/internal/api/middleware.go",
       "source_location": "L55",
       "id": "api_statusrecorder_unwrap",
-      "community": 109,
+      "community": 123,
       "norm_label": ".unwrap()"
     },
     {
@@ -6792,7 +6792,7 @@
       "source_file": "backend/internal/api/projects_handler.go",
       "source_location": "L14",
       "id": "backend_internal_api_projects_handler_go_api_server",
-      "community": 10,
+      "community": 13,
       "norm_label": "server"
     },
     {
@@ -6801,7 +6801,7 @@
       "source_file": "backend/internal/api/projects_handler.go",
       "source_location": "L14",
       "id": "api_server_freeport",
-      "community": 10,
+      "community": 13,
       "norm_label": ".freeport()"
     },
     {
@@ -6810,7 +6810,7 @@
       "source_file": "backend/internal/api/projects_handler.go",
       "source_location": "L31",
       "id": "api_server_listprojects",
-      "community": 10,
+      "community": 13,
       "norm_label": ".listprojects()"
     },
     {
@@ -6819,79 +6819,79 @@
       "source_file": "backend/internal/api/projects_handler.go",
       "source_location": "L43",
       "id": "api_server_createproject",
-      "community": 10,
+      "community": 13,
       "norm_label": ".createproject()"
     },
     {
       "label": ".getProject()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L109",
+      "source_location": "L104",
       "id": "api_server_getproject",
-      "community": 10,
+      "community": 13,
       "norm_label": ".getproject()"
     },
     {
       "label": ".updateProject()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L123",
+      "source_location": "L118",
       "id": "api_server_updateproject",
-      "community": 10,
+      "community": 13,
       "norm_label": ".updateproject()"
     },
     {
       "label": ".deleteProject()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L158",
+      "source_location": "L149",
       "id": "api_server_deleteproject",
-      "community": 10,
+      "community": 13,
       "norm_label": ".deleteproject()"
     },
     {
       "label": ".deployProject()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L167",
+      "source_location": "L158",
       "id": "api_server_deployproject",
-      "community": 10,
+      "community": 13,
       "norm_label": ".deployproject()"
     },
     {
       "label": ".rollbackDeployment()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L195",
+      "source_location": "L186",
       "id": "api_server_rollbackdeployment",
-      "community": 10,
+      "community": 13,
       "norm_label": ".rollbackdeployment()"
     },
     {
       "label": ".listDeployments()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L234",
+      "source_location": "L225",
       "id": "api_server_listdeployments",
-      "community": 10,
+      "community": 13,
       "norm_label": ".listdeployments()"
     },
     {
       "label": ".getDeploymentLogs()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L247",
+      "source_location": "L238",
       "id": "api_server_getdeploymentlogs",
-      "community": 10,
+      "community": 13,
       "norm_label": ".getdeploymentlogs()"
     },
     {
       "label": ".streamDeploymentLogs()",
       "file_type": "code",
       "source_file": "backend/internal/api/projects_handler.go",
-      "source_location": "L266",
+      "source_location": "L257",
       "id": "api_server_streamdeploymentlogs",
-      "community": 10,
+      "community": 13,
       "norm_label": ".streamdeploymentlogs()"
     },
     {
@@ -7035,7 +7035,7 @@
       "source_file": "backend/internal/api/server.go",
       "source_location": "L410",
       "id": "api_server_signalhandler",
-      "community": 6,
+      "community": 13,
       "norm_label": "signalhandler()"
     },
     {
@@ -7323,7 +7323,7 @@
       "source_file": "backend/internal/api/coolify.go",
       "source_location": "L1",
       "id": "backend_internal_api_coolify_go",
-      "community": 125,
+      "community": 6,
       "norm_label": "coolify.go"
     },
     {
@@ -7332,7 +7332,7 @@
       "source_file": "backend/internal/api/coolify.go",
       "source_location": "L10",
       "id": "backend_internal_api_coolify_go_api_server",
-      "community": 125,
+      "community": 6,
       "norm_label": "server"
     },
     {
@@ -7341,7 +7341,7 @@
       "source_file": "backend/internal/api/coolify.go",
       "source_location": "L10",
       "id": "api_server_coolifyprojects",
-      "community": 125,
+      "community": 6,
       "norm_label": ".coolifyprojects()"
     },
     {
@@ -7350,7 +7350,7 @@
       "source_file": "backend/internal/api/coolify.go",
       "source_location": "L14",
       "id": "api_server_coolifydeployments",
-      "community": 125,
+      "community": 6,
       "norm_label": ".coolifydeployments()"
     },
     {
@@ -7359,7 +7359,7 @@
       "source_file": "backend/internal/api/coolify.go",
       "source_location": "L18",
       "id": "api_coolify_coolifyproxy",
-      "community": 125,
+      "community": 6,
       "norm_label": "coolifyproxy()"
     },
     {
@@ -7456,7 +7456,7 @@
       "label": ".githubSaveOAuthSettings()",
       "file_type": "code",
       "source_file": "backend/internal/api/github_handler.go",
-      "source_location": "L194",
+      "source_location": "L186",
       "id": "api_server_githubsaveoauthsettings",
       "community": 35,
       "norm_label": ".githubsaveoauthsettings()"
@@ -7465,7 +7465,7 @@
       "label": ".githubOAuthSettings()",
       "file_type": "code",
       "source_file": "backend/internal/api/github_handler.go",
-      "source_location": "L218",
+      "source_location": "L210",
       "id": "api_server_githuboauthsettings",
       "community": 118,
       "norm_label": ".githuboauthsettings()"
@@ -7584,7 +7584,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L1",
       "id": "backend_internal_api_database_handler_go",
-      "community": 63,
+      "community": 50,
       "norm_label": "database_handler.go"
     },
     {
@@ -7593,7 +7593,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L20",
       "id": "api_enginemeta",
-      "community": 63,
+      "community": 50,
       "norm_label": "enginemeta"
     },
     {
@@ -7602,7 +7602,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L50",
       "id": "backend_internal_api_database_handler_go_api_server",
-      "community": 10,
+      "community": 50,
       "norm_label": "server"
     },
     {
@@ -7611,7 +7611,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L50",
       "id": "api_server_listmanageddatabases",
-      "community": 10,
+      "community": 50,
       "norm_label": ".listmanageddatabases()"
     },
     {
@@ -7620,7 +7620,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L62",
       "id": "api_server_provisiondatabase",
-      "community": 63,
+      "community": 50,
       "norm_label": ".provisiondatabase()"
     },
     {
@@ -7629,7 +7629,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L131",
       "id": "api_server_runprovision",
-      "community": 10,
+      "community": 50,
       "norm_label": ".runprovision()"
     },
     {
@@ -7638,7 +7638,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L197",
       "id": "api_server_getmanageddatabase",
-      "community": 10,
+      "community": 50,
       "norm_label": ".getmanageddatabase()"
     },
     {
@@ -7647,7 +7647,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L213",
       "id": "api_server_getmanageddbcredentials",
-      "community": 10,
+      "community": 50,
       "norm_label": ".getmanageddbcredentials()"
     },
     {
@@ -7656,7 +7656,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L233",
       "id": "api_server_deletemanageddatabase",
-      "community": 10,
+      "community": 50,
       "norm_label": ".deletemanageddatabase()"
     },
     {
@@ -7665,7 +7665,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L259",
       "id": "api_server_listconnecteddatabases",
-      "community": 10,
+      "community": 50,
       "norm_label": ".listconnecteddatabases()"
     },
     {
@@ -7674,7 +7674,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L271",
       "id": "api_server_connectdatabase",
-      "community": 10,
+      "community": 13,
       "norm_label": ".connectdatabase()"
     },
     {
@@ -7683,7 +7683,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L303",
       "id": "api_server_deleteconnecteddatabase",
-      "community": 10,
+      "community": 50,
       "norm_label": ".deleteconnecteddatabase()"
     },
     {
@@ -7692,7 +7692,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L317",
       "id": "api_database_handler_sanitizedbname",
-      "community": 63,
+      "community": 50,
       "norm_label": "sanitizedbname()"
     },
     {
@@ -7701,7 +7701,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L330",
       "id": "api_database_handler_freeport",
-      "community": 63,
+      "community": 50,
       "norm_label": "freeport()"
     },
     {
@@ -7710,7 +7710,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L339",
       "id": "api_database_handler_randhex",
-      "community": 63,
+      "community": 50,
       "norm_label": "randhex()"
     },
     {
@@ -7719,7 +7719,7 @@
       "source_file": "backend/internal/api/database_handler.go",
       "source_location": "L348",
       "id": "api_database_handler_buildconnstring",
-      "community": 10,
+      "community": 50,
       "norm_label": "buildconnstring()"
     },
     {
@@ -7827,7 +7827,7 @@
       "source_file": "backend/internal/api/github_app.go",
       "source_location": "L21",
       "id": "api_server_seedgithubappfromenv",
-      "community": 69,
+      "community": 6,
       "norm_label": ".seedgithubappfromenv()"
     },
     {
@@ -8106,7 +8106,7 @@
       "source_file": "backend/internal/api/http.go",
       "source_location": "L18",
       "id": "api_http_writeerror",
-      "community": 10,
+      "community": 13,
       "norm_label": "writeerror()"
     },
     {
@@ -8187,7 +8187,7 @@
       "source_file": "backend/internal/api/shell.go",
       "source_location": "L152",
       "id": "api_hijackedconn_read",
-      "community": 63,
+      "community": 40,
       "norm_label": ".read()"
     },
     {
@@ -8196,7 +8196,7 @@
       "source_file": "backend/internal/api/shell.go",
       "source_location": "L157",
       "id": "api_server_containershellresize",
-      "community": 10,
+      "community": 40,
       "norm_label": ".containershellresize()"
     },
     {
@@ -8482,7 +8482,7 @@
       "label": ".addColumn()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L215",
+      "source_location": "L211",
       "id": "db_db_addcolumn",
       "community": 8,
       "norm_label": ".addcolumn()"
@@ -8491,16 +8491,16 @@
       "label": "aesKey()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L224",
+      "source_location": "L220",
       "id": "db_db_aeskey",
-      "community": 124,
+      "community": 51,
       "norm_label": "aeskey()"
     },
     {
       "label": "Encrypt()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L235",
+      "source_location": "L231",
       "id": "db_db_encrypt",
       "community": 51,
       "norm_label": "encrypt()"
@@ -8509,25 +8509,25 @@
       "label": "Decrypt()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L256",
+      "source_location": "L252",
       "id": "db_db_decrypt",
-      "community": 124,
+      "community": 51,
       "norm_label": "decrypt()"
     },
     {
       "label": "NewID()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L285",
+      "source_location": "L281",
       "id": "db_db_newid",
-      "community": 63,
+      "community": 13,
       "norm_label": "newid()"
     },
     {
       "label": "GitHubAccount",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L293",
+      "source_location": "L289",
       "id": "db_githubaccount",
       "community": 36,
       "norm_label": "githubaccount"
@@ -8536,7 +8536,7 @@
       "label": ".UpsertGitHubAccount()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L302",
+      "source_location": "L298",
       "id": "db_db_upsertgithubaccount",
       "community": 51,
       "norm_label": ".upsertgithubaccount()"
@@ -8545,16 +8545,16 @@
       "label": ".GetGitHubAccount()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L316",
+      "source_location": "L312",
       "id": "db_db_getgithubaccount",
-      "community": 124,
+      "community": 51,
       "norm_label": ".getgithubaccount()"
     },
     {
       "label": ".DeleteGitHubAccount()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L334",
+      "source_location": "L330",
       "id": "db_db_deletegithubaccount",
       "community": 8,
       "norm_label": ".deletegithubaccount()"
@@ -8563,7 +8563,7 @@
       "label": "Project",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L341",
+      "source_location": "L337",
       "id": "db_project",
       "community": 36,
       "norm_label": "project"
@@ -8572,7 +8572,7 @@
       "label": ".CreateProject()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L360",
+      "source_location": "L355",
       "id": "db_db_createproject",
       "community": 51,
       "norm_label": ".createproject()"
@@ -8581,7 +8581,7 @@
       "label": ".ListProjects()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L376",
+      "source_location": "L367",
       "id": "db_db_listprojects",
       "community": 8,
       "norm_label": ".listprojects()"
@@ -8590,16 +8590,16 @@
       "label": ".GetProject()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L397",
+      "source_location": "L388",
       "id": "db_db_getproject",
-      "community": 124,
+      "community": 51,
       "norm_label": ".getproject()"
     },
     {
       "label": ".UpdateProjectStatus()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L420",
+      "source_location": "L408",
       "id": "db_db_updateprojectstatus",
       "community": 8,
       "norm_label": ".updateprojectstatus()"
@@ -8608,7 +8608,7 @@
       "label": ".UpdateProject()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L425",
+      "source_location": "L413",
       "id": "db_db_updateproject",
       "community": 51,
       "norm_label": ".updateproject()"
@@ -8617,7 +8617,7 @@
       "label": ".UpdateProjectCommit()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L440",
+      "source_location": "L424",
       "id": "db_db_updateprojectcommit",
       "community": 8,
       "norm_label": ".updateprojectcommit()"
@@ -8626,7 +8626,7 @@
       "label": "boolToInt()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L445",
+      "source_location": "L429",
       "id": "db_db_booltoint",
       "community": 51,
       "norm_label": "booltoint()"
@@ -8635,7 +8635,7 @@
       "label": "nullable()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L454",
+      "source_location": "L438",
       "id": "db_db_nullable",
       "community": 36,
       "norm_label": "nullable()"
@@ -8644,7 +8644,7 @@
       "label": ".GetSetting()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L464",
+      "source_location": "L448",
       "id": "db_db_getsetting",
       "community": 8,
       "norm_label": ".getsetting()"
@@ -8653,7 +8653,7 @@
       "label": ".SetSetting()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L474",
+      "source_location": "L458",
       "id": "db_db_setsetting",
       "community": 8,
       "norm_label": ".setsetting()"
@@ -8662,7 +8662,7 @@
       "label": ".DeleteProject()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L481",
+      "source_location": "L465",
       "id": "db_db_deleteproject",
       "community": 8,
       "norm_label": ".deleteproject()"
@@ -8671,7 +8671,7 @@
       "label": "Deployment",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L496",
+      "source_location": "L480",
       "id": "db_deployment",
       "community": 36,
       "norm_label": "deployment"
@@ -8680,7 +8680,7 @@
       "label": "scanDeployment()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L511",
+      "source_location": "L495",
       "id": "db_db_scandeployment",
       "community": 112,
       "norm_label": "scandeployment()"
@@ -8689,7 +8689,7 @@
       "label": ".CreateDeployment()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L515",
+      "source_location": "L499",
       "id": "db_db_createdeployment",
       "community": 36,
       "norm_label": ".createdeployment()"
@@ -8698,7 +8698,7 @@
       "label": ".ListDeployments()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L522",
+      "source_location": "L506",
       "id": "db_db_listdeployments",
       "community": 112,
       "norm_label": ".listdeployments()"
@@ -8707,7 +8707,7 @@
       "label": ".UpdateDeploymentStatus()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L539",
+      "source_location": "L523",
       "id": "db_db_updatedeploymentstatus",
       "community": 8,
       "norm_label": ".updatedeploymentstatus()"
@@ -8716,7 +8716,7 @@
       "label": ".UpdateDeploymentCommit()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L545",
+      "source_location": "L529",
       "id": "db_db_updatedeploymentcommit",
       "community": 8,
       "norm_label": ".updatedeploymentcommit()"
@@ -8725,7 +8725,7 @@
       "label": ".UpdateDeploymentImage()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L551",
+      "source_location": "L535",
       "id": "db_db_updatedeploymentimage",
       "community": 8,
       "norm_label": ".updatedeploymentimage()"
@@ -8734,7 +8734,7 @@
       "label": ".GetDeploymentByID()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L556",
+      "source_location": "L540",
       "id": "db_db_getdeploymentbyid",
       "community": 112,
       "norm_label": ".getdeploymentbyid()"
@@ -8743,7 +8743,7 @@
       "label": ".GetQueuedDeployments()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L568",
+      "source_location": "L552",
       "id": "db_db_getqueueddeployments",
       "community": 112,
       "norm_label": ".getqueueddeployments()"
@@ -8752,7 +8752,7 @@
       "label": ".AppendLog()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L587",
+      "source_location": "L571",
       "id": "db_db_appendlog",
       "community": 8,
       "norm_label": ".appendlog()"
@@ -8761,7 +8761,7 @@
       "label": ".GetLogs()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L592",
+      "source_location": "L576",
       "id": "db_db_getlogs",
       "community": 8,
       "norm_label": ".getlogs()"
@@ -8770,7 +8770,7 @@
       "label": "ManagedDatabase",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L612",
+      "source_location": "L596",
       "id": "db_manageddatabase",
       "community": 36,
       "norm_label": "manageddatabase"
@@ -8779,7 +8779,7 @@
       "label": ".CreateManagedDatabase()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L626",
+      "source_location": "L610",
       "id": "db_db_createmanageddatabase",
       "community": 51,
       "norm_label": ".createmanageddatabase()"
@@ -8788,7 +8788,7 @@
       "label": ".UpdateManagedDatabaseStatus()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L633",
+      "source_location": "L617",
       "id": "db_db_updatemanageddatabasestatus",
       "community": 8,
       "norm_label": ".updatemanageddatabasestatus()"
@@ -8797,7 +8797,7 @@
       "label": ".ListManagedDatabases()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L638",
+      "source_location": "L622",
       "id": "db_db_listmanageddatabases",
       "community": 8,
       "norm_label": ".listmanageddatabases()"
@@ -8806,25 +8806,25 @@
       "label": ".GetManagedDatabase()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L657",
+      "source_location": "L641",
       "id": "db_db_getmanageddatabase",
-      "community": 124,
+      "community": 51,
       "norm_label": ".getmanageddatabase()"
     },
     {
       "label": ".GetManagedDatabaseByContainerName()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L672",
+      "source_location": "L656",
       "id": "db_db_getmanageddatabasebycontainername",
-      "community": 124,
+      "community": 51,
       "norm_label": ".getmanageddatabasebycontainername()"
     },
     {
       "label": ".DeleteManagedDatabase()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L687",
+      "source_location": "L671",
       "id": "db_db_deletemanageddatabase",
       "community": 8,
       "norm_label": ".deletemanageddatabase()"
@@ -8833,7 +8833,7 @@
       "label": "ConnectedDatabase",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L694",
+      "source_location": "L678",
       "id": "db_connecteddatabase",
       "community": 36,
       "norm_label": "connecteddatabase"
@@ -8842,7 +8842,7 @@
       "label": ".CreateConnectedDatabase()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L706",
+      "source_location": "L690",
       "id": "db_db_createconnecteddatabase",
       "community": 51,
       "norm_label": ".createconnecteddatabase()"
@@ -8851,7 +8851,7 @@
       "label": ".ListConnectedDatabases()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L713",
+      "source_location": "L697",
       "id": "db_db_listconnecteddatabases",
       "community": 8,
       "norm_label": ".listconnecteddatabases()"
@@ -8860,7 +8860,7 @@
       "label": ".DeleteConnectedDatabase()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L730",
+      "source_location": "L714",
       "id": "db_db_deleteconnecteddatabase",
       "community": 8,
       "norm_label": ".deleteconnecteddatabase()"
@@ -8869,7 +8869,7 @@
       "label": "AlertRule",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L737",
+      "source_location": "L721",
       "id": "db_alertrule",
       "community": 36,
       "norm_label": "alertrule"
@@ -8878,7 +8878,7 @@
       "label": ".CreateAlertRule()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L749",
+      "source_location": "L733",
       "id": "db_db_createalertrule",
       "community": 8,
       "norm_label": ".createalertrule()"
@@ -8887,7 +8887,7 @@
       "label": ".ListAlertRules()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L755",
+      "source_location": "L739",
       "id": "db_db_listalertrules",
       "community": 8,
       "norm_label": ".listalertrules()"
@@ -8896,7 +8896,7 @@
       "label": ".UpdateAlertRule()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L774",
+      "source_location": "L758",
       "id": "db_db_updatealertrule",
       "community": 8,
       "norm_label": ".updatealertrule()"
@@ -8905,7 +8905,7 @@
       "label": ".DeleteAlertRule()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L783",
+      "source_location": "L767",
       "id": "db_db_deletealertrule",
       "community": 8,
       "norm_label": ".deletealertrule()"
@@ -8914,7 +8914,7 @@
       "label": "AlertEvent",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L790",
+      "source_location": "L774",
       "id": "db_alertevent",
       "community": 36,
       "norm_label": "alertevent"
@@ -8923,7 +8923,7 @@
       "label": ".InsertAlertEvent()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L802",
+      "source_location": "L786",
       "id": "db_db_insertalertevent",
       "community": 8,
       "norm_label": ".insertalertevent()"
@@ -8932,7 +8932,7 @@
       "label": ".ListAlertHistory()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L808",
+      "source_location": "L792",
       "id": "db_db_listalerthistory",
       "community": 8,
       "norm_label": ".listalerthistory()"
@@ -8941,7 +8941,7 @@
       "label": "NotificationChannel",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L827",
+      "source_location": "L811",
       "id": "db_notificationchannel",
       "community": 36,
       "norm_label": "notificationchannel"
@@ -8950,7 +8950,7 @@
       "label": ".CreateNotificationChannel()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L836",
+      "source_location": "L820",
       "id": "db_db_createnotificationchannel",
       "community": 8,
       "norm_label": ".createnotificationchannel()"
@@ -8959,7 +8959,7 @@
       "label": ".ListNotificationChannels()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L842",
+      "source_location": "L826",
       "id": "db_db_listnotificationchannels",
       "community": 8,
       "norm_label": ".listnotificationchannels()"
@@ -8968,7 +8968,7 @@
       "label": ".DeleteNotificationChannel()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L861",
+      "source_location": "L845",
       "id": "db_db_deletenotificationchannel",
       "community": 8,
       "norm_label": ".deletenotificationchannel()"
@@ -8977,7 +8977,7 @@
       "label": ".InsertAuditLog()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L868",
+      "source_location": "L852",
       "id": "db_db_insertauditlog",
       "community": 8,
       "norm_label": ".insertauditlog()"
@@ -8986,7 +8986,7 @@
       "label": "User",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L875",
+      "source_location": "L859",
       "id": "db_user",
       "community": 36,
       "norm_label": "user"
@@ -8995,7 +8995,7 @@
       "label": ".GetUser()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L884",
+      "source_location": "L868",
       "id": "db_db_getuser",
       "community": 8,
       "norm_label": ".getuser()"
@@ -9004,7 +9004,7 @@
       "label": ".UpsertUser()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L897",
+      "source_location": "L881",
       "id": "db_db_upsertuser",
       "community": 8,
       "norm_label": ".upsertuser()"
@@ -9013,7 +9013,7 @@
       "label": ".DeleteUser()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L909",
+      "source_location": "L893",
       "id": "db_db_deleteuser",
       "community": 8,
       "norm_label": ".deleteuser()"
@@ -9022,7 +9022,7 @@
       "label": "Domain",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L916",
+      "source_location": "L900",
       "id": "db_domain",
       "community": 36,
       "norm_label": "domain"
@@ -9031,7 +9031,7 @@
       "label": ".UpsertDomain()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L930",
+      "source_location": "L914",
       "id": "db_db_upsertdomain",
       "community": 8,
       "norm_label": ".upsertdomain()"
@@ -9040,7 +9040,7 @@
       "label": ".ListDomains()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L942",
+      "source_location": "L926",
       "id": "db_db_listdomains",
       "community": 8,
       "norm_label": ".listdomains()"
@@ -9049,7 +9049,7 @@
       "label": ".SetPrimaryDomain()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L973",
+      "source_location": "L957",
       "id": "db_db_setprimarydomain",
       "community": 8,
       "norm_label": ".setprimarydomain()"
@@ -9058,7 +9058,7 @@
       "label": ".UpdateDomainCheck()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L989",
+      "source_location": "L973",
       "id": "db_db_updatedomaincheck",
       "community": 51,
       "norm_label": ".updatedomaincheck()"
@@ -9067,7 +9067,7 @@
       "label": ".DeleteDomain()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L999",
+      "source_location": "L983",
       "id": "db_db_deletedomain",
       "community": 8,
       "norm_label": ".deletedomain()"
@@ -9076,7 +9076,7 @@
       "label": "AppInstallation",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L1007",
+      "source_location": "L991",
       "id": "db_appinstallation",
       "community": 36,
       "norm_label": "appinstallation"
@@ -9085,7 +9085,7 @@
       "label": ".UpsertAppInstallation()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L1015",
+      "source_location": "L999",
       "id": "db_db_upsertappinstallation",
       "community": 8,
       "norm_label": ".upsertappinstallation()"
@@ -9094,7 +9094,7 @@
       "label": ".ListAppInstallations()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L1026",
+      "source_location": "L1010",
       "id": "db_db_listappinstallations",
       "community": 8,
       "norm_label": ".listappinstallations()"
@@ -9103,7 +9103,7 @@
       "label": ".DeleteAppInstallation()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L1043",
+      "source_location": "L1027",
       "id": "db_db_deleteappinstallation",
       "community": 8,
       "norm_label": ".deleteappinstallation()"
@@ -9112,7 +9112,7 @@
       "label": ".DeleteAppInstallationByInstallID()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L1048",
+      "source_location": "L1032",
       "id": "db_db_deleteappinstallationbyinstallid",
       "community": 8,
       "norm_label": ".deleteappinstallationbyinstallid()"
@@ -9121,7 +9121,7 @@
       "label": ".PrimaryDomain()",
       "file_type": "code",
       "source_file": "backend/internal/db/db.go",
-      "source_location": "L1054",
+      "source_location": "L1038",
       "id": "db_db_primarydomain",
       "community": 8,
       "norm_label": ".primarydomain()"
@@ -9141,7 +9141,7 @@
       "source_file": "backend/internal/builder/detect.go",
       "source_location": "L8",
       "id": "builder_method",
-      "community": 50,
+      "community": 7,
       "norm_label": "method"
     },
     {
@@ -9220,7 +9220,7 @@
       "label": "Result",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L39",
+      "source_location": "L38",
       "id": "builder_result",
       "community": 7,
       "norm_label": "result"
@@ -9229,7 +9229,7 @@
       "label": "Run()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L56",
+      "source_location": "L55",
       "id": "builder_builder_run",
       "community": 7,
       "norm_label": "run()"
@@ -9238,7 +9238,7 @@
       "label": "RunFromImage()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L146",
+      "source_location": "L139",
       "id": "builder_builder_runfromimage",
       "community": 7,
       "norm_label": "runfromimage()"
@@ -9247,7 +9247,7 @@
       "label": "shortID()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L165",
+      "source_location": "L158",
       "id": "builder_builder_shortid",
       "community": 7,
       "norm_label": "shortid()"
@@ -9256,7 +9256,7 @@
       "label": "shortSHA()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L176",
+      "source_location": "L169",
       "id": "builder_builder_shortsha",
       "community": 7,
       "norm_label": "shortsha()"
@@ -9265,7 +9265,7 @@
       "label": ".buildCompose()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L183",
+      "source_location": "L176",
       "id": "builder_config_buildcompose",
       "community": 7,
       "norm_label": ".buildcompose()"
@@ -9274,7 +9274,7 @@
       "label": ".buildDockerfile()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L230",
+      "source_location": "L223",
       "id": "builder_config_builddockerfile",
       "community": 7,
       "norm_label": ".builddockerfile()"
@@ -9283,7 +9283,7 @@
       "label": ".buildNixpacks()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L243",
+      "source_location": "L236",
       "id": "builder_config_buildnixpacks",
       "community": 7,
       "norm_label": ".buildnixpacks()"
@@ -9292,7 +9292,7 @@
       "label": "isNodeProject()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L259",
+      "source_location": "L252",
       "id": "builder_builder_isnodeproject",
       "community": 7,
       "norm_label": "isnodeproject()"
@@ -9301,7 +9301,7 @@
       "label": "pinsNodeVersion()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L266",
+      "source_location": "L259",
       "id": "builder_builder_pinsnodeversion",
       "community": 7,
       "norm_label": "pinsnodeversion()"
@@ -9310,7 +9310,7 @@
       "label": "serviceSpec",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L289",
+      "source_location": "L282",
       "id": "builder_servicespec",
       "community": 7,
       "norm_label": "servicespec"
@@ -9319,7 +9319,7 @@
       "label": ".defaultSpec()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L298",
+      "source_location": "L291",
       "id": "builder_config_defaultspec",
       "community": 7,
       "norm_label": ".defaultspec()"
@@ -9328,7 +9328,7 @@
       "label": ".frontendSpec()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L307",
+      "source_location": "L300",
       "id": "builder_config_frontendspec",
       "community": 7,
       "norm_label": ".frontendspec()"
@@ -9337,7 +9337,7 @@
       "label": ".backendSpec()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L319",
+      "source_location": "L312",
       "id": "builder_config_backendspec",
       "community": 7,
       "norm_label": ".backendspec()"
@@ -9346,7 +9346,7 @@
       "label": ".deployContainer()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L336",
+      "source_location": "L329",
       "id": "builder_config_deploycontainer",
       "community": 7,
       "norm_label": ".deploycontainer()"
@@ -9355,7 +9355,7 @@
       "label": ".deployService()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L345",
+      "source_location": "L338",
       "id": "builder_config_deployservice",
       "community": 7,
       "norm_label": ".deployservice()"
@@ -9364,7 +9364,7 @@
       "label": ".runMonorepo()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L422",
+      "source_location": "L415",
       "id": "builder_config_runmonorepo",
       "community": 7,
       "norm_label": ".runmonorepo()"
@@ -9373,7 +9373,7 @@
       "label": ".buildImage()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L455",
+      "source_location": "L448",
       "id": "builder_config_buildimage",
       "community": 7,
       "norm_label": ".buildimage()"
@@ -9382,7 +9382,7 @@
       "label": ".removeOldContainers()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L494",
+      "source_location": "L487",
       "id": "builder_config_removeoldcontainers",
       "community": 7,
       "norm_label": ".removeoldcontainers()"
@@ -9391,7 +9391,7 @@
       "label": "componentLabel()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L535",
+      "source_location": "L528",
       "id": "builder_builder_componentlabel",
       "community": 7,
       "norm_label": "componentlabel()"
@@ -9400,7 +9400,7 @@
       "label": ".waitHealthy()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L551",
+      "source_location": "L544",
       "id": "builder_config_waithealthy",
       "community": 7,
       "norm_label": ".waithealthy()"
@@ -9409,7 +9409,7 @@
       "label": "containerState",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L585",
+      "source_location": "L578",
       "id": "builder_containerstate",
       "community": 7,
       "norm_label": "containerstate"
@@ -9418,7 +9418,7 @@
       "label": "inspectState()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L592",
+      "source_location": "L585",
       "id": "builder_builder_inspectstate",
       "community": 7,
       "norm_label": "inspectstate()"
@@ -9427,7 +9427,7 @@
       "label": ".composeOverlay()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L611",
+      "source_location": "L604",
       "id": "builder_config_composeoverlay",
       "community": 7,
       "norm_label": ".composeoverlay()"
@@ -9436,7 +9436,7 @@
       "label": ".resolveTraefikNetwork()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L636",
+      "source_location": "L629",
       "id": "builder_config_resolvetraefiknetwork",
       "community": 7,
       "norm_label": ".resolvetraefiknetwork()"
@@ -9445,7 +9445,7 @@
       "label": "envFileValue()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L657",
+      "source_location": "L650",
       "id": "builder_builder_envfilevalue",
       "community": 7,
       "norm_label": "envfilevalue()"
@@ -9454,7 +9454,7 @@
       "label": "detectTraefikNetwork()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L673",
+      "source_location": "L666",
       "id": "builder_builder_detecttraefiknetwork",
       "community": 7,
       "norm_label": "detecttraefiknetwork()"
@@ -9463,7 +9463,7 @@
       "label": ".run()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L698",
+      "source_location": "L691",
       "id": "builder_config_run",
       "community": 7,
       "norm_label": ".run()"
@@ -9472,7 +9472,7 @@
       "label": "runOutput()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L717",
+      "source_location": "L710",
       "id": "builder_builder_runoutput",
       "community": 7,
       "norm_label": "runoutput()"
@@ -9481,7 +9481,7 @@
       "label": "runSilent()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L724",
+      "source_location": "L717",
       "id": "builder_builder_runsilent",
       "community": 7,
       "norm_label": "runsilent()"
@@ -9490,7 +9490,7 @@
       "label": ".log()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L728",
+      "source_location": "L721",
       "id": "builder_config_log",
       "community": 7,
       "norm_label": ".log()"
@@ -9499,7 +9499,7 @@
       "label": "min()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L734",
+      "source_location": "L727",
       "id": "builder_builder_min",
       "community": 7,
       "norm_label": "min()"
@@ -9508,7 +9508,7 @@
       "label": "sanitizeName()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L742",
+      "source_location": "L735",
       "id": "builder_builder_sanitizename",
       "community": 7,
       "norm_label": "sanitizename()"
@@ -9517,7 +9517,7 @@
       "label": "CommitInfo()",
       "file_type": "code",
       "source_file": "backend/internal/builder/builder.go",
-      "source_location": "L759",
+      "source_location": "L752",
       "id": "builder_builder_commitinfo",
       "community": 7,
       "norm_label": "commitinfo()"
@@ -9564,7 +9564,7 @@
       "source_file": "backend/internal/queue/queue.go",
       "source_location": "L1",
       "id": "backend_internal_queue_queue_go",
-      "community": 50,
+      "community": 7,
       "norm_label": "queue.go"
     },
     {
@@ -9573,7 +9573,7 @@
       "source_file": "backend/internal/queue/queue.go",
       "source_location": "L16",
       "id": "queue_queue",
-      "community": 50,
+      "community": 7,
       "norm_label": "queue"
     },
     {
@@ -9582,7 +9582,7 @@
       "source_file": "backend/internal/queue/queue.go",
       "source_location": "L23",
       "id": "queue_queue_new",
-      "community": 50,
+      "community": 7,
       "norm_label": "new()"
     },
     {
@@ -9591,7 +9591,7 @@
       "source_file": "backend/internal/queue/queue.go",
       "source_location": "L35",
       "id": "queue_queue_enqueue",
-      "community": 50,
+      "community": 7,
       "norm_label": ".enqueue()"
     },
     {
@@ -9600,7 +9600,7 @@
       "source_file": "backend/internal/queue/queue.go",
       "source_location": "L40",
       "id": "queue_queue_recoverstuck",
-      "community": 50,
+      "community": 7,
       "norm_label": ".recoverstuck()"
     },
     {
@@ -9609,7 +9609,7 @@
       "source_file": "backend/internal/queue/queue.go",
       "source_location": "L52",
       "id": "queue_queue_worker",
-      "community": 50,
+      "community": 7,
       "norm_label": ".worker()"
     },
     {
@@ -9618,34 +9618,34 @@
       "source_file": "backend/internal/queue/queue.go",
       "source_location": "L59",
       "id": "queue_queue_rundeployment",
-      "community": 50,
+      "community": 7,
       "norm_label": ".rundeployment()"
     },
     {
       "label": "timePtr()",
       "file_type": "code",
       "source_file": "backend/internal/queue/queue.go",
-      "source_location": "L149",
+      "source_location": "L148",
       "id": "queue_queue_timeptr",
-      "community": 50,
+      "community": 7,
       "norm_label": "timeptr()"
     },
     {
       "label": ".StartPoller()",
       "file_type": "code",
       "source_file": "backend/internal/queue/queue.go",
-      "source_location": "L157",
+      "source_location": "L156",
       "id": "queue_queue_startpoller",
-      "community": 50,
+      "community": 7,
       "norm_label": ".startpoller()"
     },
     {
       "label": ".pollOnce()",
       "file_type": "code",
       "source_file": "backend/internal/queue/queue.go",
-      "source_location": "L174",
+      "source_location": "L173",
       "id": "queue_queue_pollonce",
-      "community": 50,
+      "community": 7,
       "norm_label": ".pollonce()"
     },
     {
@@ -9717,7 +9717,7 @@
       "source_file": "backend/internal/auth/middleware.go",
       "source_location": "L74",
       "id": "auth_middleware_validatetoken",
-      "community": 123,
+      "community": 64,
       "norm_label": ".validatetoken()"
     },
     {
@@ -10797,7 +10797,7 @@
       "source_file": "backend/internal/github/app.go",
       "source_location": "L1",
       "id": "backend_internal_github_app_go",
-      "community": 69,
+      "community": 109,
       "norm_label": "app.go"
     },
     {
@@ -10806,7 +10806,7 @@
       "source_file": "backend/internal/github/app.go",
       "source_location": "L22",
       "id": "github_appclient",
-      "community": 69,
+      "community": 109,
       "norm_label": "appclient"
     },
     {
@@ -10833,7 +10833,7 @@
       "source_file": "backend/internal/github/app.go",
       "source_location": "L64",
       "id": "github_appclient_jwt",
-      "community": 69,
+      "community": 109,
       "norm_label": ".jwt()"
     },
     {
@@ -10842,7 +10842,7 @@
       "source_file": "backend/internal/github/app.go",
       "source_location": "L82",
       "id": "github_app_b64u",
-      "community": 69,
+      "community": 109,
       "norm_label": "b64u()"
     },
     {
@@ -10851,7 +10851,7 @@
       "source_file": "backend/internal/github/app.go",
       "source_location": "L84",
       "id": "github_appclient_appreq",
-      "community": 69,
+      "community": 109,
       "norm_label": ".appreq()"
     },
     {
@@ -10860,7 +10860,7 @@
       "source_file": "backend/internal/github/app.go",
       "source_location": "L120",
       "id": "github_installation",
-      "community": 69,
+      "community": 109,
       "norm_label": "installation"
     },
     {
@@ -10869,7 +10869,7 @@
       "source_file": "backend/internal/github/app.go",
       "source_location": "L129",
       "id": "github_installationtoken",
-      "community": 69,
+      "community": 109,
       "norm_label": "installationtoken"
     },
     {
@@ -10878,7 +10878,7 @@
       "source_file": "backend/internal/github/app.go",
       "source_location": "L135",
       "id": "github_appclient_getinstallation",
-      "community": 69,
+      "community": 109,
       "norm_label": ".getinstallation()"
     },
     {
@@ -10887,7 +10887,7 @@
       "source_file": "backend/internal/github/app.go",
       "source_location": "L141",
       "id": "github_appclient_getinstallationtoken",
-      "community": 69,
+      "community": 109,
       "norm_label": ".getinstallationtoken()"
     },
     {
@@ -10905,7 +10905,7 @@
       "source_file": "backend/internal/github/github.go",
       "source_location": "L1",
       "id": "backend_internal_github_github_go",
-      "community": 118,
+      "community": 6,
       "norm_label": "github.go"
     },
     {
@@ -10950,7 +10950,7 @@
       "source_file": "backend/internal/github/github.go",
       "source_location": "L72",
       "id": "github_hook",
-      "community": 118,
+      "community": 6,
       "norm_label": "hook"
     },
     {
@@ -10986,7 +10986,7 @@
       "source_file": "backend/internal/github/github.go",
       "source_location": "L131",
       "id": "github_user",
-      "community": 118,
+      "community": 6,
       "norm_label": "user"
     },
     {
@@ -11004,7 +11004,7 @@
       "source_file": "backend/internal/github/github.go",
       "source_location": "L144",
       "id": "github_repo",
-      "community": 118,
+      "community": 6,
       "norm_label": "repo"
     },
     {
@@ -11031,7 +11031,7 @@
       "source_file": "backend/internal/github/github.go",
       "source_location": "L188",
       "id": "github_content",
-      "community": 118,
+      "community": 6,
       "norm_label": "content"
     },
     {
@@ -11067,7 +11067,7 @@
       "source_file": "backend/internal/github/github.go",
       "source_location": "L251",
       "id": "github_github_authorisedcloneurl",
-      "community": 50,
+      "community": 6,
       "norm_label": "authorisedcloneurl()"
     },
     {
@@ -11076,7 +11076,7 @@
       "source_file": "backend/internal/github/github.go",
       "source_location": "L265",
       "id": "github_github_authurl",
-      "community": 118,
+      "community": 6,
       "norm_label": "authurl()"
     },
     {
@@ -11085,7 +11085,7 @@
       "source_file": "backend/internal/github/github.go",
       "source_location": "L274",
       "id": "github_github_exchangecode",
-      "community": 118,
+      "community": 6,
       "norm_label": "exchangecode()"
     },
     {
@@ -11139,7 +11139,7 @@
       "source_file": "backend/internal/hub/hub.go",
       "source_location": "L48",
       "id": "hub_hub_broadcast",
-      "community": 131,
+      "community": 114,
       "norm_label": ".broadcast()"
     },
     {
@@ -11481,7 +11481,7 @@
       "source_file": "app/sbom-history/page.tsx",
       "source_location": "L1",
       "id": "app_sbom_history_page_tsx",
-      "community": 0,
+      "community": 22,
       "norm_label": "page.tsx"
     },
     {
@@ -11490,7 +11490,7 @@
       "source_file": "app/sbom-history/page.tsx",
       "source_location": "L19",
       "id": "sbom_history_page_filterchip",
-      "community": 0,
+      "community": 22,
       "norm_label": "filterchip()"
     },
     {
@@ -11499,7 +11499,7 @@
       "source_file": "app/sbom-history/page.tsx",
       "source_location": "L29",
       "id": "sbom_history_page_formatbadge",
-      "community": 0,
+      "community": 22,
       "norm_label": "formatbadge()"
     },
     {
@@ -11508,7 +11508,7 @@
       "source_file": "app/sbom-history/page.tsx",
       "source_location": "L45",
       "id": "sbom_history_page_ecosystem_colors",
-      "community": 0,
+      "community": 22,
       "norm_label": "ecosystem_colors"
     },
     {
@@ -11517,7 +11517,7 @@
       "source_file": "app/sbom-history/page.tsx",
       "source_location": "L52",
       "id": "sbom_history_page_ecosystem_labels",
-      "community": 0,
+      "community": 22,
       "norm_label": "ecosystem_labels"
     },
     {
@@ -11526,7 +11526,7 @@
       "source_file": "app/sbom-history/page.tsx",
       "source_location": "L59",
       "id": "sbom_history_page_ecosystembar",
-      "community": 0,
+      "community": 22,
       "norm_label": "ecosystembar()"
     },
     {
@@ -11535,7 +11535,7 @@
       "source_file": "app/sbom-history/page.tsx",
       "source_location": "L98",
       "id": "sbom_history_page_sbomhistorypage",
-      "community": 0,
+      "community": 22,
       "norm_label": "sbomhistorypage()"
     },
     {
@@ -11769,7 +11769,7 @@
       "source_file": "app/stats/page.tsx",
       "source_location": "L1",
       "id": "app_stats_page_tsx",
-      "community": 110,
+      "community": 124,
       "norm_label": "page.tsx"
     },
     {
@@ -11778,7 +11778,7 @@
       "source_file": "app/stats/page.tsx",
       "source_location": "L12",
       "id": "stats_page_pymetrics",
-      "community": 110,
+      "community": 124,
       "norm_label": "pymetrics"
     },
     {
@@ -11787,7 +11787,7 @@
       "source_file": "app/stats/page.tsx",
       "source_location": "L29",
       "id": "stats_page_chartcard",
-      "community": 110,
+      "community": 124,
       "norm_label": "chartcard()"
     },
     {
@@ -11796,7 +11796,7 @@
       "source_file": "app/stats/page.tsx",
       "source_location": "L56",
       "id": "stats_page_time_options",
-      "community": 110,
+      "community": 124,
       "norm_label": "time_options"
     },
     {
@@ -11805,7 +11805,7 @@
       "source_file": "app/stats/page.tsx",
       "source_location": "L62",
       "id": "stats_page_pushhistory",
-      "community": 110,
+      "community": 124,
       "norm_label": "pushhistory()"
     },
     {
@@ -12318,7 +12318,7 @@
       "source_file": "app/processes/page.tsx",
       "source_location": "L343",
       "id": "processes_page_processespage",
-      "community": 25,
+      "community": 11,
       "norm_label": "processespage()"
     },
     {
@@ -12865,7 +12865,7 @@
       "label": "Deployment pipeline \u2014 webhooks, rollback, zero-downtime (`backend/internal/builder/builder.go`, `internal/queue/queue.go`)",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L32",
+      "source_location": "L31",
       "id": "vps_claude_deployment_pipeline_webhooks_rollback_zero_downtime_backend_internal_builder_builder_go_internal_queue_queue_go",
       "community": 111,
       "norm_label": "deployment pipeline \u2014 webhooks, rollback, zero-downtime (`backend/internal/builder/builder.go`, `internal/queue/queue.go`)"
@@ -12874,7 +12874,7 @@
       "label": "Version display (`installedVersion()` / `version()` in `backend/internal/api/server.go`)",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L38",
+      "source_location": "L37",
       "id": "vps_claude_version_display_installedversion_version_in_backend_internal_api_server_go",
       "community": 111,
       "norm_label": "version display (`installedversion()` / `version()` in `backend/internal/api/server.go`)"
@@ -12883,7 +12883,7 @@
       "label": "Domain DNS checker (`app/domain/page.tsx` \u2194 `backend/internal/api/domain_handler.go`)",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L41",
+      "source_location": "L40",
       "id": "vps_claude_domain_dns_checker_app_domain_page_tsx_backend_internal_api_domain_handler_go",
       "community": 111,
       "norm_label": "domain dns checker (`app/domain/page.tsx` \u2194 `backend/internal/api/domain_handler.go`)"
@@ -12892,7 +12892,7 @@
       "label": "Local dev / verify",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L44",
+      "source_location": "L43",
       "id": "vps_claude_local_dev_verify",
       "community": 111,
       "norm_label": "local dev / verify"
@@ -12901,7 +12901,7 @@
       "label": "CLAUDE.md",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L49",
+      "source_location": "L48",
       "id": "vps_claude_claude_md",
       "community": 111,
       "norm_label": "claude.md"
@@ -12910,7 +12910,7 @@
       "label": "1. Think Before Coding",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L55",
+      "source_location": "L54",
       "id": "vps_claude_1_think_before_coding",
       "community": 111,
       "norm_label": "1. think before coding"
@@ -12919,7 +12919,7 @@
       "label": "2. Simplicity First",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L65",
+      "source_location": "L64",
       "id": "vps_claude_2_simplicity_first",
       "community": 111,
       "norm_label": "2. simplicity first"
@@ -12928,7 +12928,7 @@
       "label": "3. Surgical Changes",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L77",
+      "source_location": "L76",
       "id": "vps_claude_3_surgical_changes",
       "community": 111,
       "norm_label": "3. surgical changes"
@@ -12937,7 +12937,7 @@
       "label": "4. Goal-Driven Execution",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L93",
+      "source_location": "L92",
       "id": "vps_claude_4_goal_driven_execution",
       "community": 111,
       "norm_label": "4. goal-driven execution"
@@ -12946,7 +12946,7 @@
       "label": "code:block1 (1. [Step] \u2192 verify: [check])",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L103",
+      "source_location": "L102",
       "id": "vps_claude_codeblock_1",
       "community": 111,
       "norm_label": "code:block1 (1. [step] \u2192 verify: [check])"
@@ -15981,7 +15981,7 @@
       "source_file": "lib/api.ts",
       "source_location": "L3",
       "id": "lib_api_api_base",
-      "community": 110,
+      "community": 124,
       "norm_label": "api_base"
     },
     {
@@ -15999,7 +15999,7 @@
       "source_file": "lib/api.ts",
       "source_location": "L51",
       "id": "lib_api_pythonapi",
-      "community": 25,
+      "community": 11,
       "norm_label": "pythonapi"
     },
     {
@@ -16007,7 +16007,7 @@
       "file_type": "code",
       "source_file": "app/stats/page.tsx",
       "source_location": "L68",
-      "community": 110,
+      "community": 124,
       "norm_label": "animatechartsvgs()",
       "id": "stats_page_animatechartsvgs"
     },
@@ -16234,7 +16234,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 132,
+      "community": 19,
       "norm_label": "typescript config",
       "id": "vps_tsconfig_config"
     },
@@ -16247,7 +16247,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 132,
+      "community": 19,
       "norm_label": "@/* path alias",
       "id": "vps_tsconfig_path_alias"
     },
@@ -16416,7 +16416,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 26,
+      "community": 0,
       "norm_label": "mock containers data",
       "id": "lib_mockdata_containers"
     },
@@ -16429,7 +16429,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 26,
+      "community": 0,
       "norm_label": "mock processes data",
       "id": "lib_mockdata_processes"
     },
@@ -16481,7 +16481,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 0,
+      "community": 41,
       "norm_label": "mock alerts data",
       "id": "lib_mockdata_alerts"
     },
@@ -16689,7 +16689,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 26,
+      "community": 0,
       "norm_label": "processespage",
       "id": "app_processes_processespage"
     },
@@ -16702,7 +16702,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 26,
+      "community": 0,
       "norm_label": "detectsuspicious (security engine)",
       "id": "app_processes_detectsuspicious"
     },
@@ -16754,7 +16754,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 26,
+      "community": 0,
       "norm_label": "suspicious process detection engine",
       "id": "concept_suspicious_detection"
     },
@@ -16767,7 +16767,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 26,
+      "community": 0,
       "norm_label": "mock data fallback pattern (initial state)",
       "id": "concept_mock_fallback"
     },
@@ -16810,7 +16810,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 50,
+      "community": 7,
       "norm_label": "db.githubaccount struct",
       "id": "db_db_githubaccount"
     },
@@ -16840,7 +16840,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 123,
+      "community": 114,
       "norm_label": "db.deployment struct",
       "id": "db_db_deployment"
     },
@@ -16855,7 +16855,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 131,
+      "community": 51,
       "norm_label": "db.manageddatabase struct",
       "id": "db_db_manageddatabase"
     },
@@ -17080,7 +17080,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 123,
+      "community": 114,
       "norm_label": "api.server.auditlog middleware",
       "id": "api_middleware_auditlog"
     },
@@ -17110,7 +17110,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 123,
+      "community": 64,
       "norm_label": "api.server.authstatus handler",
       "id": "api_auth_handler_authstatus"
     },
@@ -17185,7 +17185,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 123,
+      "community": 114,
       "norm_label": "api.server.deployproject handler",
       "id": "api_projects_handler_deployproject"
     },
@@ -17245,7 +17245,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 131,
+      "community": 51,
       "norm_label": "api.server.provisiondatabase handler",
       "id": "api_database_handler_provisiondatabase"
     },
@@ -17260,7 +17260,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 131,
+      "community": 51,
       "norm_label": "api.server.runprovision async func",
       "id": "api_database_handler_runprovision"
     },
@@ -17320,7 +17320,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 13,
+      "community": 6,
       "norm_label": "api.updatestate struct (global update state)",
       "id": "api_update_updatestate"
     },
@@ -17335,7 +17335,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 13,
+      "community": 6,
       "norm_label": "api.server.systemupdate handler",
       "id": "api_update_systemupdate"
     },
@@ -17365,7 +17365,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 50,
+      "community": 7,
       "norm_label": "api.server.githubcallback handler",
       "id": "api_github_handler_githubcallback"
     },
@@ -17438,7 +17438,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 25,
+      "community": 11,
       "norm_label": "processconfirmdialog",
       "id": "processes_page_processconfigdialog"
     },
@@ -34254,9 +34254,9 @@
       "source_file": "backend/internal/api/github_handler.go",
       "source_location": "L133",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_api_github_handler_go_api_server",
-      "target": "api_server_detectrepolayout"
+      "target": "api_server_detectrepolayout",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -34508,17 +34508,6 @@
       "weight": 1.0,
       "source": "api_server_detectrepolayout",
       "target": "api_http_writejson"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "backend/internal/api/github_handler.go",
-      "source_location": "L143",
-      "weight": 1.0,
-      "source": "api_server_detectrepolayout",
-      "target": "github_github_parseownerrepo"
     },
     {
       "relation": "calls",
@@ -38455,9 +38444,9 @@
       "source_file": "backend/internal/builder/detect.go",
       "source_location": "L73",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_builder_detect_go",
-      "target": "builder_detect_isbuildmarker"
+      "target": "builder_detect_isbuildmarker",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -42712,9 +42701,9 @@
       "source_file": "backend/internal/github/github.go",
       "source_location": "L188",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "backend_internal_github_github_go",
-      "target": "github_content"
+      "target": "github_content",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -42842,9 +42831,9 @@
       "source_file": "backend/internal/github/github.go",
       "source_location": "L195",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "github_client",
-      "target": "github_client_listcontents"
+      "target": "github_client_listcontents",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -42907,9 +42896,9 @@
       "source_file": "backend/internal/github/github.go",
       "source_location": "L204",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "github_client_listcontents",
-      "target": "github_client_get"
+      "target": "github_client_get",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -50725,5 +50714,5 @@
       "source_file": "tailwind.config.ts"
     }
   ],
-  "built_at_commit": "b1070dac47ca816a26ae9d1aae96e967c3b69459"
+  "built_at_commit": "145bd95fc3117f7b7e21ea06e37de69f8b01baa6"
 }

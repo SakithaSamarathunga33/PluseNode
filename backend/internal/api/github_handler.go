@@ -136,12 +136,20 @@ func (s *Server) detectRepoLayout(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "no GitHub account connected"})
 		return
 	}
-	parts := strings.SplitN(r.URL.Query().Get("repo"), "/", 2)
-	if len(parts) != 2 {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "repo must be owner/repo"})
+	// Accept either owner/repo or a full clone URL (the settings page only has
+	// the project's RepoURL).
+	raw := strings.TrimSpace(r.URL.Query().Get("repo"))
+	var owner, repo string
+	if o, rp, ok := github.ParseOwnerRepo(raw); ok {
+		owner, repo = o, rp
+	} else if parts := strings.SplitN(raw, "/", 2); len(parts) == 2 && parts[0] != "" && parts[1] != "" {
+		owner, repo = parts[0], parts[1]
+	}
+	if owner == "" || repo == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "repo must be owner/repo or a clone URL"})
 		return
 	}
-	owner, repo, branch := parts[0], parts[1], r.URL.Query().Get("branch")
+	branch := r.URL.Query().Get("branch")
 	client := github.NewClient(acct.AccessToken)
 
 	root, err := client.ListContents(owner, repo, "", branch)
