@@ -368,10 +368,17 @@ func (cfg Config) deployService(ctx context.Context, imageRef, slug string, envM
 		args = append(args, "--label", fmt.Sprintf("traefik.http.routers.%s.priority=%d", spec.routerName, spec.priority))
 	}
 
-	if _, ok := envMap["PORT"]; !ok {
+	// Inject PORT. For a monorepo component the per-service port is authoritative
+	// (Traefik forwards to spec.port), so it overrides any shared PORT env;
+	// single-service keeps honoring a user-provided PORT.
+	forcePort := spec.component != ""
+	if _, ok := envMap["PORT"]; forcePort || !ok {
 		args = append(args, "-e", "PORT="+port)
 	}
 	for k, v := range envMap {
+		if k == "PORT" && forcePort {
+			continue
+		}
 		args = append(args, "-e", fmt.Sprintf("%s=%s", k, v))
 	}
 	args = append(args, imageRef)

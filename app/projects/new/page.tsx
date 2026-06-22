@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { GitFork, GitBranch, Globe, ChevronRight, ChevronLeft, RefreshCw, Shuffle, Check } from "lucide-react"
+import { GitFork, GitBranch, Globe, ChevronRight, ChevronLeft, RefreshCw, Shuffle, Check, Layers } from "lucide-react"
 
 const GO_API = process.env.NEXT_PUBLIC_GO_API ?? ""
 
@@ -31,10 +31,14 @@ export default function NewProjectPage() {
   const [name, setName]         = useState("")
   const [domain, setDomain]     = useState("")
   const [port, setPort]         = useState("3000")
+  const [backendPort, setBackendPort] = useState("3001")
   const [rootDomain, setRootDomain] = useState("")
   const [buildMethod, setBuildMethod] = useState("auto")
   const buildCommand = ""
   const [envText, setEnvText]   = useState("") // KEY=VALUE lines
+
+  // Monorepo (frontend/ + backend/) detection — null = not yet probed
+  const [monorepo, setMonorepo] = useState<boolean | null>(null)
 
   // Step 3 — deploy
   const [creating, setCreating] = useState(false)
@@ -78,6 +82,7 @@ export default function NewProjectPage() {
     if (!selectedRepo) return
     setName(selectedRepo.name.toLowerCase().replace(/[^a-z0-9-]/g, "-"))
     setDomain("")
+    setMonorepo(null)
     try {
       const r = await fetch(`${GO_API}/api/projects/free-port`)
       if (r.ok) {
@@ -85,6 +90,11 @@ export default function NewProjectPage() {
         setPort(String(d.port))
       }
     } catch { /* keep default */ }
+    // Probe layout so the form can mirror what the deploy pipeline will do.
+    fetch(`${GO_API}/api/github/detect-layout?repo=${encodeURIComponent(selectedRepo.full_name)}&branch=${encodeURIComponent(selectedBranch)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => setMonorepo(Boolean(d?.monorepo)))
+      .catch(() => setMonorepo(false))
     setStep(2)
   }
 
@@ -106,7 +116,10 @@ export default function NewProjectPage() {
     setCreating(true)
     setError("")
     try {
-      const envVars = JSON.stringify(parseEnvVars())
+      const env = parseEnvVars()
+      // Monorepo: the backend listens on BACKEND_PORT (Traefik forwards /api to it).
+      if (monorepo && backendPort.trim()) env.BACKEND_PORT = backendPort.trim()
+      const envVars = JSON.stringify(env)
       const r = await fetch(`${GO_API}/api/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -256,6 +269,19 @@ export default function NewProjectPage() {
               <span>{selectedBranch}</span>
             </div>
 
+            {/* Monorepo banner */}
+            {monorepo && (
+              <div className="rounded-lg p-3 flex gap-2.5" style={{ background: "var(--acc)/10", border: "1px solid var(--acc)" }}>
+                <Layers size={15} style={{ color: "var(--acc)", flexShrink: 0, marginTop: 1 }} />
+                <div className="text-xs leading-relaxed" style={{ color: "var(--fg)" }}>
+                  <span className="font-medium">Monorepo detected — frontend/ + backend/.</span>{" "}
+                  Two containers will deploy on this domain: <span className="font-mono">frontend → /</span> and{" "}
+                  <span className="font-mono">backend → /api</span>. Keep build method on <span className="font-medium">Auto-detect</span>.
+                  Your frontend should call <span className="font-mono">/api/…</span>.
+                </div>
+              </div>
+            )}
+
             {/* Name */}
             <div>
               <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>Project Name</label>
@@ -297,16 +323,33 @@ export default function NewProjectPage() {
               </p>
             </div>
 
-            {/* Port */}
-            <div>
-              <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>Container Port</label>
-              <input
-                type="number"
-                value={port}
-                onChange={e => setPort(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-                style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
-              />
+            {/* Port(s) */}
+            <div className={monorepo ? "grid grid-cols-2 gap-3" : ""}>
+              <div>
+                <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>
+                  {monorepo ? "Frontend Port" : "Container Port"}
+                </label>
+                <input
+                  type="number"
+                  value={port}
+                  onChange={e => setPort(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                  style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
+                />
+              </div>
+              {monorepo && (
+                <div>
+                  <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--fg-3)" }}>Backend Port</label>
+                  <input
+                    type="number"
+                    value={backendPort}
+                    onChange={e => setBackendPort(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                    style={{ background: "var(--bg-3)", color: "var(--fg)", border: "1px solid var(--border)" }}
+                  />
+                  <p className="text-[10px] mt-1" style={{ color: "var(--fg-4)" }}>Port your backend listens on</p>
+                </div>
+              )}
             </div>
 
             {/* Build method */}
@@ -386,7 +429,13 @@ export default function NewProjectPage() {
               { label: "Branch",     value: selectedBranch },
               { label: "Name",       value: name },
               { label: "Domain",     value: domain },
-              { label: "Port",       value: port },
+              ...(monorepo
+                ? [
+                    { label: "Layout",        value: "monorepo (/ + /api)" },
+                    { label: "Frontend Port", value: port },
+                    { label: "Backend Port",  value: backendPort },
+                  ]
+                : [{ label: "Port", value: port }]),
               { label: "Build",      value: buildMethod },
             ].map(row => (
               <div key={row.label} className="flex items-center justify-between text-sm">

@@ -67,6 +67,18 @@ func buildableDir(dir string) bool {
 	return false
 }
 
+// IsBuildMarker reports whether a filename is a recognised build marker. It lets
+// callers that list a directory by name (e.g. via the GitHub contents API)
+// reuse the same buildability rule as buildableDir without a working tree.
+func IsBuildMarker(name string) bool {
+	for _, f := range buildableProjectFiles {
+		if name == f {
+			return true
+		}
+	}
+	return false
+}
+
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil

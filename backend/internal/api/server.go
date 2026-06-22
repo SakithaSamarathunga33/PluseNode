@@ -147,6 +147,7 @@ func (s *Server) Routes() http.Handler {
 		r.Post("/github/pat", s.githubSavePAT)
 		r.Get("/github/repos", s.githubRepos)
 		r.Get("/github/branches", s.githubBranches)
+		r.Get("/github/detect-layout", s.detectRepoLayout)
 		r.Get("/github/oauth-settings", s.githubOAuthSettings)
 		r.Post("/github/oauth-settings", s.githubSaveOAuthSettings)
 		r.Get("/github/webhook-info", s.githubWebhookInfo)

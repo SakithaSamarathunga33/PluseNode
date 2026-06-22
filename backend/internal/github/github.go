@@ -184,6 +184,29 @@ func (c *Client) ListBranches(owner, repo string) ([]string, error) {
 	return branches, nil
 }
 
+// Content is one entry from the repo contents API.
+type Content struct {
+	Name string `json:"name"`
+	Type string `json:"type"` // "dir" | "file"
+}
+
+// ListContents lists the entries at path (use "" for the repo root) on ref
+// (a branch, tag, or SHA; "" for the default branch).
+func (c *Client) ListContents(owner, repo, path, ref string) ([]Content, error) {
+	p := fmt.Sprintf("/repos/%s/%s/contents", owner, repo)
+	if path != "" {
+		p += "/" + path
+	}
+	if ref != "" {
+		p += "?ref=" + url.QueryEscape(ref)
+	}
+	var out []Content
+	if err := c.get(p, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GetBranchHead returns the latest commit SHA and message for a branch.
 func (c *Client) GetBranchHead(owner, repo, branch string) (sha, msg string, err error) {
 	var raw struct {

@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"pulsenode/backend/internal/builder"
 	"pulsenode/backend/internal/github"
 )
 
@@ -122,6 +123,64 @@ func (s *Server) githubBranches(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, branches)
+}
+
+// detectRepoLayout probes a repo's root (via the GitHub contents API) and
+// reports whether it is a frontend/ + backend/ monorepo — so the new-project
+// form can mirror what the deploy pipeline will do (build two services, route
+// frontend at / and backend at /api). Mirrors builder.DetectMonorepo without a
+// local clone.
+func (s *Server) detectRepoLayout(w http.ResponseWriter, r *http.Request) {
+	acct, err := s.db.GetGitHubAccount()
+	if err != nil || acct == nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "no GitHub account connected"})
+		return
+	}
+	parts := strings.SplitN(r.URL.Query().Get("repo"), "/", 2)
+	if len(parts) != 2 {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "repo must be owner/repo"})
+		return
+	}
+	owner, repo, branch := parts[0], parts[1], r.URL.Query().Get("branch")
+	client := github.NewClient(acct.AccessToken)
+
+	root, err := client.ListContents(owner, repo, "", branch)
+	if err != nil {
+		// Treat an unreadable repo as "no special layout" rather than an error —
+		// the form still works and the deploy pipeline detects it later.
+		writeJSON(w, http.StatusOK, map[string]any{"monorepo": false})
+		return
+	}
+	hasDir := func(name string) bool {
+		for _, e := range root {
+			if e.Type == "dir" && e.Name == name {
+				return true
+			}
+		}
+		return false
+	}
+	dirBuildable := func(dir string) bool {
+		items, err := client.ListContents(owner, repo, dir, branch)
+		if err != nil {
+			return false
+		}
+		for _, e := range items {
+			if e.Type == "file" && builder.IsBuildMarker(e.Name) {
+				return true
+			}
+		}
+		return false
+	}
+
+	if hasDir("frontend") && hasDir("backend") && dirBuildable("frontend") && dirBuildable("backend") {
+		writeJSON(w, http.StatusOK, map[string]any{
+			"monorepo": true,
+			"frontend": "/",
+			"backend":  "/api",
+		})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"monorepo": false})
 }
 
 func (s *Server) githubSaveOAuthSettings(w http.ResponseWriter, r *http.Request) {
